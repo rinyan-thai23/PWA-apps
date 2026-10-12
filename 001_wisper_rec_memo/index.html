@@ -379,7 +379,8 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: space-around;
+      justify-content: center;
+      gap: 40px;
       padding: 40px 24px env(safe-area-inset-bottom, 32px);
       box-sizing: border-box;
       opacity: 0;
@@ -545,29 +546,6 @@
       100% { transform: scaleY(1.1); }
     }
 
-    /* 停止ボタン */
-    .btn-stop-fullscreen {
-      width: 100%;
-      max-width: 320px;
-      padding: 18px 24px;
-      background: #ffffff;
-      color: #09090b;
-      border: none;
-      border-radius: 16px;
-      font-size: 1.1rem;
-      font-weight: 700;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      box-shadow: 0 10px 25px rgba(255,255,255,0.15);
-      transition: transform 0.15s ease, background 0.15s;
-    }
-
-    .btn-stop-fullscreen:active {
-      transform: scale(0.96);
-    }
   </style>
 </head>
 <body>
@@ -654,13 +632,6 @@
         <div class="wave-bar"></div>
       </div>
     </div>
-
-    <button class="btn-stop-fullscreen" onclick="stopRecording()">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-        <rect x="6" y="6" width="12" height="12" rx="2" />
-      </svg>
-      <span>録音停止 ＆ 文字起こし</span>
-    </button>
   </div>
 
   <script>
