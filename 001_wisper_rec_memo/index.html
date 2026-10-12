@@ -668,16 +668,31 @@
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js')
-          .then(reg => console.log('ServiceWorker registered:', reg.scope))
+          .then(reg => {
+            console.log('ServiceWorker registered:', reg.scope);
+            // 常に最新のServiceWorkerをチェック
+            reg.update();
+          })
           .catch(err => console.error('ServiceWorker error:', err));
       });
     }
 
     let mediaRecorder;
+    let audioStream = null;
     let audioChunks = [];
     let isRecording = false;
     let timerInterval = null;
     let recordingSeconds = 0;
+
+    // ページ更新（F5/リロード）時にマイクハードウェアの解放待ちでハングするのを防止
+    window.addEventListener('beforeunload', () => {
+      if (audioStream) {
+        audioStream.getTracks().forEach(track => track.stop());
+      }
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+      }
+    });
 
     // 画面ロード時の初期化
     window.onload = () => {
@@ -728,7 +743,7 @@
       }
 
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
         
         let mimeType = 'audio/webm';
         if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
@@ -737,7 +752,7 @@
           mimeType = 'audio/mp4';
         }
 
-        mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+        mediaRecorder = new MediaRecorder(audioStream, mimeType ? { mimeType } : undefined);
         audioChunks = [];
 
         mediaRecorder.ondataavailable = e => {
@@ -766,7 +781,10 @@
       if (!mediaRecorder || !isRecording) return;
 
       mediaRecorder.stop();
-      mediaRecorder.stream.getTracks().forEach(track => track.stop());
+      if (audioStream) {
+        audioStream.getTracks().forEach(track => track.stop());
+        audioStream = null;
+      }
       isRecording = false;
 
       closeRecOverlay();
