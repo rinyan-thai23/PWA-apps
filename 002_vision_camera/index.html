@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>タイ生活 どこでも翻訳カメラ</title>
+  <style>
+    body { margin: 0; padding: 0; background: #000; color: #fff; font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+    #camera-container { position: relative; flex: 1; background: #222; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+    video { width: 100%; height: 100%; object-fit: cover; }
+    .controls { position: absolute; bottom: 20px; left: 0; right: 0; display: flex; justify-content: center; align-items: center; z-index: 10; }
+    .shutter-btn { width: 72px; height: 72px; border-radius: 50%; background: #fff; border: 4px solid #ccc; cursor: pointer; outline: none; transition: 0.1s; }
+    .shutter-btn:active { transform: scale(0.92); }
+    .shutter-btn:disabled { background: #666; cursor: not-allowed; }
+    #result-sheet { position: absolute; bottom: 0; left: 0; right: 0; max-height: 60vh; background: rgba(20, 20, 20, 0.95); backdrop-filter: blur(8px); border-radius: 16px 16px 0 0; padding: 20px; box-sizing: border-box; overflow-y: auto; transform: translateY(100%); transition: transform 0.3s ease; z-index: 20; }
+    #result-sheet.open { transform: translateY(0); }
+    .sheet-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #444; padding-bottom: 8px; }
+    .sheet-title { font-size: 1rem; font-weight: bold; color: #48bb78; }
+    .close-btn { background: #333; color: #fff; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
+    .result-text { font-size: 0.95rem; line-height: 1.6; white-space: pre-wrap; color: #edf2f7; }
+    .key-bar { background: #1a202c; padding: 10px 15px; font-size: 0.8rem; display: flex; gap: 8px; align-items: center; }
+    .key-bar input { flex: 1; padding: 6px; border-radius: 4px; border: 1px solid #4a5568; background: #2d3748; color: #fff; }
+  </style>
+</head>
+<body>
+
+  <!-- APIキー入力欄（初回のみ入力すればlocalStorageに保存） -->
+  <div class="key-bar">
+    <span>Gemini Key:</span>
+    <input type="password" id="geminiKey" placeholder="AI Studioのキーを入力 (AIzaSy...)" onchange="saveKey()">
+  </div>
+
+  <!-- カメラビュー -->
+  <div id="camera-container">
+    <video id="video" autoplay playsinline></video>
+    <canvas id="canvas" style="display:none;"></canvas>
+
+    <div class="controls">
+      <button id="shutterBtn" class="shutter-btn" onclick="captureAndAnalyze()"></button>
+    </div>
+  </div>
+
+  <!-- 結果表示シート -->
+  <div id="result-sheet">
+    <div class="sheet-header">
+      <span class="sheet-title" id="sheetTitle">解析中...</span>
+      <button class="close-btn" onclick="closeSheet()">閉じる</button>
+    </div>
+    <div class="result-text" id="resultText">写真を撮影して解読しています...</div>
+  </div>
+
+  <script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const shutterBtn = document.getElementById('shutterBtn');
+    const resultSheet = document.getElementById('result-sheet');
+    const sheetTitle = document.getElementById('sheetTitle');
+    const resultText = document.getElementById('resultText');
+
+    // 起動時に保存済みキーを復旧＆カメラ起動
+    window.onload = async () => {
+      const savedKey = localStorage.getItem('gemini_api_key');
+      if (savedKey) document.getElementById('geminiKey').value = savedKey;
+      startCamera();
+    };
+
+    function saveKey() {
+      const key = document.getElementById('geminiKey').value.trim();
+      localStorage.setItem('gemini_api_key', key);
+    }
+
+    // 背面カメラの自動起動
+    async function startCamera() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: "environment" } }, // 背面カメラを優先
+          audio: false
+        });
+        video.srcObject = stream;
+      } catch (err) {
+        alert("カメラの起動に失敗しました。カメラのアクセス許可を確認してください。");
+      }
+    }
+
+    // シャッターを押してGeminiに送信
+    async function captureAndAnalyze() {
+      const apiKey = document.getElementById('geminiKey').value.trim();
+      if (!apiKey) {
+        alert("上部にGemini APIキーを入力してください。");
+        return;
+      }
+
+      // 静止画をCanvasにキャプチャ
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      // JPEGに変換してBase64取得（軽量化のため画質0.8）
+      const base64Image = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+
+      // UIを「解析中」に変更
+      openSheet("解析中...", "写真を送信して解読中（数秒お待ちください）...");
+      shutterBtn.disabled = true;
+
+      // プロンプト（タイ生活の文脈を考慮）
+      const prompt = `あなたはタイ在住の日本人を支援する優秀なアシスタントです。
+画像に写っているタイ語や対象物を読み取り、日本人が直感的に理解できるように日本語で解説してください。
+
+【出力ルール】
+1. 何の写真か（メニュー、食品パッケージ、看板、時刻表、薬、領収書など）を一言で明記。
+2. 重要な情報の日本語訳・ポイント（料理ならどんな味か・辛さ・主な食材／商品なら用途・アレルギー・賞味期限など）。
+3. 箇条書きを交えて、要点だけを分かりやすく端的に伝えてください。`;
+
+      try {
+        // Gemini Flash APIの呼び出し
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{
+              parts: [
+                { text: prompt },
+                { inlineData: { mimeType: "image/jpeg", data: base64Image } }
+              ]
+            }]
+          })
+        });
+
+        const data = await res.json();
+        if (data.candidates && data.candidates[0].content.parts[0].text) {
+          const reply = data.candidates[0].content.parts[0].text;
+          openSheet("解読完了", reply);
+        } else {
+          openSheet("エラー", "解析できませんでした: " + JSON.stringify(data));
+        }
+      } catch (err) {
+        openSheet("通信エラー", "サーバーとの通信に失敗しました。");
+      } finally {
+        shutterBtn.disabled = false;
+      }
+    }
+
+    function openSheet(title, text) {
+      sheetTitle.innerText = title;
+      resultText.innerText = text;
+      resultSheet.classList.add('open');
+    }
+
+    function closeSheet() {
+      resultSheet.classList.remove('open');
+    }
+  </script>
+</body>
+</html>
