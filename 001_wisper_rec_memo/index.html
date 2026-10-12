@@ -153,44 +153,75 @@
       opacity: 0.8;
     }
 
-    /* メイン録音ボタン */
-    .btn-main-record {
-      width: 100%;
-      margin-top: 16px;
-      padding: 18px;
-      border-radius: 14px;
-      border: none;
-      background: linear-gradient(135deg, #ef4444, #dc2626);
-      color: #fff;
-      font-size: 1.1rem;
-      font-weight: 700;
-      cursor: pointer;
+    /* メイン録音エリア（中央の赤い丸アイコンデザイン） */
+    .record-trigger-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 24px;
+      margin-bottom: 8px;
+    }
+
+    .mic-pulse-container {
+      position: relative;
+      width: 140px;
+      height: 140px;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 10px;
-      box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
     }
 
-    .btn-main-record:hover {
-      box-shadow: 0 8px 24px rgba(239, 68, 68, 0.55);
+    .mic-btn-circle {
+      position: relative;
+      width: 104px;
+      height: 104px;
+      border-radius: 50%;
+      background: linear-gradient(145deg, #ef4444, #b91c1c);
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 30px rgba(239, 68, 68, 0.45);
+      cursor: pointer;
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+      z-index: 2;
     }
 
-    .btn-main-record:active {
-      transform: scale(0.98);
+    .mic-btn-circle:hover {
+      transform: scale(1.06);
+      box-shadow: 0 14px 38px rgba(239, 68, 68, 0.65);
     }
 
-    .btn-main-record:disabled {
+    .mic-btn-circle:active {
+      transform: scale(0.92);
+      box-shadow: 0 6px 18px rgba(239, 68, 68, 0.4);
+    }
+
+    .mic-btn-circle svg {
+      width: 48px;
+      height: 48px;
+      fill: #ffffff;
+    }
+
+    .mic-btn-circle:disabled {
       opacity: 0.5;
       cursor: not-allowed;
-      box-shadow: none;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+
+    .record-label {
+      margin-top: 12px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -0.01em;
     }
 
     .status-text {
       text-align: center;
-      margin-top: 14px;
-      font-size: 0.85rem;
+      margin-top: 6px;
+      font-size: 0.82rem;
       color: var(--text-muted);
     }
 
@@ -440,20 +471,42 @@
     .mic-icon-circle {
       position: relative;
       z-index: 2;
-      width: 110px;
-      height: 110px;
+      width: 116px;
+      height: 116px;
       border-radius: 50%;
       background: linear-gradient(145deg, #ef4444, #b91c1c);
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 10px 30px rgba(239, 68, 68, 0.5);
+      box-shadow: 0 10px 35px rgba(239, 68, 68, 0.6);
+      cursor: pointer;
+      border: 3px solid rgba(255, 255, 255, 0.2);
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .mic-icon-circle:hover {
+      transform: scale(1.08);
+      box-shadow: 0 14px 42px rgba(239, 68, 68, 0.8);
+    }
+
+    .mic-icon-circle:active {
+      transform: scale(0.92);
+      box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5);
     }
 
     .mic-icon-circle svg {
-      width: 52px;
-      height: 52px;
+      width: 46px;
+      height: 46px;
       fill: #ffffff;
+    }
+
+    .rec-tap-hint {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #fca5a5;
+      letter-spacing: 0.02em;
+      margin-top: -8px;
     }
 
     .rec-timer {
@@ -544,15 +597,19 @@
       </div>
     </div>
 
-    <!-- 録音トリガーボタン -->
-    <button id="mainRecordBtn" class="btn-main-record" onclick="toggleRecord()">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
-        <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
-      </svg>
-      <span>タップして録音開始</span>
-    </button>
-    <div id="status" class="status-text">Groq APIキーを入力して録音を開始してください</div>
+    <!-- 録音トリガーエリア（中央の赤い丸アイコンデザイン） -->
+    <div class="record-trigger-area">
+      <div class="mic-pulse-container">
+        <button id="mainRecordBtn" class="mic-btn-circle" onclick="toggleRecord()" title="タップして録音開始">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+            <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+          </svg>
+        </button>
+      </div>
+      <div class="record-label">タップして録音開始</div>
+      <div id="status" class="status-text">Groq APIキーを入力して録音を開始してください</div>
+    </div>
   </div>
 
   <!-- 文字起こし履歴 -->
@@ -576,14 +633,15 @@
         <div class="mic-pulse-ring"></div>
         <div class="mic-pulse-ring"></div>
         <div class="mic-pulse-ring"></div>
-        <div class="mic-icon-circle">
+        <!-- 中央の赤い丸アイコンタップで停止 -->
+        <button class="mic-icon-circle" onclick="stopRecording()" title="タップして録音停止">
           <svg viewBox="0 0 24 24">
-            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
-            <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+            <rect x="5" y="5" width="14" height="14" rx="2" />
           </svg>
-        </div>
+        </button>
       </div>
 
+      <div class="rec-tap-hint">中央アイコンをタップして停止</div>
       <div id="recTimer" class="rec-timer">00:00</div>
 
       <div class="wave-bars">
@@ -807,20 +865,18 @@
     }
 
     function deleteItem(id) {
-      if (confirm("このメモを削除しますか？")) {
-        const list = getHistory().filter(item => item.id !== id);
-        setHistory(list);
-        renderHistory();
-      }
+      // ポップアップを出さずに即座に削除
+      const list = getHistory().filter(item => item.id !== id);
+      setHistory(list);
+      renderHistory();
     }
 
     function clearAllHistory() {
       const list = getHistory();
       if (list.length === 0) return;
-      if (confirm("保存されているすべての履歴を削除しますか？")) {
-        localStorage.removeItem("transcription_history");
-        renderHistory();
-      }
+      // ポップアップを出さずに即座に全削除
+      localStorage.removeItem("transcription_history");
+      renderHistory();
     }
 
     // 展開・折りたたみの切り替え
