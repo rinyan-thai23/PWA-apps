@@ -74,6 +74,14 @@
       letter-spacing: -0.02em;
     }
 
+    .header-sub {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }
+
     .brand .model-badge {
       display: inline-block;
       font-size: 0.7rem;
@@ -81,7 +89,92 @@
       background: rgba(59, 130, 246, 0.15);
       padding: 1px 8px;
       border-radius: 999px;
-      margin-top: 2px;
+    }
+
+    /* APIキートグルボタン */
+    .api-key-toggle-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #202024;
+      border: 1px solid #3f3f46;
+      color: #d4d4d8;
+      font-size: 0.72rem;
+      padding: 2px 9px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      font-weight: 500;
+    }
+
+    .api-key-toggle-btn:hover {
+      background: #27272a;
+      border-color: #52525b;
+      color: #fff;
+    }
+
+    .api-key-toggle-btn.has-key {
+      border-color: rgba(34, 197, 94, 0.35);
+      background: rgba(34, 197, 94, 0.1);
+      color: #86efac;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #71717a;
+      display: inline-block;
+    }
+
+    .api-key-toggle-btn.has-key .status-dot {
+      background: #22c55e;
+      box-shadow: 0 0 6px #22c55e;
+    }
+
+    /* APIキー設定パネル（折りたたみ・トグル） */
+    .api-key-panel {
+      overflow: hidden;
+      max-height: 220px;
+      transition: max-height 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease, margin 0.25s ease;
+      opacity: 1;
+      margin-bottom: 20px;
+    }
+
+    .api-key-panel.collapsed {
+      max-height: 0;
+      opacity: 0;
+      margin-bottom: 0;
+      pointer-events: none;
+    }
+
+    .api-key-panel-inner {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+    }
+
+    .api-key-panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .panel-close-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .panel-close-btn:hover {
+      color: var(--text);
     }
 
     /* 設定・APIキーカード */
@@ -99,7 +192,6 @@
       font-size: 0.8rem;
       font-weight: 600;
       color: var(--text-muted);
-      margin-bottom: 8px;
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
@@ -475,24 +567,39 @@
       <img src="icons/icon-192.png" alt="App Icon">
       <div>
         <h1>ボイスメモ文字起こし</h1>
-        <div class="model-badge">Groq whisper-large-v3-turbo</div>
+        <div class="header-sub">
+          <span class="model-badge">Groq whisper-large-v3-turbo</span>
+          <button type="button" id="apiKeyToggleBtn" class="api-key-toggle-btn" onclick="toggleApiKeyPanel()" title="Groq APIキーの設定">
+            <span id="apiKeyStatusDot" class="status-dot"></span>
+            <span id="apiKeyToggleText">APIキー設定</span>
+          </button>
+        </div>
       </div>
     </div>
   </header>
 
-  <!-- APIキー設定カード -->
-  <div class="card">
-    <div class="input-group">
-      <label for="apiKey">Groq API キー</label>
-      <div class="input-wrapper">
-        <input type="text" id="apiKey" class="api-key-input masked" placeholder="gsk_..." 
-               autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
-               data-lpignore="true" data-1p-ignore data-form-type="other" onchange="saveKey()">
-        <button type="button" class="toggle-visibility-btn" id="toggleKeyBtn" onclick="toggleKeyVisibility()" title="キーの表示/非表示">
-          👁️
-        </button>
+  <!-- APIキー設定パネル（折りたたみ・トグル） -->
+  <div id="apiKeyPanel" class="api-key-panel collapsed">
+    <div class="api-key-panel-inner">
+      <div class="input-group">
+        <div class="api-key-panel-header">
+          <label for="apiKey">Groq API キー</label>
+          <button type="button" class="panel-close-btn" onclick="toggleApiKeyPanel()">✕ 閉じる</button>
+        </div>
+        <div class="input-wrapper">
+          <input type="text" id="apiKey" class="api-key-input masked" placeholder="gsk_..." 
+                 autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+                 data-lpignore="true" data-1p-ignore data-form-type="other" onchange="saveKey()">
+          <button type="button" class="toggle-visibility-btn" id="toggleKeyBtn" onclick="toggleKeyVisibility()" title="キーの表示/非表示">
+            👁️
+          </button>
+        </div>
       </div>
     </div>
+  </div>
+
+  <!-- メイン録音カード -->
+  <div class="card">
 
     <!-- 録音トリガーエリア（通常画面内でアニメーション） -->
     <div id="recordTriggerArea" class="record-trigger-area">
@@ -570,16 +677,50 @@
       const savedKey = localStorage.getItem("groq_api_key");
       if (savedKey) {
         document.getElementById("apiKey").value = savedKey;
+        updateApiKeyUI(savedKey);
         document.getElementById("status").innerText = "録音の準備ができました";
+      } else {
+        updateApiKeyUI("");
+        document.getElementById("status").innerText = "APIキーを設定して録音を開始してください";
       }
       renderHistory();
     };
 
+    function updateApiKeyUI(key) {
+      const toggleBtn = document.getElementById("apiKeyToggleBtn");
+      const toggleText = document.getElementById("apiKeyToggleText");
+      if (key && key.trim().length > 0) {
+        toggleBtn.classList.add("has-key");
+        toggleText.innerText = "APIキー設定済";
+      } else {
+        toggleBtn.classList.remove("has-key");
+        toggleText.innerText = "APIキー未設定";
+      }
+    }
+
+    // APIキーパネルのトグル表示
+    function toggleApiKeyPanel() {
+      const panel = document.getElementById("apiKeyPanel");
+      panel.classList.toggle("collapsed");
+      if (!panel.classList.contains("collapsed")) {
+        setTimeout(() => document.getElementById("apiKey").focus(), 150);
+      }
+    }
+
+    function openApiKeyPanel() {
+      const panel = document.getElementById("apiKeyPanel");
+      panel.classList.remove("collapsed");
+      setTimeout(() => document.getElementById("apiKey").focus(), 150);
+    }
+
     function saveKey() {
       const key = document.getElementById("apiKey").value.trim();
       localStorage.setItem("groq_api_key", key);
+      updateApiKeyUI(key);
       if (key) {
         document.getElementById("status").innerText = "APIキーを保存しました";
+      } else {
+        document.getElementById("status").innerText = "APIキーを設定してください";
       }
     }
 
@@ -608,8 +749,8 @@
     async function startRecording() {
       const apiKey = document.getElementById("apiKey").value.trim();
       if (!apiKey) {
-        alert("先にGroqのAPIキーを入力してください。");
-        document.getElementById("apiKey").focus();
+        alert("先にGroqのAPIキーを設定してください。");
+        openApiKeyPanel();
         return;
       }
 
