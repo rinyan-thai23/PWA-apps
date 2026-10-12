@@ -1,0 +1,25 @@
+{
+  "name": "ボイスメモ文字起こし (Whisper)",
+  "short_name": "ボイスメモ",
+  "description": "Groq Whisper APIを利用した高精度音声文字起こし＆メモ管理Webアプリ",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#12141a",
+  "theme_color": "#e53e3e",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
