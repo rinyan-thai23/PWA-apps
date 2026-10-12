@@ -1,4 +1,4 @@
-const CACHE_NAME = 'wisper-rec-memo-v2';
+const CACHE_NAME = 'wisper-rec-memo-v3';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',

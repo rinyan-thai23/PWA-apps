@@ -110,21 +110,47 @@
       align-items: center;
     }
 
-    input[type="password"], input[type="text"] {
+    .api-key-input {
       width: 100%;
       background: #121214;
       border: 1px solid #27272a;
       border-radius: 10px;
-      padding: 12px 14px;
+      padding: 12px 44px 12px 14px;
       color: var(--text);
       font-size: 0.95rem;
       outline: none;
       transition: all 0.2s ease;
+      font-family: monospace;
     }
 
-    input[type="password"]:focus, input[type="text"]:focus {
+    /* パスワード保存プロンプトを出さずに伏せ字にするスタイル */
+    .api-key-input.masked {
+      -webkit-text-security: disc;
+    }
+
+    .api-key-input:focus {
       border-color: #ef4444;
       box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+
+    .toggle-visibility-btn {
+      position: absolute;
+      right: 10px;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 6px;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      transition: opacity 0.15s;
+    }
+
+    .toggle-visibility-btn:hover {
+      opacity: 0.8;
     }
 
     /* メイン録音ボタン */
@@ -509,7 +535,12 @@
     <div class="input-group">
       <label for="apiKey">Groq API キー</label>
       <div class="input-wrapper">
-        <input type="password" id="apiKey" placeholder="gsk_..." onchange="saveKey()">
+        <input type="text" id="apiKey" class="api-key-input masked" placeholder="gsk_..." 
+               autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+               data-lpignore="true" data-1p-ignore data-form-type="other" onchange="saveKey()">
+        <button type="button" class="toggle-visibility-btn" id="toggleKeyBtn" onclick="toggleKeyVisibility()" title="キーの表示/非表示">
+          👁️
+        </button>
       </div>
     </div>
 
@@ -605,6 +636,19 @@
       localStorage.setItem("groq_api_key", key);
       if (key) {
         document.getElementById("status").innerText = "APIキーを保存しました";
+      }
+    }
+
+    // APIキーの表示・非表示切り替え（パスワード保存プロンプト回避用）
+    function toggleKeyVisibility() {
+      const input = document.getElementById("apiKey");
+      const btn = document.getElementById("toggleKeyBtn");
+      if (input.classList.contains("masked")) {
+        input.classList.remove("masked");
+        btn.innerText = "🙈";
+      } else {
+        input.classList.add("masked");
+        btn.innerText = "👁️";
       }
     }
 
