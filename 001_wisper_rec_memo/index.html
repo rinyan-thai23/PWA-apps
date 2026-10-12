@@ -164,11 +164,47 @@
 
     .mic-pulse-container {
       position: relative;
-      width: 140px;
-      height: 140px;
+      width: 150px;
+      height: 150px;
       display: flex;
       align-items: center;
       justify-content: center;
+    }
+
+    /* 録音中のパルス波紋リング */
+    .mic-pulse-ring {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: rgba(239, 68, 68, 0.25);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+
+    .record-trigger-area.is-recording .mic-pulse-ring {
+      opacity: 1;
+      animation: ripple 2s infinite cubic-bezier(0, 0.2, 0.8, 1);
+    }
+
+    .record-trigger-area.is-recording .mic-pulse-ring:nth-child(2) {
+      animation-delay: 0.6s;
+    }
+
+    .record-trigger-area.is-recording .mic-pulse-ring:nth-child(3) {
+      animation-delay: 1.2s;
+    }
+
+    @keyframes ripple {
+      0% {
+        transform: scale(0.7);
+        opacity: 0.9;
+      }
+      100% {
+        transform: scale(1.6);
+        opacity: 0;
+      }
     }
 
     .mic-btn-circle {
@@ -211,11 +247,47 @@
     }
 
     .record-label {
-      margin-top: 12px;
+      margin-top: 14px;
       font-size: 0.95rem;
       font-weight: 600;
       color: var(--text);
       letter-spacing: -0.01em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* 音声波形バーアニメーション（録音中のみ表示） */
+    .wave-bars {
+      display: none;
+      align-items: center;
+      gap: 5px;
+      height: 24px;
+      margin-top: 10px;
+    }
+
+    .record-trigger-area.is-recording .wave-bars {
+      display: flex;
+    }
+
+    .wave-bar {
+      width: 4px;
+      background: #ef4444;
+      border-radius: 999px;
+      animation: wave 1.2s ease-in-out infinite alternate;
+    }
+
+    .wave-bar:nth-child(1) { height: 10px; animation-delay: 0.1s; }
+    .wave-bar:nth-child(2) { height: 20px; animation-delay: 0.3s; }
+    .wave-bar:nth-child(3) { height: 24px; animation-delay: 0.2s; }
+    .wave-bar:nth-child(4) { height: 14px; animation-delay: 0.4s; }
+    .wave-bar:nth-child(5) { height: 22px; animation-delay: 0.15s; }
+    .wave-bar:nth-child(6) { height: 12px; animation-delay: 0.35s; }
+    .wave-bar:nth-child(7) { height: 18px; animation-delay: 0.25s; }
+
+    @keyframes wave {
+      0% { transform: scaleY(0.3); }
+      100% { transform: scaleY(1.1); }
     }
 
     .status-text {
@@ -237,6 +309,36 @@
       font-size: 1.05rem;
       font-weight: 700;
       letter-spacing: -0.01em;
+    }
+
+    .history-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-copy-all {
+      background: #202024;
+      border: 1px solid #3f3f46;
+      color: #e4e4e7;
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      padding: 6px 12px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+
+    .btn-copy-all:hover {
+      background: #27272a;
+      border-color: #52525b;
+    }
+
+    .btn-copy-all:active {
+      transform: scale(0.95);
     }
 
     .btn-clear-all {
@@ -363,189 +465,6 @@
       border-color: rgba(239, 68, 68, 0.3);
     }
 
-    /* ================================================= */
-    /* 全面録音中オーバーレイ (REC OVERLAY) */
-    /* ================================================= */
-    .rec-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(9, 9, 11, 0.95);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      z-index: 9999;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 40px;
-      padding: 40px 24px env(safe-area-inset-bottom, 32px);
-      box-sizing: border-box;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    .rec-overlay.active {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .rec-indicator {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: rgba(239, 68, 68, 0.15);
-      border: 1px solid rgba(239, 68, 68, 0.35);
-      padding: 8px 20px;
-      border-radius: 999px;
-    }
-
-    .rec-dot {
-      width: 12px;
-      height: 12px;
-      background: #ef4444;
-      border-radius: 50%;
-      box-shadow: 0 0 12px #ef4444;
-      animation: blink 1s infinite alternate ease-in-out;
-    }
-
-    @keyframes blink {
-      0% { transform: scale(0.85); opacity: 0.4; }
-      100% { transform: scale(1.2); opacity: 1; }
-    }
-
-    .rec-indicator span {
-      font-size: 0.95rem;
-      font-weight: 700;
-      color: #ef4444;
-      letter-spacing: 0.08em;
-    }
-
-    /* マイクサークル＆パルス波 */
-    .rec-center {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 24px;
-    }
-
-    .mic-pulse-wrapper {
-      position: relative;
-      width: 160px;
-      height: 160px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .mic-pulse-ring {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      background: rgba(239, 68, 68, 0.2);
-      animation: ripple 2s infinite cubic-bezier(0, 0.2, 0.8, 1);
-    }
-
-    .mic-pulse-ring:nth-child(2) {
-      animation-delay: 0.6s;
-    }
-
-    .mic-pulse-ring:nth-child(3) {
-      animation-delay: 1.2s;
-    }
-
-    @keyframes ripple {
-      0% {
-        transform: scale(0.7);
-        opacity: 0.9;
-      }
-      100% {
-        transform: scale(1.6);
-        opacity: 0;
-      }
-    }
-
-    .mic-icon-circle {
-      position: relative;
-      z-index: 2;
-      width: 116px;
-      height: 116px;
-      border-radius: 50%;
-      background: linear-gradient(145deg, #ef4444, #b91c1c);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 10px 35px rgba(239, 68, 68, 0.6);
-      cursor: pointer;
-      border: 3px solid rgba(255, 255, 255, 0.2);
-      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    .mic-icon-circle:hover {
-      transform: scale(1.08);
-      box-shadow: 0 14px 42px rgba(239, 68, 68, 0.8);
-    }
-
-    .mic-icon-circle:active {
-      transform: scale(0.92);
-      box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5);
-    }
-
-    .mic-icon-circle svg {
-      width: 46px;
-      height: 46px;
-      fill: #ffffff;
-    }
-
-    .rec-tap-hint {
-      font-size: 0.95rem;
-      font-weight: 600;
-      color: #fca5a5;
-      letter-spacing: 0.02em;
-      margin-top: -8px;
-    }
-
-    .rec-timer {
-      font-size: 2.4rem;
-      font-weight: 700;
-      font-variant-numeric: tabular-nums;
-      color: #ffffff;
-      letter-spacing: 0.04em;
-    }
-
-    /* 音声波形バーアニメーション */
-    .wave-bars {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      height: 36px;
-    }
-
-    .wave-bar {
-      width: 5px;
-      background: #ef4444;
-      border-radius: 999px;
-      animation: wave 1.2s ease-in-out infinite alternate;
-    }
-
-    .wave-bar:nth-child(1) { height: 14px; animation-delay: 0.1s; }
-    .wave-bar:nth-child(2) { height: 26px; animation-delay: 0.3s; }
-    .wave-bar:nth-child(3) { height: 36px; animation-delay: 0.2s; }
-    .wave-bar:nth-child(4) { height: 20px; animation-delay: 0.4s; }
-    .wave-bar:nth-child(5) { height: 32px; animation-delay: 0.15s; }
-    .wave-bar:nth-child(6) { height: 16px; animation-delay: 0.35s; }
-    .wave-bar:nth-child(7) { height: 28px; animation-delay: 0.25s; }
-
-    @keyframes wave {
-      0% { transform: scaleY(0.3); }
-      100% { transform: scaleY(1.1); }
-    }
-
   </style>
 </head>
 <body>
@@ -575,53 +494,21 @@
       </div>
     </div>
 
-    <!-- 録音トリガーエリア（中央の赤い丸アイコンデザイン） -->
-    <div class="record-trigger-area">
+    <!-- 録音トリガーエリア（通常画面内でアニメーション） -->
+    <div id="recordTriggerArea" class="record-trigger-area">
       <div class="mic-pulse-container">
-        <button id="mainRecordBtn" class="mic-btn-circle" onclick="toggleRecord()" title="タップして録音開始">
-          <svg viewBox="0 0 24 24">
+        <div class="mic-pulse-ring"></div>
+        <div class="mic-pulse-ring"></div>
+        <div class="mic-pulse-ring"></div>
+        <button id="mainRecordBtn" class="mic-btn-circle" onclick="toggleRecord()" title="タップして録音開始 / 停止">
+          <svg id="micIconSvg" viewBox="0 0 24 24">
             <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
             <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
           </svg>
         </button>
       </div>
-      <div class="record-label">タップして録音開始</div>
-      <div id="status" class="status-text">Groq APIキーを入力して録音を開始してください</div>
-    </div>
-  </div>
 
-  <!-- 文字起こし履歴 -->
-  <div class="history-header">
-    <h2>文字起こし履歴</h2>
-    <button class="btn-clear-all" onclick="clearAllHistory()">全履歴を削除</button>
-  </div>
-  <div id="historyList" class="history-list"></div>
-
-  <!-- ================================================= -->
-  <!-- 全面録音中RECオーバーレイ -->
-  <!-- ================================================= -->
-  <div id="recOverlay" class="rec-overlay" aria-hidden="true">
-    <div class="rec-indicator">
-      <div class="rec-dot"></div>
-      <span>REC 録音中</span>
-    </div>
-
-    <div class="rec-center">
-      <div class="mic-pulse-wrapper">
-        <div class="mic-pulse-ring"></div>
-        <div class="mic-pulse-ring"></div>
-        <div class="mic-pulse-ring"></div>
-        <!-- 中央の赤い丸アイコンタップで停止 -->
-        <button class="mic-icon-circle" onclick="stopRecording()" title="タップして録音停止">
-          <svg viewBox="0 0 24 24">
-            <rect x="5" y="5" width="14" height="14" rx="2" />
-          </svg>
-        </button>
-      </div>
-
-      <div class="rec-tap-hint">中央アイコンをタップして停止</div>
-      <div id="recTimer" class="rec-timer">00:00</div>
-
+      <!-- 録音中アニメーションバー -->
       <div class="wave-bars">
         <div class="wave-bar"></div>
         <div class="wave-bar"></div>
@@ -631,8 +518,21 @@
         <div class="wave-bar"></div>
         <div class="wave-bar"></div>
       </div>
+
+      <div id="recordLabel" class="record-label">タップして録音開始</div>
+      <div id="status" class="status-text">Groq APIキーを入力して録音を開始してください</div>
     </div>
   </div>
+
+  <!-- 文字起こし履歴 -->
+  <div class="history-header">
+    <h2>文字起こし履歴</h2>
+    <div class="history-actions">
+      <button class="btn-copy-all" id="copyAllBtn" onclick="copyAllHistory()">📋 全文コピー</button>
+      <button class="btn-clear-all" onclick="clearAllHistory()">全削除</button>
+    </div>
+  </div>
+  <div id="historyList" class="history-list"></div>
 
   <script>
     // Service Worker 登録
@@ -739,8 +639,18 @@
         mediaRecorder.start();
         isRecording = true;
 
-        // 全面RECオーバーレイ表示＆タイマースタート
-        openRecOverlay();
+        // 通常画面内で録音中アニメーション＆タイマー開始
+        document.getElementById("recordTriggerArea").classList.add("is-recording");
+        document.getElementById("recordLabel").innerHTML = '🔴 録音中 <span id="recTimer" style="font-variant-numeric: tabular-nums;">00:00</span>（タップで停止）';
+        document.getElementById("status").innerText = "録音中... もう一度中央アイコンをタップすると停止します";
+
+        recordingSeconds = 0;
+        updateTimerDisplay();
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+          recordingSeconds++;
+          updateTimerDisplay();
+        }, 1000);
 
       } catch (err) {
         console.error(err);
@@ -758,37 +668,42 @@
       }
       isRecording = false;
 
-      closeRecOverlay();
+      // 録音中アニメーション＆タイマー停止
+      document.getElementById("recordTriggerArea").classList.remove("is-recording");
+      document.getElementById("recordLabel").innerText = "タップして録音開始";
+      clearInterval(timerInterval);
+
       document.getElementById("status").innerText = "⏳ Groq Whisperで超高速文字起こし中...";
       document.getElementById("mainRecordBtn").disabled = true;
-    }
-
-    // 全面RECオーバーレイ制御
-    function openRecOverlay() {
-      const overlay = document.getElementById("recOverlay");
-      overlay.classList.add("active");
-      overlay.setAttribute("aria-hidden", "false");
-
-      recordingSeconds = 0;
-      updateTimerDisplay();
-      clearInterval(timerInterval);
-      timerInterval = setInterval(() => {
-        recordingSeconds++;
-        updateTimerDisplay();
-      }, 1000);
-    }
-
-    function closeRecOverlay() {
-      const overlay = document.getElementById("recOverlay");
-      overlay.classList.remove("active");
-      overlay.setAttribute("aria-hidden", "true");
-      clearInterval(timerInterval);
     }
 
     function updateTimerDisplay() {
       const mins = String(Math.floor(recordingSeconds / 60)).padStart(2, '0');
       const secs = String(recordingSeconds % 60).padStart(2, '0');
-      document.getElementById("recTimer").innerText = `${mins}:${secs}`;
+      const timerEl = document.getElementById("recTimer");
+      if (timerEl) {
+        timerEl.innerText = `${mins}:${secs}`;
+      }
+    }
+
+    // 履歴全体の全文コピー
+    function copyAllHistory() {
+      const list = getHistory();
+      if (list.length === 0) {
+        alert("コピーする履歴がありません。");
+        return;
+      }
+
+      const fullText = list.map(item => `[${item.createdAt}]\n${item.text}`).join("\n\n");
+      const btn = document.getElementById("copyAllBtn");
+
+      navigator.clipboard.writeText(fullText).then(() => {
+        const originalText = btn.innerHTML;
+        btn.innerHTML = "<span>✅ コピー完了</span>";
+        setTimeout(() => {
+          btn.innerHTML = originalText;
+        }, 1500);
+      });
     }
 
     // Groq APIへ音声を送信
