@@ -389,16 +389,17 @@
       color: var(--text-muted);
     }
 
-    /* 履歴セクション */
+    /* 履歴セクション（2行レイアウト：1行目に見出し、2行目にボタン群） */
     .history-header {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin: 28px 0 14px;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+      margin: 28px 0 16px;
     }
 
     .history-header h2 {
-      font-size: 1.05rem;
+      font-size: 1.15rem;
       font-weight: 700;
       letter-spacing: -0.01em;
     }
@@ -406,7 +407,9 @@
     .history-actions {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
+      flex-wrap: wrap;
+      width: 100%;
     }
 
     .btn-summarize {
@@ -588,17 +591,20 @@
 
     .btn-clear-all {
       background: none;
-      border: none;
-      color: #71717a;
+      border: 1px dashed #3f3f46;
+      color: #a1a1aa;
       font-size: 0.8rem;
       cursor: pointer;
-      padding: 4px 8px;
-      border-radius: 6px;
-      transition: color 0.15s;
+      padding: 6px 12px;
+      border-radius: 8px;
+      transition: all 0.15s;
+      margin-left: auto;
     }
 
     .btn-clear-all:hover {
       color: #ef4444;
+      border-color: rgba(239, 68, 68, 0.4);
+      background: rgba(239, 68, 68, 0.1);
     }
 
     .history-list {
