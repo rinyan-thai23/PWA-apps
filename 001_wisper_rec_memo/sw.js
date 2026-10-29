@@ -1,4 +1,4 @@
-const CACHE_NAME = 'wisper-rec-memo-v6';
+const CACHE_NAME = 'wisper-rec-memo-v7';
 
 // 即時アクティベート
 self.addEventListener('install', (event) => {

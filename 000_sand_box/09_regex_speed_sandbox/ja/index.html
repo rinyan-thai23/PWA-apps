@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Regex Speed Sandbox - 即席正規表現チェッカー＆キャプチャグループ抽出機</title>
+  <meta name="description" content="ブラウザ内メモリ100%完結で安全・高速に正規表現をテスト。マッチ箇所のハイライト、キャプチャグループのテーブル抽出、JSON/CSV一括出力を即座に行うWebユーティリティ。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: #111726;
+      --card-border: #1e293b;
+      --accent: #8b5cf6;
+      --accent-glow: rgba(139, 92, 246, 0.2);
+      --accent-hover: #7c3aed;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --font-mono: 'Fira Code', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      padding: 1rem 2rem;
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(17, 23, 38, 0.8);
+      backdrop-filter: blur(8px);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #8b5cf6, #ec4899);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 15px var(--accent-glow);
+    }
+
+    .brand-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-badge {
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      background: #064e3b;
+      color: #34d399;
+      font-weight: 600;
+      border: 1px solid rgba(52, 211, 153, 0.3);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .lang-link {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      padding: 0.35rem 0.75rem;
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+    .lang-link:hover {
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      border-radius: 6px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-secondary {
+      background: #1e293b;
+      color: var(--text);
+      border-color: #334155;
+    }
+    .btn-secondary:hover {
+      background: #334155;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    main {
+      flex: 1;
+      padding: 1.5rem 2rem;
+      max-width: 1600px;
+      margin: 0 auto;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    /* Preset Samples Toolbar */
+    .preset-bar {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 0.85rem 1.25rem;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .preset-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .preset-btn {
+      background: #0b0f19;
+      border: 1px solid #334155;
+      color: #cbd5e1;
+      padding: 0.35rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .preset-btn:hover {
+      border-color: var(--accent);
+      color: #c084fc;
+      background: rgba(139, 92, 246, 0.08);
+    }
+
+    /* Regex Input Card */
+    .regex-bar-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .slash {
+      font-family: var(--font-mono);
+      font-size: 1.5rem;
+      color: var(--accent);
+      font-weight: 700;
+      user-select: none;
+    }
+
+    input.regex-input {
+      flex: 1;
+      background: #070a12;
+      border: 2px solid #334155;
+      border-radius: 8px;
+      padding: 0.65rem 1rem;
+      font-family: var(--font-mono);
+      font-size: 1.05rem;
+      color: #c084fc;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input.regex-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    .flags-group {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      background: #0b0f19;
+      padding: 0.35rem 0.6rem;
+      border-radius: 6px;
+      border: 1px solid #1e293b;
+    }
+
+    .flag-label {
+      font-size: 0.8rem;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      user-select: none;
+    }
+    .flag-label input[type="checkbox"] {
+      accent-color: var(--accent);
+    }
+
+    /* Workspace Grid */
+    .workspace-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      flex: 1;
+      min-height: 520px;
+    }
+
+    @media (max-width: 1024px) {
+      .workspace-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      padding: 0.75rem 1rem;
+      background: rgba(15, 23, 42, 0.6);
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .panel-title {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .error-banner {
+      background: rgba(239, 68, 68, 0.15);
+      border-bottom: 1px solid rgba(239, 68, 68, 0.3);
+      padding: 0.5rem 1rem;
+      color: #f87171;
+      font-size: 0.8rem;
+      font-family: var(--font-mono);
+      display: none;
+    }
+
+    /* Match Highlight Preview */
+    .editor-wrapper {
+      position: relative;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    textarea.test-input {
+      width: 100%;
+      height: 220px;
+      padding: 1rem;
+      background: transparent;
+      color: #e2e8f0;
+      border: none;
+      resize: vertical;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      line-height: 1.55;
+      outline: none;
+      white-space: pre-wrap;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    .highlight-pane {
+      flex: 1;
+      padding: 1rem;
+      background: #080c14;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      line-height: 1.55;
+      color: #94a3b8;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    mark.regex-match {
+      background: rgba(139, 92, 246, 0.35);
+      color: #f8fafc;
+      border-bottom: 2px solid #a855f7;
+      border-radius: 2px;
+      padding: 1px 2px;
+    }
+
+    /* Right Panel (Groups Table & Export) */
+    .output-tabs {
+      display: flex;
+      gap: 0.25rem;
+    }
+
+    .tab-btn {
+      padding: 0.35rem 0.75rem;
+      font-size: 0.8rem;
+      font-weight: 500;
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .tab-btn.active {
+      background: #1e293b;
+      color: var(--accent);
+      border-color: #334155;
+    }
+
+    .groups-table-container {
+      flex: 1;
+      padding: 1rem;
+      background: #080c14;
+      overflow: auto;
+    }
+
+    .groups-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+      font-family: var(--font-mono);
+    }
+    .groups-table th, .groups-table td {
+      border: 1px solid #1e293b;
+      padding: 0.5rem 0.75rem;
+      text-align: left;
+    }
+    .groups-table th {
+      background: #111726;
+      color: #cbd5e1;
+      font-weight: 600;
+    }
+    .groups-table tr:nth-child(even) {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .code-export-area {
+      flex: 1;
+      padding: 1rem;
+      background: #080c14;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      color: #38bdf8;
+      overflow: auto;
+      white-space: pre-wrap;
+      display: none;
+      user-select: all;
+    }
+
+    #toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: #10b981;
+      color: #042f2e;
+      padding: 0.6rem 1.2rem;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.875rem;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.25s ease;
+      pointer-events: none;
+      z-index: 100;
+    }
+    #toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    footer {
+      padding: 1.25rem;
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      border-top: 1px solid var(--card-border);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="brand-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-title">Regex Speed Sandbox</div>
+      </div>
+      <span class="brand-badge">100% Client-Side Safe</span>
+    </div>
+
+    <div class="header-actions">
+      <button class="btn btn-secondary" id="btn-load-sample">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        外部テストサンプル再読込
+      </button>
+      <a href="../en/index.html" class="lang-link">English</a>
+    </div>
+  </header>
+
+  <main>
+    <!-- Preset Samples Toolbar (一目でわかる用途別プリセット) -->
+    <div class="preset-bar">
+      <span class="preset-label">💡 クイック実用プリセット:</span>
+      <button class="preset-btn" id="pre-email">📧 メールアドレス抽出</button>
+      <button class="preset-btn" id="pre-url">🌐 URL・ドメイン抽出</button>
+      <button class="preset-btn" id="pre-log">🚨 ログレベル＆メッセージ</button>
+      <button class="preset-btn" id="pre-status">🔢 HTTPステータス抽出</button>
+      <button class="preset-btn" id="pre-ip">🖥️ IPアドレス抽出</button>
+    </div>
+
+    <!-- Regex Input Card -->
+    <div class="regex-bar-card">
+      <span class="slash">/</span>
+      <input type="text" id="inp-pattern" class="regex-input" value="https?:\/\/([^\/\s]+)([\/\w\.-]*)*" placeholder="正規表現パターンを入力 (例: ([a-zA-Z0-9._%+-]+)@([a-zA-Z0-9.-]+\.[a-zA-Z]{2,}))">
+      <span class="slash">/</span>
+
+      <div class="flags-group">
+        <label class="flag-label"><input type="checkbox" id="flag-g" checked> g</label>
+        <label class="flag-label"><input type="checkbox" id="flag-i"> i</label>
+        <label class="flag-label"><input type="checkbox" id="flag-m" checked> m</label>
+        <label class="flag-label"><input type="checkbox" id="flag-s"> s</label>
+      </div>
+    </div>
+
+    <div class="error-banner" id="error-banner"></div>
+
+    <!-- Workspace -->
+    <div class="workspace-grid">
+      <!-- Input & Highlight Panel -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            テストテキスト入力 (上) ＆ リアルタイムマッチ表示 (下)
+          </span>
+          <button class="btn btn-secondary" style="padding:2px 8px; font-size:0.75rem;" id="btn-clear">クリア</button>
+        </div>
+        <div class="editor-wrapper">
+          <textarea class="test-input" id="inp-text" placeholder="ここにログやテキストを貼り付けてください..."></textarea>
+          <div class="highlight-pane" id="highlight-pane"></div>
+        </div>
+      </div>
+
+      <!-- Right Panel: Extracted Groups & JSON -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="output-tabs">
+            <button class="tab-btn active" data-tab="table">キャプチャグループ表</button>
+            <button class="tab-btn" data-tab="json">JSON配列</button>
+            <button class="tab-btn" data-tab="lines">抽出リスト (改行)</button>
+          </div>
+          <button class="btn btn-primary" style="padding:0.3rem 0.75rem; font-size:0.8rem;" id="btn-copy">
+            抽出結果をコピー
+          </button>
+        </div>
+
+        <div class="groups-table-container" id="table-container">
+          <table class="groups-table" id="groups-table"></table>
+        </div>
+        <div class="code-export-area" id="code-export-area"></div>
+      </div>
+    </div>
+  </main>
+
+  <div id="toast">クリップボードにコピーしました！</div>
+
+  <footer>
+    <p>Regex Speed Sandbox &bull; 完全静音・100%クライアントサイド処理 &bull; データはサーバーに一切送信されません</p>
+  </footer>
+
+  <script>
+    let currentTab = 'table';
+    let lastMatches = [];
+
+    const inpPattern = document.getElementById('inp-pattern');
+    const inpText = document.getElementById('inp-text');
+    const flagG = document.getElementById('flag-g');
+    const flagI = document.getElementById('flag-i');
+    const flagM = document.getElementById('flag-m');
+    const flagS = document.getElementById('flag-s');
+
+    const errorBanner = document.getElementById('error-banner');
+    const highlightPane = document.getElementById('highlight-pane');
+    const groupsTable = document.getElementById('groups-table');
+    const tableContainer = document.getElementById('table-container');
+    const codeExportArea = document.getElementById('code-export-area');
+    const toast = document.getElementById('toast');
+
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2200);
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function getFlags() {
+      let f = '';
+      if (flagG.checked) f += 'g';
+      if (flagI.checked) f += 'i';
+      if (flagM.checked) f += 'm';
+      if (flagS.checked) f += 's';
+      return f;
+    }
+
+    function runRegex() {
+      const patternStr = inpPattern.value;
+      const text = inpText.value;
+      const flags = getFlags();
+
+      if (!patternStr) {
+        errorBanner.style.display = 'none';
+        highlightPane.textContent = text;
+        groupsTable.innerHTML = '<tr><td style="color:#64748b; padding:1rem;">パターンを入力してください</td></tr>';
+        codeExportArea.textContent = '[]';
+        lastMatches = [];
+        return;
+      }
+
+      let regex;
+      try {
+        regex = new RegExp(patternStr, flags);
+        errorBanner.style.display = 'none';
+      } catch (err) {
+        errorBanner.textContent = '正規表現エラー: ' + err.message;
+        errorBanner.style.display = 'block';
+        return;
+      }
+
+      lastMatches = [];
+      let match;
+      let highlightedHtml = '';
+      let lastIndex = 0;
+
+      if (!flags.includes('g')) {
+        match = regex.exec(text);
+        if (match) {
+          lastMatches.push(match);
+          highlightedHtml = escapeHtml(text.substring(0, match.index)) +
+            '<mark class="regex-match">' + escapeHtml(match[0]) + '</mark>' +
+            escapeHtml(text.substring(match.index + match[0].length));
+        } else {
+          highlightedHtml = escapeHtml(text);
+        }
+      } else {
+        const matches = [];
+        let m;
+        let limit = 5000;
+        let iter = 0;
+
+        while ((m = regex.exec(text)) !== null && iter < limit) {
+          iter++;
+          matches.push(m);
+          highlightedHtml += escapeHtml(text.substring(lastIndex, m.index));
+          highlightedHtml += '<mark class="regex-match">' + escapeHtml(m[0]) + '</mark>';
+          lastIndex = m.index + m[0].length;
+          if (m[0].length === 0) regex.lastIndex++; // ゼロ幅マッチ無限ループ回避
+        }
+        highlightedHtml += escapeHtml(text.substring(lastIndex));
+        lastMatches = matches;
+      }
+
+      highlightPane.innerHTML = highlightedHtml || '<span style="color:#64748b;">(空テキスト)</span>';
+      renderOutputs();
+    }
+
+    function renderOutputs() {
+      if (lastMatches.length === 0) {
+        groupsTable.innerHTML = '<tr><td style="color:#64748b; padding:1rem;">マッチは見つかりませんでした</td></tr>';
+        codeExportArea.textContent = '[]';
+        return;
+      }
+
+      // 1. テーブルレンダリング
+      const maxGroups = Math.max(...lastMatches.map(m => m.length));
+      let ths = '<th>#</th><th>Full Match</th>';
+      for (let i = 1; i < maxGroups; i++) {
+        ths += `<th>Group ${i}</th>`;
+      }
+      let rowsHtml = '';
+      lastMatches.forEach((m, idx) => {
+        let tds = `<td>${idx + 1}</td><td style="color:#c084fc;">${escapeHtml(m[0])}</td>`;
+        for (let i = 1; i < maxGroups; i++) {
+          tds += `<td>${m[i] !== undefined ? escapeHtml(m[i]) : '<span style="color:#475569;">-</span>'}</td>`;
+        }
+        rowsHtml += `<tr>${tds}</tr>`;
+      });
+      groupsTable.innerHTML = `<thead><tr>${ths}</tr></thead><tbody>${rowsHtml}</tbody>`;
+
+      // 2. JSON 出力
+      const jsonData = lastMatches.map(m => {
+        const item = { match: m[0] };
+        for (let i = 1; i < m.length; i++) {
+          item[`group_${i}`] = m[i] !== undefined ? m[i] : null;
+        }
+        return item;
+      });
+
+      if (currentTab === 'json') {
+        codeExportArea.textContent = JSON.stringify(jsonData, null, 2);
+        tableContainer.style.display = 'none';
+        codeExportArea.style.display = 'block';
+      } else if (currentTab === 'lines') {
+        codeExportArea.textContent = lastMatches.map(m => m[0]).join('\n');
+        tableContainer.style.display = 'none';
+        codeExportArea.style.display = 'block';
+      } else {
+        tableContainer.style.display = 'block';
+        codeExportArea.style.display = 'none';
+      }
+    }
+
+    // イベントリスナー
+    [inpPattern, inpText].forEach(el => el.addEventListener('input', runRegex));
+    [flagG, flagI, flagM, flagS].forEach(el => el.addEventListener('change', runRegex));
+
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentTab = btn.dataset.tab;
+        renderOutputs();
+      });
+    });
+
+    document.getElementById('btn-clear').addEventListener('click', () => {
+      inpText.value = '';
+      runRegex();
+    });
+
+    document.getElementById('btn-copy').addEventListener('click', async () => {
+      let copyText = '';
+      if (currentTab === 'table' || currentTab === 'lines') {
+        copyText = lastMatches.map(m => m[0]).join('\n');
+      } else if (currentTab === 'json') {
+        copyText = codeExportArea.textContent;
+      }
+      if (!copyText) return;
+      try {
+        await navigator.clipboard.writeText(copyText);
+        showToast('抽出結果をクリップボードにコピーしました！');
+      } catch (e) {
+        showToast('コピーに失敗しました');
+      }
+    });
+
+    // プリセットボタン
+    document.getElementById('pre-email').addEventListener('click', () => {
+      inpPattern.value = '([a-zA-Z0-9._%+-]+)@([a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})';
+      runRegex();
+      showToast('プリセット: メールアドレス抽出を適用しました');
+    });
+
+    document.getElementById('pre-url').addEventListener('click', () => {
+      inpPattern.value = 'https?:\\/\\/([^\\/\\s]+)([\\/\\w\\.-]*)*';
+      runRegex();
+      showToast('プリセット: URL抽出を適用しました');
+    });
+
+    document.getElementById('pre-log').addEventListener('click', () => {
+      inpPattern.value = '\\[(INFO|WARN|ERROR)\\]\\s+(.+)';
+      runRegex();
+      showToast('プリセット: ログレベル＆本文抽出を適用しました');
+    });
+
+    document.getElementById('pre-status').addEventListener('click', () => {
+      inpPattern.value = '\\b([1-5]\\d{2})\\s+([A-Za-z ]+)\\b';
+      runRegex();
+      showToast('プリセット: HTTPステータス抽出を適用しました');
+    });
+
+    document.getElementById('pre-ip').addEventListener('click', () => {
+      inpPattern.value = '\\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\b';
+      runRegex();
+      showToast('プリセット: IPアドレス抽出を適用しました');
+    });
+
+    // 外部サンプルのロード
+    async function loadSample() {
+      try {
+        const res = await fetch('sample.txt?t=' + Date.now());
+        if (res.ok) {
+          const text = await res.text();
+          inpText.value = text;
+          runRegex();
+          showToast('外部サンプル (sample.txt) をロードしました');
+        }
+      } catch (err) {
+        console.error('Error fetching sample.txt:', err);
+      }
+    }
+
+    document.getElementById('btn-load-sample').addEventListener('click', loadSample);
+    window.addEventListener('DOMContentLoaded', loadSample);
+  </script>
+</body>
+</html>

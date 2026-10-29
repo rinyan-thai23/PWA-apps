@@ -1,0 +1,74 @@
+{
+  "orderId": "ord_98471203948",
+  "status": "PROCESSING",
+  "currency": "USD",
+  "createdAt": "2026-10-27T08:14:22Z",
+  "updatedAt": "2026-10-27T08:20:10Z",
+  "isGift": false,
+  "discountCode": "PROMO2026_FALL",
+  "pricingSummary": {
+    "subtotal": 1285.50,
+    "taxAmount": 102.84,
+    "shippingFee": 0.00,
+    "discountTotal": 128.55,
+    "grandTotal": 1259.79
+  },
+  "customer": {
+    "userId": "usr_77189a2b",
+    "name": "Sarah Connor",
+    "email": "sarah.connor@cyberdyne-defense.org",
+    "isVerified": true,
+    "loyaltyTier": "PLATINUM",
+    "metadata": {
+      "signupSource": "web_campaign_ad",
+      "preferredLanguage": "en-US",
+      "lastLoginIp": "198.51.100.44"
+    }
+  },
+  "items": [
+    {
+      "itemId": "itm_001_quantum_cpu",
+      "sku": "HW-QPU-8100",
+      "title": "Quantum Neural Processing Unit (Edge Edition)",
+      "quantity": 1,
+      "unitPrice": 899.00,
+      "categories": ["hardware", "processors", "edge-ai"],
+      "specifications": {
+        "cores": 64,
+        "powerWatts": 45,
+        "tflops": 120.5
+      },
+      "inStock": true
+    },
+    {
+      "itemId": "itm_002_cooling_shield",
+      "sku": "ACC-CRYO-SHIELD-V2",
+      "title": "Cryogenic Thermal Conductive Shielding Module",
+      "quantity": 2,
+      "unitPrice": 193.25,
+      "categories": ["accessories", "cooling"],
+      "specifications": {
+        "material": "Graphene Composite",
+        "thermalRating": "A++"
+      },
+      "inStock": true
+    }
+  ],
+  "shippingAddress": {
+    "recipient": "Sarah Connor",
+    "streetAddress": "100 Tech Enterprise Blvd, Suite 400",
+    "city": "Austin",
+    "state": "TX",
+    "postalCode": "78701",
+    "country": "USA",
+    "deliveryInstructions": "Leave package at front security desk if unavailable."
+  },
+  "payment": {
+    "method": "CREDIT_CARD",
+    "provider": "STRIPE",
+    "lastFour": "5678",
+    "transactionReference": "ch_3M0qXGh92KsL1mP90wVxYz12",
+    "paidAt": "2026-10-27T08:15:01Z",
+    "failureReason": null
+  }
+}

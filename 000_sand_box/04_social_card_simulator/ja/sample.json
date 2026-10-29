@@ -1,0 +1,9 @@
+{
+  "title": "Introducing Next-Gen Edge Architecture: Scaling Micro-Frontends with Zero Latency & Global State Synchronization",
+  "description": "Discover how modern distributed edge computing transforms full-stack performance across 300+ global nodes. In this comprehensive deep-dive, we explore automated sub-millisecond edge routing, edge-native cache invalidation strategies, and real-time state synchronization without cold starts or expensive serverless roundtrips.",
+  "siteName": "CloudFlow Engineering Insights",
+  "url": "https://engineering.cloudflow.dev/posts/next-gen-edge-microfrontends-architecture-2026",
+  "imageUrl": "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1200&h=630&q=80",
+  "author": "@cloudflow_eng",
+  "twitterCard": "summary_large_image"
+}

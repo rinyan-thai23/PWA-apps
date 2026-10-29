@@ -1,0 +1,36 @@
+2026-10-27T10:14:02.193Z [INFO] [AuthService] Initializing OAuth2 client configuration...
+2026-10-27T10:14:02.195Z [DEBUG] [ConfigLoader] Loaded environment variables from /var/app/.env.production
+  DATABASE_URL="postgres://app_user:SuperSecretPassword123!@db-prod-cluster.c9f91a.us-east-1.rds.amazonaws.com:5432/primary_db"
+  AWS_ACCESS_KEY_ID="AKIAIOSFODNN7EXAMPLE"
+  AWS_SECRET_ACCESS_KEY="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+  AWS_DEFAULT_REGION="us-east-1"
+  OPENAI_API_KEY="sk-proj-aB9cD8eF7gH6iJ5kL4mN3oP2qR1sT9uV8wX7yZ6aB5cD4eF3gH2iJ1kL0mN9oP8qR"
+  STRIPE_SECRET_KEY="sk_live_51Mz0qXGh92KsL1mP90wVxYz1234567890abcdefghijklmnopqrstuvwxyz"
+  GITHUB_TOKEN="ghp_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8"
+  SLACK_BOT_TOKEN="xoxb-123456789012-1234567890123-456789abcdefghijklmnopqrst"
+
+2026-10-27T10:14:02.240Z [INFO] [ClusterManager] Node bootstrap completed. Bound to internal interface 10.244.15.82:8080 and public gateway 198.51.100.44.
+2026-10-27T10:14:03.011Z [DEBUG] [SecurityModule] Loading RSA TLS Private Key for internal mTLS:
+-----BEGIN RSA PRIVATE KEY-----
+MIIEowIBAAKCAQEA0Y9z+example+RSA+private+key+payload+for+testing+purposes+
+only+never+use+in+production+abcdef1234567890ABCDEF1234567890abcdef123456
+7890ABCDEF1234567890abcdef1234567890ABCDEF1234567890abcdef1234567890ABCD
+EF1234567890abcdef1234567890ABCDEF1234567890abcdef1234567890ABCDEF1234==
+-----END RSA PRIVATE KEY-----
+
+2026-10-27T10:14:05.812Z [INFO] [HttpGateway] Inbound HTTP POST /api/v2/checkout/process from remote client 203.0.113.195
+  Headers:
+    Host: api.cloudflow.dev
+    User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36
+    Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkFsZXggTW9yZ2FuIiwiaWF0IjoxNTE2MjM5MDIyLCJlbWFpbCI6ImFsZXgubW9yZ2FuQGV4YW1wbGUtY29ycC5jb20ifQ.abcdefghijklmnopqrstuvwxyz1234567890_EXMPL
+  Payload:
+    {
+      "customer_email": "sarah.connor@cyberdyne-defense.org",
+      "billing_contact": "+1-415-555-0199",
+      "credit_card": "4532-7598-1234-5678",
+      "emergency_backup_email": "admin-alert@dev-ops-corp.io",
+      "ipv6_client": "2001:0db8:85a3:0000:0000:8a2e:0370:7334"
+    }
+
+2026-10-27T10:14:06.120Z [WARN] [RateLimiter] IP 192.168.1.105 exceeded burst threshold (current rate: 450 req/s).
+2026-10-27T10:14:06.491Z [INFO] [AuditLog] Transaction 89412 approved. Confirmation receipt dispatched to user.johnson@internal-network.net and developer.team@startup-labs.co.uk.

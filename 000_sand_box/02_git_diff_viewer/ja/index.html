@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="ja" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Instant Git Diff to Visual Story - 即席差分ビューア</title>
+  <meta name="description" content="git diffやパッチテキストを貼り付けるだけで、GitHub Pull Requestのような美しい左右比較（Split/Unified）を瞬時にレンダリングする無料Webツール。">
+  <link rel="alternate" hreflang="ja" href="./" />
+  <link rel="alternate" hreflang="en" href="../en/" />
+  <link rel="alternate" hreflang="x-default" href="../en/" />
+
+  <!-- Tailwind CSS & Lucide Icons -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    :root {
+      --bg-main: #0b0f19;
+      --bg-card: #111827;
+      --bg-card-alt: #161f30;
+      --border-color: #1e293b;
+      --diff-add-bg: rgba(16, 185, 129, 0.15);
+      --diff-add-line: rgba(16, 185, 129, 0.35);
+      --diff-del-bg: rgba(239, 68, 68, 0.15);
+      --diff-del-line: rgba(239, 68, 68, 0.35);
+    }
+    body {
+      background-color: var(--bg-main);
+      color: #e2e8f0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    }
+    .flag-icon {
+      width: 18px;
+      height: 13px;
+      border-radius: 2px;
+      vertical-align: middle;
+      display: inline-block;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    }
+    .diff-line {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.8rem;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    .diff-line.add { background-color: var(--diff-add-bg); border-left: 3px solid #10b981; }
+    .diff-line.del { background-color: var(--diff-del-bg); border-left: 3px solid #ef4444; }
+    .diff-line.hunk { background-color: rgba(99, 102, 241, 0.12); color: #818cf8; font-weight: 600; }
+    .line-num {
+      width: 44px;
+      user-select: none;
+      text-align: right;
+      padding-right: 8px;
+      color: #475569;
+      font-size: 0.75rem;
+      flex-shrink: 0;
+    }
+    textarea {
+      scrollbar-width: thin;
+      scrollbar-color: #334155 transparent;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Header -->
+  <header class="border-b py-3 px-4 sm:px-6 sticky top-0 z-40 backdrop-blur-md" style="background-color: rgba(11, 15, 25, 0.85); border-color: var(--border-color);">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <a href="../" class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-md hover:scale-105 transition-transform" title="Language Hub">
+          <i data-lucide="git-pull-request" class="w-5 h-5"></i>
+        </a>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="font-bold text-base text-white tracking-tight">Git Diff Viewer</h1>
+            <span class="hidden sm:inline-flex px-2 py-0.5 text-[10px] font-semibold rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">即席差分</span>
+          </div>
+          <p class="text-[11px] text-gray-400">git diffやパッチを投げるだけでGitHub風の左右比較プレビュー</p>
+        </div>
+      </div>
+
+      <!-- Action Toolbar -->
+      <div class="flex items-center gap-2">
+        <!-- View Mode Switcher -->
+        <div class="inline-flex rounded-lg border border-zinc-700 p-0.5 bg-zinc-900 text-xs">
+          <button id="btnSplit" onclick="setViewMode('split')" class="px-2.5 py-1 rounded-md font-semibold text-white bg-indigo-600 transition">
+            左右比較 (Split)
+          </button>
+          <button id="btnUnified" onclick="setViewMode('unified')" class="px-2.5 py-1 rounded-md font-medium text-gray-400 hover:text-white transition">
+            統合 (Unified)
+          </button>
+        </div>
+
+        <button onclick="toggleInputPanel()" id="toggleInputBtn" class="px-3 py-1.5 rounded-lg text-xs font-medium border border-zinc-700 bg-zinc-800 text-gray-200 hover:text-white transition flex items-center gap-1.5">
+          <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+          <span id="inputBtnLabel">差分入力を閉じる</span>
+        </button>
+
+        <!-- Language Switcher -->
+        <a href="../en/" class="px-2.5 py-1 rounded-lg text-xs font-medium border border-zinc-700 bg-zinc-800 text-gray-300 hover:text-white transition flex items-center gap-1.5" title="Switch to English">
+          <svg viewBox="0 0 32 24" class="flag-icon" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="24" fill="#b22234"/><path d="M0 1.85h32v1.85H0zm0 3.69h32v1.85H0zm0 3.69h32v1.85H0zm0 3.69h32v1.85H0zm0 3.69h32v1.85H0zm0 3.69h32v1.85H0z" fill="#ffffff"/><rect width="14" height="13" fill="#3c3b6e"/></svg>
+          <span>EN</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Input Collapsible Drawer -->
+  <div id="inputDrawer" class="border-b transition-all duration-300 overflow-hidden" style="background-color: var(--bg-card); border-color: var(--border-color);">
+    <div class="max-w-7xl mx-auto p-4 sm:p-5 flex flex-col gap-3">
+      <div class="flex items-center justify-between">
+        <label for="diffInput" class="text-xs font-bold text-gray-300 flex items-center gap-1.5">
+          <i data-lucide="terminal" class="w-4 h-4 text-indigo-400"></i>
+          git diff 出力 または .diff / .patch ファイルを貼り付け・D&D
+        </label>
+        <div class="flex items-center gap-2">
+          <button onclick="loadSample()" class="text-xs text-indigo-400 hover:underline flex items-center gap-1">
+            💡 サンプルDiffを再読込
+          </button>
+          <button onclick="clearDiff()" class="text-xs text-red-400 hover:underline flex items-center gap-1">
+            クリア
+          </button>
+        </div>
+      </div>
+      <textarea id="diffInput" oninput="renderDiff()" placeholder="diff --git a/... b/... の出力をここにペーストしてください..." class="w-full h-36 p-3 rounded-xl bg-zinc-950/80 border border-zinc-800 font-mono text-xs text-gray-200 placeholder-gray-500 focus:outline-none focus:border-indigo-500 transition resize-none"></textarea>
+    </div>
+  </div>
+
+  <!-- Main Diff Viewer -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 flex flex-col gap-5">
+    
+    <!-- File Stats Bar -->
+    <div class="flex items-center justify-between text-xs text-gray-400 border-b pb-3" style="border-color: var(--border-color);">
+      <div class="flex items-center gap-3">
+        <span class="font-bold text-white flex items-center gap-1.5">
+          <i data-lucide="files" class="w-4 h-4 text-indigo-400"></i>
+          変更ファイル: <span id="fileCount" class="text-indigo-400 font-mono">0</span> 件
+        </span>
+        <span class="text-emerald-400 font-mono font-bold" id="addStats">+0 行追加</span>
+        <span class="text-red-400 font-mono font-bold" id="delStats">-0 行削除</span>
+      </div>
+      <div class="text-[11px] text-gray-500">
+        🔒 100% ブラウザ内完結・サーバー送信なし
+      </div>
+    </div>
+
+    <!-- Render Container -->
+    <div id="diffContainer" class="flex flex-col gap-6">
+      <!-- File diff cards will be dynamically injected here -->
+    </div>
+
+  </main>
+
+  <script>
+    let currentViewMode = 'split'; // 'split' or 'unified'
+
+    function setViewMode(mode) {
+      currentViewMode = mode;
+      const btnSplit = document.getElementById('btnSplit');
+      const btnUnified = document.getElementById('btnUnified');
+
+      if (mode === 'split') {
+        btnSplit.className = 'px-2.5 py-1 rounded-md font-semibold text-white bg-indigo-600 transition';
+        btnUnified.className = 'px-2.5 py-1 rounded-md font-medium text-gray-400 hover:text-white transition';
+      } else {
+        btnSplit.className = 'px-2.5 py-1 rounded-md font-medium text-gray-400 hover:text-white transition';
+        btnUnified.className = 'px-2.5 py-1 rounded-md font-semibold text-white bg-indigo-600 transition';
+      }
+      renderDiff();
+    }
+
+    function toggleInputPanel() {
+      const drawer = document.getElementById('inputDrawer');
+      const label = document.getElementById('inputBtnLabel');
+      if (drawer.classList.contains('hidden')) {
+        drawer.classList.remove('hidden');
+        label.innerText = '差分入力を閉じる';
+      } else {
+        drawer.classList.add('hidden');
+        label.innerText = '差分を入力する';
+      }
+    }
+
+    function parseGitDiff(diffText) {
+      const files = [];
+      const lines = diffText.split('\n');
+      let currentFile = null;
+      let currentHunk = null;
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+
+        if (line.startsWith('diff --git ')) {
+          if (currentFile) files.push(currentFile);
+          const parts = line.split(' ');
+          const fileName = parts[3] ? parts[3].replace(/^b\//, '') : 'unknown';
+          currentFile = { name: fileName, hunks: [], additions: 0, deletions: 0 };
+        } else if (line.startsWith('@@ ')) {
+          if (!currentFile) {
+            currentFile = { name: 'patch_preview', hunks: [], additions: 0, deletions: 0 };
+          }
+          currentHunk = { header: line, lines: [] };
+          currentFile.hunks.push(currentHunk);
+        } else if (currentHunk) {
+          if (line.startsWith('+') && !line.startsWith('+++ ')) {
+            currentHunk.lines.push({ type: 'add', text: line.substring(1) });
+            currentFile.additions++;
+          } else if (line.startsWith('-') && !line.startsWith('--- ')) {
+            currentHunk.lines.push({ type: 'del', text: line.substring(1) });
+            currentFile.deletions++;
+          } else if (line.startsWith(' ')) {
+            currentHunk.lines.push({ type: 'normal', text: line.substring(1) });
+          } else if (line === '') {
+            currentHunk.lines.push({ type: 'normal', text: '' });
+          }
+        }
+      }
+      if (currentFile) files.push(currentFile);
+      return files;
+    }
+
+    function renderDiff() {
+      const raw = document.getElementById('diffInput').value;
+      const container = document.getElementById('diffContainer');
+      container.innerHTML = '';
+
+      if (!raw.trim()) {
+        container.innerHTML = '<div class="text-center py-16 text-gray-500 text-sm">差分テキストがありません。上部の入力欄に git diff をペーストしてください。</div>';
+        updateStats(0, 0, 0);
+        return;
+      }
+
+      const files = parseGitDiff(raw);
+      let totalAdd = 0;
+      let totalDel = 0;
+
+      files.forEach((file, fIdx) => {
+        totalAdd += file.additions;
+        totalDel += file.deletions;
+
+        const card = document.createElement('div');
+        card.className = 'rounded-2xl border overflow-hidden shadow-md';
+        card.style.backgroundColor = 'var(--bg-card)';
+        card.style.borderColor = 'var(--border-color)';
+
+        // File Header
+        card.innerHTML = `
+          <div class="px-4 py-3 border-b flex items-center justify-between text-xs font-semibold" style="background-color: var(--bg-card-alt); border-color: var(--border-color);">
+            <div class="flex items-center gap-2 truncate">
+              <i data-lucide="file-code" class="w-4 h-4 text-indigo-400 flex-shrink-0"></i>
+              <span class="text-white font-mono truncate">${escapeHtml(file.name)}</span>
+            </div>
+            <div class="flex items-center gap-2 font-mono flex-shrink-0">
+              <span class="text-emerald-400">+${file.additions}</span>
+              <span class="text-red-400">-${file.deletions}</span>
+            </div>
+          </div>
+          <div class="diff-body overflow-x-auto"></div>
+        `;
+
+        const body = card.querySelector('.diff-body');
+
+        if (currentViewMode === 'split') {
+          renderSplitView(file, body);
+        } else {
+          renderUnifiedView(file, body);
+        }
+
+        container.appendChild(card);
+      });
+
+      updateStats(files.length, totalAdd, totalDel);
+      lucide.createIcons();
+    }
+
+    function renderUnifiedView(file, container) {
+      let oldLine = 1;
+      let newLine = 1;
+
+      file.hunks.forEach(hunk => {
+        const hunkRow = document.createElement('div');
+        hunkRow.className = 'diff-line hunk px-3 py-1 flex items-center';
+        hunkRow.innerText = hunk.header;
+        container.appendChild(hunkRow);
+
+        hunk.lines.forEach(l => {
+          const row = document.createElement('div');
+          row.className = `diff-line flex items-start ${l.type}`;
+
+          let oNum = '';
+          let nNum = '';
+          let sign = ' ';
+
+          if (l.type === 'add') {
+            nNum = newLine++;
+            sign = '+';
+          } else if (l.type === 'del') {
+            oNum = oldLine++;
+            sign = '-';
+          } else {
+            oNum = oldLine++;
+            nNum = newLine++;
+          }
+
+          row.innerHTML = `
+            <span class="line-num">${oNum}</span>
+            <span class="line-num">${nNum}</span>
+            <span class="w-5 text-center select-none opacity-60">${sign}</span>
+            <span class="flex-1">${escapeHtml(l.text)}</span>
+          `;
+          container.appendChild(row);
+        });
+      });
+    }
+
+    function renderSplitView(file, container) {
+      file.hunks.forEach(hunk => {
+        const hunkRow = document.createElement('div');
+        hunkRow.className = 'diff-line hunk px-3 py-1';
+        hunkRow.innerText = hunk.header;
+        container.appendChild(hunkRow);
+
+        const lines = hunk.lines;
+        let leftRows = [];
+        let rightRows = [];
+
+        let oNum = 1;
+        let nNum = 1;
+
+        let i = 0;
+        while (i < lines.length) {
+          const l = lines[i];
+          if (l.type === 'del') {
+            leftRows.push({ num: oNum++, text: l.text, type: 'del' });
+            // Check if next is add for pairing
+            if (i + 1 < lines.length && lines[i + 1].type === 'add') {
+              rightRows.push({ num: nNum++, text: lines[i + 1].text, type: 'add' });
+              i += 2;
+              continue;
+            } else {
+              rightRows.push({ num: '', text: '', type: 'empty' });
+            }
+          } else if (l.type === 'add') {
+            leftRows.push({ num: '', text: '', type: 'empty' });
+            rightRows.push({ num: nNum++, text: l.text, type: 'add' });
+          } else {
+            leftRows.push({ num: oNum++, text: l.text, type: 'normal' });
+            rightRows.push({ num: nNum++, text: l.text, type: 'normal' });
+          }
+          i++;
+        }
+
+        // Render 2 column table
+        const maxLen = Math.max(leftRows.length, rightRows.length);
+        for (let j = 0; j < maxLen; j++) {
+          const left = leftRows[j] || { num: '', text: '', type: 'empty' };
+          const right = rightRows[j] || { num: '', text: '', type: 'empty' };
+
+          const row = document.createElement('div');
+          row.className = 'flex border-b border-zinc-800/40 text-xs font-mono';
+
+          // Left Half
+          const leftDiv = document.createElement('div');
+          leftDiv.className = `w-1/2 flex items-start border-r border-zinc-800 diff-line ${left.type}`;
+          leftDiv.innerHTML = `<span class="line-num">${left.num}</span><span class="flex-1 px-1.5">${escapeHtml(left.text)}</span>`;
+
+          // Right Half
+          const rightDiv = document.createElement('div');
+          rightDiv.className = `w-1/2 flex items-start diff-line ${right.type}`;
+          rightDiv.innerHTML = `<span class="line-num">${right.num}</span><span class="flex-1 px-1.5">${escapeHtml(right.text)}</span>`;
+
+          row.appendChild(leftDiv);
+          row.appendChild(rightDiv);
+          container.appendChild(row);
+        }
+      });
+    }
+
+    function updateStats(files, add, del) {
+      document.getElementById('fileCount').innerText = files;
+      document.getElementById('addStats').innerText = `+${add} 行追加`;
+      document.getElementById('delStats').innerText = `-${del} 行削除`;
+    }
+
+    function clearDiff() {
+      document.getElementById('diffInput').value = '';
+      renderDiff();
+    }
+
+    async function loadSample() {
+      try {
+        const res = await fetch('./sample.diff');
+        if (res.ok) {
+          const sample = await res.text();
+          document.getElementById('diffInput').value = sample;
+          renderDiff();
+          return;
+        }
+      } catch (e) {
+        console.warn('Could not fetch sample.diff', e);
+      }
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      loadSample();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>cURL to Fetch & Axios - cURL即時コード変換機</title>
+  <meta name="description" content="DevToolsやAPIドキュメントからコピーしたcURLコマンドを、JavaScript (Fetch / Axios)、Node.js、Python (requests)の綺麗なコードへ1ミリ秒で即座に変換。完全クライアントサイドツール。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: #111726;
+      --card-border: #1e293b;
+      --accent: #06b6d4;
+      --accent-glow: rgba(6, 182, 212, 0.2);
+      --accent-hover: #0891b2;
+      --success: #10b981;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --font-mono: 'Fira Code', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      padding: 1rem 2rem;
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(17, 23, 38, 0.8);
+      backdrop-filter: blur(8px);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #06b6d4, #3b82f6);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 15px var(--accent-glow);
+    }
+
+    .brand-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-badge {
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      background: #064e3b;
+      color: #34d399;
+      font-weight: 600;
+      border: 1px solid rgba(52, 211, 153, 0.3);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .lang-link {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      padding: 0.35rem 0.75rem;
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+    .lang-link:hover {
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      border-radius: 6px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-secondary {
+      background: #1e293b;
+      color: var(--text);
+      border-color: #334155;
+    }
+    .btn-secondary:hover {
+      background: #334155;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #042f2e;
+    }
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    main {
+      flex: 1;
+      padding: 1.5rem 2rem;
+      max-width: 1600px;
+      margin: 0 auto;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    /* Preset Samples Toolbar (一目でわかる用途別プリセット) */
+    .preset-bar {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 0.85rem 1.25rem;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .preset-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .preset-btn {
+      background: #0b0f19;
+      border: 1px solid #334155;
+      color: #cbd5e1;
+      padding: 0.35rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .preset-btn:hover {
+      border-color: var(--accent);
+      color: #38bdf8;
+      background: rgba(6, 182, 212, 0.08);
+    }
+
+    /* Request Summary Header */
+    .summary-bar {
+      background: #0b0f19;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 0.6rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      font-size: 0.82rem;
+    }
+
+    .method-badge {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: #0284c7;
+      color: #fff;
+    }
+    .method-badge.GET { background: #10b981; }
+    .method-badge.POST { background: #3b82f6; }
+    .method-badge.PUT { background: #f59e0b; }
+    .method-badge.DELETE { background: #ef4444; }
+
+    .url-display {
+      font-family: var(--font-mono);
+      color: #cbd5e1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+    }
+
+    /* Workspace Grid */
+    .workspace-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      flex: 1;
+      min-height: 540px;
+    }
+
+    @media (max-width: 1024px) {
+      .workspace-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      padding: 0.75rem 1rem;
+      background: rgba(15, 23, 42, 0.6);
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .panel-title {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    textarea.code-editor {
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      min-height: 480px;
+      padding: 1rem;
+      background: transparent;
+      color: #e2e8f0;
+      border: none;
+      resize: none;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      line-height: 1.5;
+      outline: none;
+      white-space: pre;
+    }
+
+    /* Output Tabs */
+    .output-tabs {
+      display: flex;
+      gap: 0.25rem;
+    }
+
+    .tab-btn {
+      padding: 0.35rem 0.75rem;
+      font-size: 0.8rem;
+      font-weight: 500;
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .tab-btn.active {
+      background: #1e293b;
+      color: var(--accent);
+      border-color: #334155;
+    }
+
+    .output-code-area {
+      flex: 1;
+      padding: 1rem;
+      background: #080c14;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      line-height: 1.55;
+      color: #38bdf8;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+      user-select: all;
+    }
+
+    #toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: #10b981;
+      color: #042f2e;
+      padding: 0.6rem 1.2rem;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.875rem;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.25s ease;
+      pointer-events: none;
+      z-index: 100;
+    }
+    #toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    footer {
+      padding: 1.25rem;
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      border-top: 1px solid var(--card-border);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="brand-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="4 17 10 11 4 5"></polyline>
+          <line x1="12" y1="19" x2="20" y2="19"></line>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-title">cURL to Fetch & Axios</div>
+      </div>
+      <span class="brand-badge">100% Client-Side Safe</span>
+    </div>
+
+    <div class="header-actions">
+      <button class="btn btn-secondary" id="btn-load-sample">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        外部テストサンプル再読込
+      </button>
+      <a href="../en/index.html" class="lang-link">English</a>
+    </div>
+  </header>
+
+  <main>
+    <!-- Preset Samples Toolbar (一目でわかる入力形式ボタン) -->
+    <div class="preset-bar">
+      <span class="preset-label">💡 クイック実用プリセット:</span>
+      <button class="preset-btn" id="btn-pre-openai">🤖 OpenAI API (JSON POST)</button>
+      <button class="preset-btn" id="btn-pre-github">🐙 GitHub Issue 作成</button>
+      <button class="preset-btn" id="btn-pre-stripe">💳 Stripe 顧客作成 (Form URL-Encoded)</button>
+      <button class="preset-btn" id="btn-pre-get">⚡ 単純 GET リクエスト</button>
+    </div>
+
+    <!-- Parsed Summary Bar -->
+    <div class="summary-bar">
+      <span>解析結果:</span>
+      <span class="method-badge POST" id="summary-method">POST</span>
+      <span class="url-display" id="summary-url">https://api.openai.com/v1/chat/completions</span>
+      <span style="color:var(--text-muted);" id="summary-headers">ヘッダー: 2件</span>
+    </div>
+
+    <!-- Workspace -->
+    <div class="workspace-grid">
+      <!-- Input Panel -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            元 cURL コマンド入力
+          </span>
+          <button class="btn btn-secondary" style="padding:2px 8px; font-size:0.75rem;" id="btn-clear">クリア</button>
+        </div>
+        <textarea class="code-editor" id="inp-curl" placeholder="curl -X POST https://api.example.com/data \&#10;  -H 'Content-Type: application/json' \&#10;  -d '{&quot;key&quot;: &quot;value&quot;}'"></textarea>
+      </div>
+
+      <!-- Output Panel -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="output-tabs">
+            <button class="tab-btn active" data-tab="fetch">JS (Fetch)</button>
+            <button class="tab-btn" data-tab="axios">Axios</button>
+            <button class="tab-btn" data-tab="node">Node.js (Async)</button>
+            <button class="tab-btn" data-tab="python">Python (Requests)</button>
+          </div>
+          <button class="btn btn-primary" style="padding:0.3rem 0.75rem; font-size:0.8rem;" id="btn-copy">
+            コードをコピー
+          </button>
+        </div>
+
+        <div class="output-code-area" id="out-code"></div>
+      </div>
+    </div>
+  </main>
+
+  <div id="toast">クリップボードにコピーしました！</div>
+
+  <footer>
+    <p>cURL to Fetch & Axios &bull; 完全静音・100%クライアントサイド処理 &bull; データはサーバーに一切送信されません</p>
+  </footer>
+
+  <script>
+    let currentTab = 'fetch';
+    const inpCurl = document.getElementById('inp-curl');
+    const outCode = document.getElementById('out-code');
+    const summaryMethod = document.getElementById('summary-method');
+    const summaryUrl = document.getElementById('summary-url');
+    const summaryHeaders = document.getElementById('summary-headers');
+    const toast = document.getElementById('toast');
+
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2200);
+    }
+
+    // cURL 引数・コマンドパーサー
+    function parseCurl(curlText) {
+      if (!curlText || !curlText.trim()) return null;
+
+      // バックスラッシュ改行の結合
+      let cleaned = curlText.replace(/\\\r?\n/g, ' ').trim();
+      if (cleaned.startsWith('curl ')) {
+        cleaned = cleaned.substring(5).trim();
+      }
+
+      let method = 'GET';
+      let url = '';
+      const headers = {};
+      let body = '';
+
+      // コマンドライントークナイザー
+      const tokens = [];
+      const regex = /[^\s"']+|"([^"]*)"|'([^']*)'/g;
+      let match;
+      while ((match = regex.exec(cleaned)) !== null) {
+        if (match[1] !== undefined) tokens.push(match[1]);
+        else if (match[2] !== undefined) tokens.push(match[2]);
+        else tokens.push(match[0]);
+      }
+
+      for (let i = 0; i < tokens.length; i++) {
+        const token = tokens[i];
+
+        if (token === '-X' || token === '--request') {
+          method = (tokens[++i] || 'GET').toUpperCase();
+        } else if (token === '-H' || token === '--header') {
+          const headerStr = tokens[++i] || '';
+          const colonIdx = headerStr.indexOf(':');
+          if (colonIdx !== -1) {
+            const hKey = headerStr.substring(0, colonIdx).trim();
+            const hVal = headerStr.substring(colonIdx + 1).trim();
+            headers[hKey] = hVal;
+          }
+        } else if (token === '-d' || token === '--data' || token === '--data-raw' || token === '--data-binary') {
+          body = tokens[++i] || '';
+          if (method === 'GET') method = 'POST';
+        } else if (token === '-u' || token === '--user') {
+          const userpass = tokens[++i] || '';
+          headers['Authorization'] = 'Basic ' + btoa(userpass);
+        } else if (!token.startsWith('-') && !url && (token.startsWith('http://') || token.startsWith('https://') || token.includes('/'))) {
+          url = token;
+        }
+      }
+
+      return { method, url, headers, body };
+    }
+
+    // 1. JavaScript (Fetch) 生成
+    function toFetch(req) {
+      if (!req) return '';
+      const { method, url, headers, body } = req;
+
+      const opts = [];
+      if (method !== 'GET') {
+        opts.push(`  method: '${method}'`);
+      }
+
+      if (Object.keys(headers).length > 0) {
+        const hLines = Object.entries(headers).map(([k, v]) => `    '${k}': '${v.replace(/'/g, "\\'")}'`);
+        opts.push(`  headers: {\n${hLines.join(',\n')}\n  }`);
+      }
+
+      if (body) {
+        let isJson = false;
+        try {
+          JSON.parse(body);
+          isJson = true;
+        } catch (e) {}
+
+        if (isJson) {
+          opts.push(`  body: JSON.stringify(${body.replace(/\n/g, '\n  ')})`);
+        } else {
+          opts.push(`  body: '${body.replace(/'/g, "\\'").replace(/\n/g, '\\n')}'`);
+        }
+      }
+
+      let optsStr = opts.length > 0 ? `{\n${opts.join(',\n')}\n}` : '';
+      return `fetch('${url}'${optsStr ? ', ' + optsStr : ''})\n  .then(response => response.json())\n  .then(data => console.log(data))\n  .catch(error => console.error('Error:', error));`;
+    }
+
+    // 2. Axios 生成
+    function toAxios(req) {
+      if (!req) return '';
+      const { method, url, headers, body } = req;
+
+      let isJson = false;
+      let parsedBody = body;
+      try {
+        parsedBody = JSON.parse(body);
+        isJson = true;
+      } catch (e) {}
+
+      const configLines = [];
+      if (Object.keys(headers).length > 0) {
+        const hLines = Object.entries(headers).map(([k, v]) => `    '${k}': '${v.replace(/'/g, "\\'")}'`);
+        configLines.push(`  headers: {\n${hLines.join(',\n')}\n  }`);
+      }
+      const configStr = configLines.length > 0 ? `, {\n${configLines.join(',\n')}\n}` : '';
+
+      if (method.toLowerCase() === 'get') {
+        return `axios.get('${url}'${configStr})\n  .then(response => console.log(response.data))\n  .catch(error => console.error(error));`;
+      } else if (method.toLowerCase() === 'post') {
+        const bodyParam = isJson ? JSON.stringify(parsedBody, null, 2) : `'${body}'`;
+        return `axios.post('${url}', ${bodyParam}${configStr})\n  .then(response => console.log(response.data))\n  .catch(error => console.error(error));`;
+      } else {
+        return `axios({\n  method: '${method.toLowerCase()}',\n  url: '${url}',\n  data: ${isJson ? JSON.stringify(parsedBody, null, 2) : `'${body}'`}${configStr ? ',\n' + configLines.join(',\n') : ''}\n})\n  .then(response => console.log(response.data));`;
+      }
+    }
+
+    // 3. Node.js (Async Fetch) 生成
+    function toNode(req) {
+      if (!req) return '';
+      const fetchCode = toFetch(req);
+      return `async function makeRequest() {\n  try {\n    const response = await ${fetchCode.split('\n  .then')[0]};\n    const data = await response.json();\n    console.log(data);\n  } catch (error) {\n    console.error('Request failed:', error);\n  }\n}\n\nmakeRequest();`;
+    }
+
+    // 4. Python (Requests) 生成
+    function toPython(req) {
+      if (!req) return '';
+      const { method, url, headers, body } = req;
+
+      let lines = [`import requests`, ''];
+
+      // Headers
+      if (Object.keys(headers).length > 0) {
+        lines.push(`headers = {`);
+        for (const [k, v] of Object.entries(headers)) {
+          lines.push(`    "${k}": "${v.replace(/"/g, '\\"')}",`);
+        }
+        lines.push(`}`);
+        lines.push('');
+      }
+
+      // Body
+      let isJson = false;
+      try {
+        JSON.parse(body);
+        isJson = true;
+      } catch (e) {}
+
+      let dataParam = '';
+      if (body) {
+        if (isJson) {
+          lines.push(`json_data = ${body}`);
+          lines.push('');
+          dataParam = `, json=json_data`;
+        } else {
+          lines.push(`data = """${body}"""`);
+          lines.push('');
+          dataParam = `, data=data`;
+        }
+      }
+
+      const headersParam = Object.keys(headers).length > 0 ? `, headers=headers` : '';
+      const fn = method.toLowerCase();
+      lines.push(`response = requests.${fn}("${url}"${headersParam}${dataParam})`);
+      lines.push(`print(response.status_code)`);
+      lines.push(`print(response.json())`);
+
+      return lines.join('\n');
+    }
+
+    function updateOutputs() {
+      const parsed = parseCurl(inpCurl.value);
+      if (!parsed || !parsed.url) {
+        outCode.textContent = '// 有効な cURL コマンドを入力するとコードが生成されます';
+        summaryMethod.textContent = '-';
+        summaryMethod.className = 'method-badge';
+        summaryUrl.textContent = 'URL未検出';
+        summaryHeaders.textContent = 'ヘッダー: 0件';
+        return;
+      }
+
+      summaryMethod.textContent = parsed.method;
+      summaryMethod.className = `method-badge ${parsed.method}`;
+      summaryUrl.textContent = parsed.url;
+      summaryHeaders.textContent = `ヘッダー: ${Object.keys(parsed.headers).length}件`;
+
+      let output = '';
+      if (currentTab === 'fetch') {
+        output = toFetch(parsed);
+      } else if (currentTab === 'axios') {
+        output = toAxios(parsed);
+      } else if (currentTab === 'node') {
+        output = toNode(parsed);
+      } else if (currentTab === 'python') {
+        output = toPython(parsed);
+      }
+      outCode.textContent = output;
+    }
+
+    inpCurl.addEventListener('input', updateOutputs);
+
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentTab = btn.dataset.tab;
+        updateOutputs();
+      });
+    });
+
+    document.getElementById('btn-clear').addEventListener('click', () => {
+      inpCurl.value = '';
+      updateOutputs();
+    });
+
+    document.getElementById('btn-copy').addEventListener('click', async () => {
+      const text = outCode.textContent;
+      if (!text) return;
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast('コードをクリップボードにコピーしました！');
+      } catch (e) {
+        showToast('コピーに失敗しました');
+      }
+    });
+
+    // プリセットボタン
+    document.getElementById('btn-pre-openai').addEventListener('click', () => {
+      inpCurl.value = `curl https://api.openai.com/v1/chat/completions \\
+  -H "Content-Type: application/json" \\
+  -H "Authorization: Bearer sk-proj-mockTokenForClientSideTesting1234567890abcdef" \\
+  -d '{
+    "model": "gpt-4o",
+    "messages": [
+      { "role": "system", "content": "You are a helpful coding assistant." },
+      { "role": "user", "content": "Write a TypeScript debounce function." }
+    ],
+    "temperature": 0.7
+  }'`;
+      updateOutputs();
+      showToast('OpenAI API サンプルを適用しました');
+    });
+
+    document.getElementById('btn-pre-github').addEventListener('click', () => {
+      inpCurl.value = `curl -X POST https://api.github.com/repos/owner/repo/issues \\
+  -H "Accept: application/vnd.github+json" \\
+  -H "Authorization: Bearer ghp_mockGitHubToken1234567890abcdef" \\
+  -H "X-GitHub-Api-Version: 2022-11-28" \\
+  -d '{"title": "Bug: Table padding is off on mobile", "body": "Please investigate column alignment."}'`;
+      updateOutputs();
+      showToast('GitHub API サンプルを適用しました');
+    });
+
+    document.getElementById('btn-pre-stripe').addEventListener('click', () => {
+      inpCurl.value = `curl https://api.stripe.com/v1/customers \\
+  -u sk_test_mockStripeKey1234567890: \\
+  -d "name=Sarah Connor" \\
+  -d "email=sarah.connor@cyberdyne.org"`;
+      updateOutputs();
+      showToast('Stripe API サンプルを適用しました');
+    });
+
+    document.getElementById('btn-pre-get').addEventListener('click', () => {
+      inpCurl.value = `curl "https://api.github.com/users/octocat/repos?sort=created&direction=desc" \\
+  -H "User-Agent: Awesome-Octocat-App"`;
+      updateOutputs();
+      showToast('GET リクエスト サンプルを適用しました');
+    });
+
+    // 外部サンプルのロード
+    async function loadSample() {
+      try {
+        const res = await fetch('sample.sh?t=' + Date.now());
+        if (res.ok) {
+          const text = await res.text();
+          inpCurl.value = text;
+          updateOutputs();
+          showToast('外部サンプル (sample.sh) をロードしました');
+        }
+      } catch (err) {
+        console.error('Error fetching sample.sh:', err);
+      }
+    }
+
+    document.getElementById('btn-load-sample').addEventListener('click', loadSample);
+    window.addEventListener('DOMContentLoaded', loadSample);
+  </script>
+</body>
+</html>

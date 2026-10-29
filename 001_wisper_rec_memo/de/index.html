@@ -1,0 +1,1464 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Sprachmemo & Transkription (Whisper)</title>
+
+  <!-- PWA & Mobile Meta Tags -->
+  <link rel="manifest" href="../manifest.json">
+  <meta name="theme-color" content="#18181b">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Voice Memo">
+  <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="../icons/favicon-32.png">
+  <link rel="shortcut icon" href="../icons/favicon.ico">
+
+  <style>
+    :root {
+      --primary: #ef4444;
+      --primary-glow: rgba(239, 68, 68, 0.35);
+      --bg: #09090b;
+      --card-bg: #18181b;
+      --card-border: #27272a;
+      --text: #f4f4f5;
+      --text-muted: #a1a1aa;
+      --accent: #3b82f6;
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 20px 16px 80px;
+      max-width: 600px;
+      margin: 0 auto;
+      min-height: 100vh;
+    }
+
+    
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      padding-top: 8px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand img {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
+
+    .brand h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .header-sub {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }
+
+    .brand .model-badge {
+      display: inline-block;
+      font-size: 0.7rem;
+      color: #93c5fd;
+      background: rgba(59, 130, 246, 0.15);
+      padding: 1px 8px;
+      border-radius: 999px;
+    }
+
+    
+    .api-key-toggle-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #202024;
+      border: 1px solid #3f3f46;
+      color: #d4d4d8;
+      font-size: 0.72rem;
+      padding: 2px 9px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      font-weight: 500;
+    }
+
+    .api-key-toggle-btn:hover {
+      background: #27272a;
+      border-color: #52525b;
+      color: #fff;
+    }
+
+    .api-key-toggle-btn.has-key {
+      border-color: rgba(34, 197, 94, 0.35);
+      background: rgba(34, 197, 94, 0.1);
+      color: #86efac;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #71717a;
+      display: inline-block;
+    }
+
+    .api-key-toggle-btn.has-key .status-dot {
+      background: #22c55e;
+      box-shadow: 0 0 6px #22c55e;
+    }
+
+    
+    .api-key-panel {
+      overflow: hidden;
+      max-height: 480px;
+      transition: max-height 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease, margin 0.25s ease;
+      opacity: 1;
+      margin-bottom: 20px;
+    }
+
+    .api-key-panel.collapsed {
+      max-height: 0;
+      opacity: 0;
+      margin-bottom: 0;
+      pointer-events: none;
+    }
+
+    .api-key-panel-inner {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+    }
+
+    .api-key-panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .panel-close-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .panel-close-btn:hover {
+      color: var(--text);
+    }
+
+    
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+    }
+
+    .input-group label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .api-key-input {
+      width: 100%;
+      background: #121214;
+      border: 1px solid #27272a;
+      border-radius: 10px;
+      padding: 12px 44px 12px 14px;
+      color: var(--text);
+      font-size: 0.95rem;
+      outline: none;
+      transition: all 0.2s ease;
+      font-family: monospace;
+    }
+
+    
+    .api-key-input.masked {
+      -webkit-text-security: disc;
+    }
+
+    .api-key-input:focus {
+      border-color: #ef4444;
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+
+    .toggle-visibility-btn {
+      position: absolute;
+      right: 10px;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 6px;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      transition: opacity 0.15s;
+    }
+
+    .toggle-visibility-btn:hover {
+      opacity: 0.8;
+    }
+
+    
+    .record-trigger-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 24px;
+      margin-bottom: 8px;
+    }
+
+    .mic-pulse-container {
+      position: relative;
+      width: 150px;
+      height: 150px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    
+    .mic-pulse-ring {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: rgba(239, 68, 68, 0.25);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+
+    .record-trigger-area.is-recording .mic-pulse-ring {
+      opacity: 1;
+      animation: ripple 2s infinite cubic-bezier(0, 0.2, 0.8, 1);
+    }
+
+    .record-trigger-area.is-recording .mic-pulse-ring:nth-child(2) {
+      animation-delay: 0.6s;
+    }
+
+    .record-trigger-area.is-recording .mic-pulse-ring:nth-child(3) {
+      animation-delay: 1.2s;
+    }
+
+    @keyframes ripple {
+      0% {
+        transform: scale(0.7);
+        opacity: 0.9;
+      }
+      100% {
+        transform: scale(1.6);
+        opacity: 0;
+      }
+    }
+
+    .mic-btn-circle {
+      position: relative;
+      width: 104px;
+      height: 104px;
+      border-radius: 50%;
+      background: linear-gradient(145deg, #ef4444, #b91c1c);
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 30px rgba(239, 68, 68, 0.45);
+      cursor: pointer;
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+      z-index: 2;
+    }
+
+    .mic-btn-circle:hover {
+      transform: scale(1.06);
+      box-shadow: 0 14px 38px rgba(239, 68, 68, 0.65);
+    }
+
+    .mic-btn-circle:active {
+      transform: scale(0.92);
+      box-shadow: 0 6px 18px rgba(239, 68, 68, 0.4);
+    }
+
+    .mic-btn-circle svg {
+      width: 48px;
+      height: 48px;
+      fill: #ffffff;
+    }
+
+    .mic-btn-circle:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+
+    .record-label {
+      margin-top: 14px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -0.01em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    
+    .wave-bars {
+      display: none;
+      align-items: center;
+      gap: 5px;
+      height: 24px;
+      margin-top: 10px;
+    }
+
+    .record-trigger-area.is-recording .wave-bars {
+      display: flex;
+    }
+
+    .wave-bar {
+      width: 4px;
+      background: #ef4444;
+      border-radius: 999px;
+      animation: wave 1.2s ease-in-out infinite alternate;
+    }
+
+    .wave-bar:nth-child(1) { height: 10px; animation-delay: 0.1s; }
+    .wave-bar:nth-child(2) { height: 20px; animation-delay: 0.3s; }
+    .wave-bar:nth-child(3) { height: 24px; animation-delay: 0.2s; }
+    .wave-bar:nth-child(4) { height: 14px; animation-delay: 0.4s; }
+    .wave-bar:nth-child(5) { height: 22px; animation-delay: 0.15s; }
+    .wave-bar:nth-child(6) { height: 12px; animation-delay: 0.35s; }
+    .wave-bar:nth-child(7) { height: 18px; animation-delay: 0.25s; }
+
+    @keyframes wave {
+      0% { transform: scaleY(0.3); }
+      100% { transform: scaleY(1.1); }
+    }
+
+    .status-text {
+      text-align: center;
+      margin-top: 6px;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    
+    .history-header {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+      margin: 28px 0 16px;
+    }
+
+    .history-header h2 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
+    .history-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      width: 100%;
+    }
+
+    .btn-summarize {
+      background: linear-gradient(135deg, #7c3aed, #4f46e5);
+      border: 1px solid rgba(167, 139, 250, 0.4);
+      color: #ffffff;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 6px 12px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 2px 10px rgba(124, 58, 237, 0.3);
+      transition: all 0.15s ease;
+    }
+
+    .btn-summarize:hover {
+      box-shadow: 0 4px 14px rgba(124, 58, 237, 0.5);
+      transform: translateY(-1px);
+    }
+
+    .btn-summarize:active {
+      transform: scale(0.96);
+    }
+
+    .btn-summarize:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .btn-copy-all {
+      background: #202024;
+      border: 1px solid #3f3f46;
+      color: #e4e4e7;
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      padding: 6px 12px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+
+    .btn-copy-all:hover {
+      background: #27272a;
+      border-color: #52525b;
+    }
+
+    .btn-copy-all:active {
+      transform: scale(0.95);
+    }
+
+    
+    .summary-card {
+      background: linear-gradient(180deg, #1e192e, #18181b);
+      border: 1px solid rgba(168, 85, 247, 0.35);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 20px rgba(124, 58, 237, 0.15);
+      animation: fadeIn 0.25s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .summary-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(168, 85, 247, 0.2);
+    }
+
+    .summary-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .summary-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #c084fc;
+      background: rgba(168, 85, 247, 0.15);
+      border: 1px solid rgba(168, 85, 247, 0.3);
+      padding: 2px 8px;
+      border-radius: 999px;
+    }
+
+    .summary-time {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    .summary-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .summary-btn {
+      background: #27272a;
+      border: 1px solid #3f3f46;
+      color: #e4e4e7;
+      font-size: 0.75rem;
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: background 0.15s;
+    }
+
+    .summary-btn:hover {
+      background: #3f3f46;
+    }
+
+    .summary-close-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      cursor: pointer;
+      padding: 4px 6px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.15s;
+    }
+
+    .summary-close-btn:hover {
+      color: #f4f4f5;
+    }
+
+    .summary-content {
+      font-size: 0.92rem;
+      line-height: 1.7;
+      color: #f4f4f5;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .summary-loading {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #c084fc;
+      font-size: 0.9rem;
+      padding: 12px 0;
+    }
+
+    .summary-spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(192, 132, 252, 0.2);
+      border-top-color: #c084fc;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .btn-clear-all {
+      background: none;
+      border: 1px dashed #3f3f46;
+      color: #a1a1aa;
+      font-size: 0.8rem;
+      cursor: pointer;
+      padding: 6px 12px;
+      border-radius: 8px;
+      transition: all 0.15s;
+      margin-left: auto;
+    }
+
+    .btn-clear-all:hover {
+      color: #ef4444;
+      border-color: rgba(239, 68, 68, 0.4);
+      background: rgba(239, 68, 68, 0.1);
+    }
+
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .history-empty {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      border: 1px dashed var(--card-border);
+      border-radius: var(--radius);
+    }
+
+    
+    .memo-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      transition: border-color 0.2s ease;
+    }
+
+    .memo-card:hover {
+      border-color: #3f3f46;
+    }
+
+    .memo-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .memo-date {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .memo-body {
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: #e4e4e7;
+      word-break: break-word;
+      white-space: pre-wrap;
+    }
+
+    
+    .memo-body.collapsed {
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .memo-toggle-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 8px;
+      background: none;
+      border: none;
+      color: #60a5fa;
+      font-size: 0.82rem;
+      font-weight: 500;
+      cursor: pointer;
+      padding: 2px 0;
+    }
+
+    .memo-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid #27272a;
+    }
+
+    .action-btn {
+      flex: 1;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid #27272a;
+      background: #202024;
+      color: var(--text);
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .action-btn:hover {
+      background: #27272a;
+    }
+
+    .action-btn.delete-btn {
+      color: #f87171;
+    }
+
+    .action-btn.delete-btn:hover {
+      background: rgba(239, 68, 68, 0.15);
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+
+  
+    .hidden-dropdown { display: none !important; }
+  </style>
+
+    <link rel="alternate" hreflang="ja" href="../ja/" />
+  <link rel="alternate" hreflang="en" href="../en/" />
+  <link rel="alternate" hreflang="th" href="../th/" />
+  <link rel="alternate" hreflang="zh" href="../zh/" />
+  <link rel="alternate" hreflang="es" href="../es/" />
+  <link rel="alternate" hreflang="de" href="./" />
+  <link rel="alternate" hreflang="fr" href="../fr/" />
+  <link rel="alternate" hreflang="x-default" href="../en/" />
+
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="brand">
+      <img src="../icons/icon-192.png" alt="App Icon">
+      <div>
+        <h1>Sprachmemo & Transkription</h1>
+        <div class="header-sub">
+          <span class="model-badge">Groq whisper-large-v3-turbo</span>
+          <button type="button" id="apiKeyToggleBtn" class="api-key-toggle-btn" onclick="toggleApiKeyPanel()" title="Groq API-Schlüssel einrichten">
+            <span id="apiKeyStatusDot" class="status-dot"></span>
+            <span id="apiKeyToggleText">API-Schlüssel einrichten</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  
+        
+        <div style="position:relative;display:inline-block;">
+          <button type="button" onclick="document.getElementById('langDropdownMenu').classList.toggle('hidden-dropdown')" style="padding:4px 8px;border-radius:6px;border:1px solid #3f3f46;background:#202024;color:#d4d4d8;font-weight:600;font-size:0.75rem;display:inline-flex;align-items:center;gap:4px;cursor:pointer;">
+            <svg viewBox="0 0 32 24" style="width:16px;height:12px;border-radius:2px;display:inline-block;vertical-align:middle;" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="8" fill="#111827"/><rect y="8" width="32" height="8" fill="#dd0000"/><rect y="16" width="32" height="8" fill="#ffce00"/></svg>
+            <span>DE</span>
+            <span style="font-size:0.6rem;color:#71717a;">▼</span>
+          </button>
+          <div id="langDropdownMenu" class="hidden-dropdown" style="position:absolute;right:0;top:100%;margin-top:6px;width:150px;background:#18181b;border:1px solid #3f3f46;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.6);z-index:100;overflow:hidden;">
+            <div style="padding:6px 10px;font-size:0.65rem;color:#71717a;border-bottom:1px solid #27272a;font-weight:700;text-transform:uppercase;">Languages</div>
+          <a href="../ja/" style="display:flex;align-items:center;justify-content:space-between;padding:6px 12px;color:#d4d4d8;text-decoration:none;font-size:0.75rem;border-bottom:1px solid #27272a;">
+            <span style="display:inline-flex;align-items:center;gap:6px;"><svg viewBox="0 0 32 24" style="width:16px;height:12px;border-radius:2px;display:inline-block;vertical-align:middle;" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="24" fill="#ffffff"/><circle cx="16" cy="12" r="6.2" fill="#bc002d"/></svg> 日本語</span>
+            <span style="color:#ef4444;font-size:0.7rem;"></span>
+          </a>
+          <a href="../en/" style="display:flex;align-items:center;justify-content:space-between;padding:6px 12px;color:#d4d4d8;text-decoration:none;font-size:0.75rem;border-bottom:1px solid #27272a;">
+            <span style="display:inline-flex;align-items:center;gap:6px;"><svg viewBox="0 0 32 24" style="width:16px;height:12px;border-radius:2px;display:inline-block;vertical-align:middle;" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="24" fill="#b22234"/><path d="M0 1.85h32v1.85H0zm0 3.69h32v1.85H0zm0 3.69h32v1.85H0zm0 3.69h32v1.85H0zm0 3.69h32v1.85H0zm0 3.69h32v1.85H0z" fill="#ffffff"/><rect width="14" height="13" fill="#3c3b6e"/></svg> English</span>
+            <span style="color:#ef4444;font-size:0.7rem;"></span>
+          </a>
+          <a href="../th/" style="display:flex;align-items:center;justify-content:space-between;padding:6px 12px;color:#d4d4d8;text-decoration:none;font-size:0.75rem;border-bottom:1px solid #27272a;">
+            <span style="display:inline-flex;align-items:center;gap:6px;"><svg viewBox="0 0 32 24" style="width:16px;height:12px;border-radius:2px;display:inline-block;vertical-align:middle;" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="24" fill="#a51931"/><rect y="4" width="32" height="16" fill="#f4f5f8"/><rect y="8" width="32" height="8" fill="#2d2a4a"/></svg> ไทย</span>
+            <span style="color:#ef4444;font-size:0.7rem;"></span>
+          </a>
+          <a href="../zh/" style="display:flex;align-items:center;justify-content:space-between;padding:6px 12px;color:#d4d4d8;text-decoration:none;font-size:0.75rem;border-bottom:1px solid #27272a;">
+            <span style="display:inline-flex;align-items:center;gap:6px;"><svg viewBox="0 0 32 24" style="width:16px;height:12px;border-radius:2px;display:inline-block;vertical-align:middle;" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="24" fill="#de2910"/><polygon points="5.5,2.2 6.6,5.2 9.7,5.2 7.2,7 8.2,10 5.5,8.2 2.8,10 3.8,7 1.3,5.2 4.4,5.2" fill="#ffde00"/></svg> 简体中文</span>
+            <span style="color:#ef4444;font-size:0.7rem;"></span>
+          </a>
+          <a href="../es/" style="display:flex;align-items:center;justify-content:space-between;padding:6px 12px;color:#d4d4d8;text-decoration:none;font-size:0.75rem;border-bottom:1px solid #27272a;">
+            <span style="display:inline-flex;align-items:center;gap:6px;"><svg viewBox="0 0 32 24" style="width:16px;height:12px;border-radius:2px;display:inline-block;vertical-align:middle;" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="24" fill="#aa151b"/><rect y="6" width="32" height="12" fill="#f1bf00"/><rect x="6" y="9.5" width="3.5" height="4.5" rx="1" fill="#aa151b"/></svg> Español</span>
+            <span style="color:#ef4444;font-size:0.7rem;"></span>
+          </a>
+          <a href="./" style="display:flex;align-items:center;justify-content:space-between;padding:6px 12px;color:#d4d4d8;text-decoration:none;font-size:0.75rem;border-bottom:1px solid #27272a;">
+            <span style="display:inline-flex;align-items:center;gap:6px;"><svg viewBox="0 0 32 24" style="width:16px;height:12px;border-radius:2px;display:inline-block;vertical-align:middle;" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="8" fill="#111827"/><rect y="8" width="32" height="8" fill="#dd0000"/><rect y="16" width="32" height="8" fill="#ffce00"/></svg> Deutsch</span>
+            <span style="color:#ef4444;font-size:0.7rem;">✓ </span>
+          </a>
+          <a href="../fr/" style="display:flex;align-items:center;justify-content:space-between;padding:6px 12px;color:#d4d4d8;text-decoration:none;font-size:0.75rem;border-bottom:1px solid #27272a;">
+            <span style="display:inline-flex;align-items:center;gap:6px;"><svg viewBox="0 0 32 24" style="width:16px;height:12px;border-radius:2px;display:inline-block;vertical-align:middle;" xmlns="http://www.w3.org/2000/svg"><rect width="11" height="24" fill="#002395"/><rect x="11" width="10" height="24" fill="#ffffff"/><rect x="21" width="11" height="24" fill="#ed2939"/></svg> Français</span>
+            <span style="color:#ef4444;font-size:0.7rem;"></span>
+          </a>
+            <a href="../" style="display:flex;align-items:center;gap:6px;padding:6px 12px;color:#93c5fd;text-decoration:none;font-size:0.72rem;background:#13151a;">
+              <span>🌐</span> All Languages Hub
+            </a>
+          </div>
+        </div>
+
+  </header>
+
+  <!-- API Key Settings Panel (Collapsible) -->
+  <div id="apiKeyPanel" class="api-key-panel collapsed">
+    <div class="api-key-panel-inner">
+      <div class="input-group">
+        <div class="api-key-panel-header">
+          <label for="apiKey">Groq API-Schlüssel</label>
+          <button type="button" class="panel-close-btn" onclick="toggleApiKeyPanel()">✕ Schließen</button>
+        </div>
+        <div class="input-wrapper">
+          <input type="text" id="apiKey" class="api-key-input masked" placeholder="gsk_..." 
+                 autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+                 data-lpignore="true" data-1p-ignore data-form-type="other" onchange="saveKey()">
+          <button type="button" class="toggle-visibility-btn" id="toggleKeyBtn" onclick="toggleKeyVisibility()" title="Show/Hide Key">
+            👁️
+          </button>
+        </div>
+        
+        <!-- Groq Free Key Guidance -->
+        <div style="margin-top:14px;padding:12px 14px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);border-radius:10px;font-size:0.78rem;line-height:1.5;color:#e4e4e7;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+            <span style="font-weight:700;color:#f87171;font-size:0.82rem;">🔑 Groq API-Schlüssel erforderlich (100% Kostenlos)</span>
+            <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:4px;padding:4px 12px;background:#ef4444;color:#fff;border-radius:6px;text-decoration:none;font-weight:700;font-size:0.75rem;box-shadow:0 2px 6px rgba(239,68,68,0.4);">
+              Get Free Key Here ↗
+            </a>
+          </div>
+          <p style="margin-bottom:8px;color:#d4d4d8;">
+            Instant generation at Groq Console — <strong>100% Free, no credit card required</strong>.
+          </p>
+          <div style="background:rgba(0,0,0,0.35);padding:10px 12px;border-radius:8px;font-size:0.73rem;color:#a1a1aa;line-height:1.65;border:1px solid #27272a;">
+            <div>🎙️ <strong>Kostenloses Transkriptionskontingent</strong>: Bis zu <strong>~2.000 Anfragen/Tag (~2-4 Stunden Audio)</strong></div>
+            <div>✨ <strong>Kostenloses KI-Zusammenfassungskontingent</strong>: Über <strong>1.000 Zusammenfassungen/Tag</strong></div>
+            <div style="color:#71717a;margin-top:3px;font-size:0.7rem;">* Reicht bei weitem für alltägliche Sprachnotizen und Besprechungsprotokolle.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Recording Card -->
+  <div class="card">
+
+    <!-- Record Trigger Area -->
+    <div id="recordTriggerArea" class="record-trigger-area">
+      <div class="mic-pulse-container">
+        <div class="mic-pulse-ring"></div>
+        <div class="mic-pulse-ring"></div>
+        <div class="mic-pulse-ring"></div>
+        <button id="mainRecordBtn" class="mic-btn-circle" onclick="toggleRecord()" title="Tap to Start / Stop Recording">
+          <svg id="micIconSvg" viewBox="0 0 24 24">
+            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+            <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Waveform Animation Bars -->
+      <div class="wave-bars">
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+      </div>
+
+      <div id="recordLabel" class="record-label">Tippen zum Aufnehmen</div>
+      <div id="status" class="status-text">Bitte Groq API-Schlüssel eingeben</div>
+    </div>
+  </div>
+
+  <!-- Transcription History -->
+  <div class="history-header">
+    <h2>Transkriptionsverlauf</h2>
+    <div class="history-actions">
+      <button class="btn-summarize" id="summarizeBtn" onclick="summarizeHistory()" title="Alle Memos mit KI zusammenfassen">✨ Zusammenfassen</button>
+      <button class="btn-copy-all" id="copyAllBtn" onclick="copyAllHistory()">📋 Alles kopieren</button>
+      <button class="btn-clear-all" onclick="clearAllHistory()">Alles löschen</button>
+    </div>
+  </div>
+
+  <!-- AI Summary Card -->
+  <div id="summaryCard" class="summary-card" style="display: none;">
+    <div class="summary-card-header">
+      <div class="summary-title">
+        <span class="summary-badge">✨ KI-Zusammenfassung</span>
+        <span id="summaryTime" class="summary-time"></span>
+      </div>
+      <div class="summary-actions">
+        <button type="button" class="summary-btn" id="copySummaryBtn" onclick="copySummaryText()">📋 Copy</button>
+        <button type="button" class="summary-close-btn" onclick="closeSummaryCard()" title="Close">✕</button>
+      </div>
+    </div>
+    <div id="summaryContent" class="summary-content"></div>
+  </div>
+
+  <div id="historyList" class="history-list"></div>
+
+  <script>
+    // Register Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('../sw.js', { scope: '../' })
+          .then(reg => {
+            console.log('ServiceWorker registered:', reg.scope);
+            // Check for SW updates
+            reg.update();
+          })
+          .catch(err => console.error('ServiceWorker error:', err));
+      });
+    }
+
+    let mediaRecorder;
+    let audioStream = null;
+    let audioChunks = [];
+    let isRecording = false;
+    let timerInterval = null;
+    let recordingSeconds = 0;
+
+    // Prevent mic hang on page reload
+    window.addEventListener('beforeunload', () => {
+      if (audioStream) {
+        audioStream.getTracks().forEach(track => track.stop());
+      }
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+      }
+    });
+
+    // Initialize on load
+    window.onload = () => {
+      const savedKey = localStorage.getItem("groq_api_key");
+      if (savedKey) {
+        document.getElementById("apiKey").value = savedKey;
+        updateApiKeyUI(savedKey);
+        document.getElementById("status").innerText = "Bereit zur Aufnahme";
+      } else {
+        updateApiKeyUI("");
+        document.getElementById("status").innerText = "Bitte Groq API-Schlüssel eingeben";
+      }
+      loadSavedSummary();
+      renderHistory();
+    };
+
+    function updateApiKeyUI(key) {
+      const toggleBtn = document.getElementById("apiKeyToggleBtn");
+      const toggleText = document.getElementById("apiKeyToggleText");
+      if (key && key.trim().length > 0) {
+        toggleBtn.classList.add("has-key");
+        toggleText.innerText = "API-Schlüssel eingerichtet";
+      } else {
+        toggleBtn.classList.remove("has-key");
+        toggleText.innerText = "API-Schlüssel einrichten";
+      }
+    }
+
+    // Toggle API Key panel
+    function toggleApiKeyPanel() {
+      const panel = document.getElementById("apiKeyPanel");
+      panel.classList.toggle("collapsed");
+      if (!panel.classList.contains("collapsed")) {
+        setTimeout(() => document.getElementById("apiKey").focus(), 150);
+      }
+    }
+
+    function openApiKeyPanel() {
+      const panel = document.getElementById("apiKeyPanel");
+      panel.classList.remove("collapsed");
+      setTimeout(() => document.getElementById("apiKey").focus(), 150);
+    }
+
+    function saveKey() {
+      const key = document.getElementById("apiKey").value.trim();
+      localStorage.setItem("groq_api_key", key);
+      updateApiKeyUI(key);
+      if (key) {
+        document.getElementById("status").innerText = "API-Schlüssel gespeichert";
+      } else {
+        document.getElementById("status").innerText = "Bitte API-Schlüssel eingeben";
+      }
+    }
+
+    // Toggle Key visibility
+    function toggleKeyVisibility() {
+      const input = document.getElementById("apiKey");
+      const btn = document.getElementById("toggleKeyBtn");
+      if (input.classList.contains("masked")) {
+        input.classList.remove("masked");
+        btn.innerText = "🙈";
+      } else {
+        input.classList.add("masked");
+        btn.innerText = "👁️";
+      }
+    }
+
+    // Toggle recording
+    async function toggleRecord() {
+      if (isRecording) {
+        stopRecording();
+      } else {
+        await startRecording();
+      }
+    }
+
+    async function startRecording() {
+      const apiKey = document.getElementById("apiKey").value.trim();
+      if (!apiKey) {
+        alert("Bitte zuerst den Groq API-Schlüssel einrichten.");
+        openApiKeyPanel();
+        return;
+      }
+
+      try {
+        audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        
+        let mimeType = 'audio/webm';
+        if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+          mimeType = 'audio/webm;codecs=opus';
+        } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
+          mimeType = 'audio/mp4';
+        }
+
+        mediaRecorder = new MediaRecorder(audioStream, mimeType ? { mimeType } : undefined);
+        audioChunks = [];
+
+        mediaRecorder.ondataavailable = e => {
+          if (e.data && e.data.size > 0) audioChunks.push(e.data);
+        };
+
+        mediaRecorder.onstop = async () => {
+          const blobType = mediaRecorder.mimeType || 'audio/webm';
+          const audioBlob = new Blob(audioChunks, { type: blobType });
+          await sendToGroq(audioBlob);
+        };
+
+        mediaRecorder.start();
+        isRecording = true;
+
+        // Start recording animation & timer
+        document.getElementById("recordTriggerArea").classList.add("is-recording");
+        document.getElementById("recordLabel").innerHTML = '🔴 Aufnahme läuft <span id="recTimer" style="font-variant-numeric: tabular-nums;">00:00</span> (Tippen zum Stoppen)';
+        document.getElementById("status").innerText = "Aufnahme läuft... Erneut auf Mikrofon tippen zum Stoppen";
+
+        recordingSeconds = 0;
+        updateTimerDisplay();
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+          recordingSeconds++;
+          updateTimerDisplay();
+        }, 1000);
+
+      } catch (err) {
+        console.error(err);
+        alert("Mikrofonzugriff verweigert. Bitte Browsereinstellungen prüfen.");
+      }
+    }
+
+    function stopRecording() {
+      if (!mediaRecorder || !isRecording) return;
+
+      mediaRecorder.stop();
+      if (audioStream) {
+        audioStream.getTracks().forEach(track => track.stop());
+        audioStream = null;
+      }
+      isRecording = false;
+
+      // Stop recording animation & timer
+      document.getElementById("recordTriggerArea").classList.remove("is-recording");
+      document.getElementById("recordLabel").innerText = "Tap to Start Recording";
+      clearInterval(timerInterval);
+
+      document.getElementById("status").innerText = "⏳ Transkribiere mit Groq Whisper...";
+      document.getElementById("mainRecordBtn").disabled = true;
+    }
+
+    function updateTimerDisplay() {
+      const mins = String(Math.floor(recordingSeconds / 60)).padStart(2, '0');
+      const secs = String(recordingSeconds % 60).padStart(2, '0');
+      const timerEl = document.getElementById("recTimer");
+      if (timerEl) {
+        timerEl.innerText = `${mins}:${secs}`;
+      }
+    }
+
+    // Copy all history
+    function copyAllHistory() {
+      const list = getHistory();
+      if (list.length === 0) {
+        alert("Keine Memos zum Kopieren vorhanden.");
+        return;
+      }
+
+      const fullText = list.map(item => `[${item.createdAt}]\n${item.text}`).join("\n\n");
+      const btn = document.getElementById("copyAllBtn");
+
+      navigator.clipboard.writeText(fullText).then(() => {
+        const originalText = btn.innerHTML;
+        btn.innerHTML = "<span>✅ Kopiert</span>";
+        setTimeout(() => {
+          btn.innerHTML = originalText;
+        }, 1500);
+      });
+    }
+
+    // =================================================
+    // AI Summarization with Groq
+    // =================================================
+    // =================================================
+    // AI Summarization with Groq
+    // =================================================
+    // Preferred models for summarization
+    const PREFERRED_MODELS = [
+      "llama-3.1-8b-instant",
+      "gemma2-9b-it",
+      "llama-3.3-70b-versatile",
+      "qwen/qwen3.8-27b",
+      "llama3-70b-8192",
+      "llama3-8b-8192",
+      "mixtral-8x7b-32768"
+    ];
+
+    async function summarizeHistory() {
+      const list = getHistory();
+      if (list.length === 0) {
+        alert("Keine Memos zum Zusammenfassen. Bitte zuerst aufnehmen.");
+        return;
+      }
+
+      const apiKey = document.getElementById("apiKey").value.trim();
+      if (!apiKey) {
+        alert("Bitte zuerst den Groq API-Schlüssel einrichten.");
+        openApiKeyPanel();
+        return;
+      }
+
+      const summaryCard = document.getElementById("summaryCard");
+      const summaryContent = document.getElementById("summaryContent");
+      const summaryTime = document.getElementById("summaryTime");
+      const summarizeBtn = document.getElementById("summarizeBtn");
+
+      // Show summary card and set loading state
+      summaryCard.style.display = "block";
+      summaryTime.innerText = "Zusammenfassung wird erstellt...";
+      summaryContent.innerHTML = `
+        <div class="summary-loading">
+          <div class="summary-spinner"></div>
+          <span>Fasse Memos mit Groq KI zusammen...</span>
+        </div>
+      `;
+      summarizeBtn.disabled = true;
+
+      // Combine memos chronologically
+      const orderedList = [...list].reverse();
+      const combinedMemos = orderedList.map((item, idx) => {
+        return `[Memo ${idx + 1} (${item.createdAt})】\n${item.text}`;
+      }).join("\n\n");
+
+      // Fetch available models
+      let candidateModels = [...PREFERRED_MODELS];
+      try {
+        const modelsRes = await fetch("https://api.groq.com/openai/v1/models", {
+          headers: { "Authorization": `Bearer ${apiKey}` }
+        });
+        if (modelsRes.ok) {
+          const modelsData = await modelsRes.json();
+          if (modelsData && Array.isArray(modelsData.data)) {
+            const availableIds = modelsData.data.map(m => m.id);
+
+            // Filter out non-chat models
+            const isSafeModel = (id) => {
+              const lower = id.toLowerCase();
+              return !lower.includes("allam") && 
+                     !lower.includes("whisper") && 
+                     !lower.includes("guard") && 
+                     !lower.includes("vision");
+            };
+
+            // Match against preferred models
+            const matched = [];
+            for (const pref of PREFERRED_MODELS) {
+              const found = availableIds.find(id => id === pref || id.endsWith("/" + pref));
+              if (found && isSafeModel(found)) {
+                matched.push(found);
+              }
+            }
+
+            // Pick candidate model
+            if (matched.length > 0) {
+              candidateModels = matched;
+            } else {
+              const safeChatModels = availableIds.filter(id => {
+                const lower = id.toLowerCase();
+                return isSafeModel(id) && (lower.includes("llama") || lower.includes("gemma") || lower.includes("qwen"));
+              });
+              if (safeChatModels.length > 0) candidateModels = safeChatModels;
+            }
+          }
+        }
+      } catch (e) {
+        console.warn("Skipped model list query, trying default candidates:", e);
+      }
+
+      let lastError = null;
+      let success = false;
+
+      // Try models sequentially
+      for (const modelId of candidateModels) {
+        try {
+          const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${apiKey}`,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              model: modelId,
+              messages: [
+                {
+                  role: "system",
+                  content: `You are an expert executive meeting assistant and summarizer. Read the provided voice memos and organize them into a clean, concise, and structured summary in natural German.
+
+[Output Format]
+■ Gesamte Übersicht
+(2-3 prägnante Sätze)
+
+■ Wichtigste Punkte & Beschlüsse
+- Stichpunkte
+
+■ Nächste Schritte / Aufgaben (falls zutreffend)
+- Stichpunkte`
+                },
+                {
+                  role: "user",
+                  content: "Bitte fassen Sie die folgenden Sprachnotizen zusammen:\n\n" + combinedMemos
+                }
+              ],
+              temperature: 0.3,
+              max_tokens: 1200
+            })
+          });
+
+          const data = await response.json();
+          if (data.choices && data.choices[0] && data.choices[0].message) {
+            const summaryText = data.choices[0].message.content.trim();
+            const timeStr = new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+            const shortModelName = modelId.split("/").pop();
+            renderSummary(summaryText, `${timeStr} (${shortModelName})`);
+            saveSavedSummary(summaryText, `${timeStr} (${shortModelName})`);
+            success = true;
+            break; // Success
+          } else {
+            lastError = data.error ? data.error.message : "Failed to generate summary";
+            console.warn(`Model ${modelId} generation error:`, lastError);
+          }
+        } catch (err) {
+          lastError = err.message || "Network error";
+          console.warn(`Model ${modelId} network error:`, err);
+        }
+      }
+
+      if (!success) {
+        summaryContent.innerHTML = `<span style="color:#f87171;">❌ Error: ${escapeHtml(lastError || "No available AI model found.")}</span>`;
+      }
+
+      summarizeBtn.disabled = false;
+    }
+
+    function renderSummary(text, timeStr) {
+      const summaryCard = document.getElementById("summaryCard");
+      const summaryContent = document.getElementById("summaryContent");
+      const summaryTime = document.getElementById("summaryTime");
+
+      summaryTime.innerText = timeStr ? `Generated at ${timeStr}` : "";
+      summaryContent.innerText = text;
+      summaryCard.style.display = "block";
+    }
+
+    function copySummaryText() {
+      const summaryContent = document.getElementById("summaryContent");
+      const copyBtn = document.getElementById("copySummaryBtn");
+      if (!summaryContent || !summaryContent.innerText) return;
+
+      navigator.clipboard.writeText(summaryContent.innerText).then(() => {
+        const originalText = copyBtn.innerText;
+        copyBtn.innerText = "✅ Copied";
+        setTimeout(() => {
+          copyBtn.innerText = originalText;
+        }, 1500);
+      });
+    }
+
+    function closeSummaryCard() {
+      const summaryCard = document.getElementById("summaryCard");
+      summaryCard.style.display = "none";
+    }
+
+    function saveSavedSummary(text, timeStr) {
+      localStorage.setItem("transcription_summary", JSON.stringify({ text, timeStr }));
+    }
+
+    function loadSavedSummary() {
+      const saved = localStorage.getItem("transcription_summary");
+      if (saved) {
+        try {
+          const { text, timeStr } = JSON.parse(saved);
+          if (text) renderSummary(text, timeStr);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    }
+
+    // Send audio to Groq Whisper API
+    async function sendToGroq(audioBlob) {
+      const apiKey = document.getElementById("apiKey").value.trim();
+      const status = document.getElementById("status");
+      const mainBtn = document.getElementById("mainRecordBtn");
+
+      const fileExtension = audioBlob.type.includes('mp4') ? 'mp4' : 'webm';
+      const formData = new FormData();
+      formData.append("file", audioBlob, `recording.${fileExtension}`);
+      formData.append("model", "whisper-large-v3-turbo");
+      formData.append("language", "ja");
+
+      try {
+        const response = await fetch("https://api.groq.com/openai/v1/audio/transcriptions", {
+          method: "POST",
+          headers: { "Authorization": `Bearer ${apiKey}` },
+          body: formData
+        });
+
+        const data = await response.json();
+        if (data.text && data.text.trim().length > 0) {
+          saveToHistory(data.text.trim());
+          status.innerText = "✅ Transkription abgeschlossen!";
+        } else {
+          status.innerText = "❌ Error: " + (data.error ? data.error.message : "Audio could not be recognized");
+        }
+      } catch (err) {
+        console.error(err);
+        status.innerText = "❌ Netzwerkfehler. Bitte Verbindung prüfen.";
+      } finally {
+        mainBtn.disabled = false;
+      }
+    }
+
+    // =================================================
+    // LocalStorage memo management
+    // =================================================
+    function getHistory() {
+      return JSON.parse(localStorage.getItem("transcription_history") || "[]");
+    }
+
+    function setHistory(list) {
+      localStorage.setItem("transcription_history", JSON.stringify(list));
+    }
+
+    function saveToHistory(text) {
+      const list = getHistory();
+      const newItem = {
+        id: Date.now().toString(),
+        text: text,
+        createdAt: new Date().toLocaleString("ja-JP", {
+          month: "numeric",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit"
+        })
+      };
+      list.unshift(newItem);
+      setHistory(list);
+      renderHistory();
+    }
+
+    function deleteItem(id) {
+      // Delete single memo
+      const list = getHistory().filter(item => item.id !== id);
+      setHistory(list);
+      renderHistory();
+    }
+
+    function clearAllHistory() {
+      const list = getHistory();
+      if (list.length === 0) return;
+      // Clear all memos
+      localStorage.removeItem("transcription_history");
+      localStorage.removeItem("transcription_summary");
+      closeSummaryCard();
+      renderHistory();
+    }
+
+    // Toggle collapse
+    function toggleExpand(id) {
+      const bodyEl = document.getElementById(`memo-body-${id}`);
+      const btnEl = document.getElementById(`memo-btn-${id}`);
+      if (!bodyEl || !btnEl) return;
+
+      const isCollapsed = bodyEl.classList.contains("collapsed");
+      if (isCollapsed) {
+        bodyEl.classList.remove("collapsed");
+        btnEl.innerText = "▲ Einklappen";
+      } else {
+        bodyEl.classList.add("collapsed");
+        btnEl.innerText = "▼ Mehr anzeigen";
+      }
+    }
+
+    // Copy to clipboard
+    function copyText(id, btnElement) {
+      const bodyEl = document.getElementById(`memo-body-${id}`);
+      if (!bodyEl) return;
+
+      navigator.clipboard.writeText(bodyEl.innerText).then(() => {
+        const originalText = btnElement.innerHTML;
+        btnElement.innerHTML = `<span>✅ Kopiert</span>`;
+        setTimeout(() => {
+          btnElement.innerHTML = originalText;
+        }, 1500);
+      });
+    }
+
+    // Render history list
+    function renderHistory() {
+      const historyListEl = document.getElementById("historyList");
+      const list = getHistory();
+
+      if (list.length === 0) {
+        historyListEl.innerHTML = `<div class="history-empty">Noch kein Transkriptionsverlauf vorhanden.</div>`;
+        return;
+      }
+
+      historyListEl.innerHTML = list.map(item => {
+        const escaped = escapeHtml(item.text);
+        // Show read more button for long text
+        const isLongText = item.text.length > 70 || item.text.includes("\n");
+
+        return `
+          <div class="memo-card" id="memo-card-${item.id}">
+            <div class="memo-meta">
+              <span class="memo-date">🕒 ${item.createdAt}</span>
+            </div>
+            <div id="memo-body-${item.id}" class="memo-body ${isLongText ? 'collapsed' : ''}">${escaped}</div>
+            
+            ${isLongText ? `
+              <button id="memo-btn-${item.id}" class="memo-toggle-btn" onclick="toggleExpand('${item.id}')">
+                ▼ Read More
+              </button>
+            ` : ''}
+
+            <div class="memo-actions">
+              <button class="action-btn" onclick="copyText('${item.id}', this)">
+                <span>📋 Copy</span>
+              </button>
+              <button class="action-btn delete-btn" onclick="deleteItem('${item.id}')">
+                <span>🗑️ Delete</span>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+  </script>
+</body>
+</html>

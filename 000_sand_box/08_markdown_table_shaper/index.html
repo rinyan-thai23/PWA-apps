@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Markdown Table Shaper - Auto Format Markdown Tables & CSV/TSV Converter Hub</title>
+  <meta name="description" content="Format unaligned Markdown tables with clean padding. Convert spreadsheets (TSV/CSV) to GitHub Markdown, HTML, and JSON in 1ms. 100% private in-browser utility.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: #111827;
+      --border: #1f2937;
+      --accent: #f59e0b;
+      --accent-glow: rgba(245, 158, 11, 0.25);
+      --text: #f9fafb;
+      --text-muted: #9ca3af;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+
+    .container {
+      max-width: 720px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .badge-bar {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.35rem 0.85rem;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 9999px;
+      font-size: 0.8rem;
+      color: var(--accent);
+      margin-bottom: 1.5rem;
+      font-weight: 500;
+    }
+
+    .pwa-tag {
+      background: rgba(148, 163, 184, 0.2);
+      color: #94a3b8;
+      font-size: 0.75rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-left: 4px;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, #ffffff 40%, #f59e0b);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    p.subtitle {
+      font-size: 1.05rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 2.5rem;
+    }
+
+    .lang-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      margin-bottom: 3rem;
+    }
+
+    @media (max-width: 640px) {
+      .lang-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .lang-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: all 0.25s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .lang-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px -5px var(--accent-glow);
+    }
+
+    .lang-flag {
+      font-size: 2.2rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .lang-name {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+    }
+
+    .lang-desc {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .features-list {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      text-align: left;
+      border-top: 1px solid var(--border);
+      padding-top: 2rem;
+    }
+
+    @media (max-width: 640px) {
+      .features-list {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .feat-item {
+      background: rgba(17, 24, 39, 0.5);
+      padding: 1rem;
+      border-radius: 8px;
+      border: 1px solid #1f2937;
+    }
+
+    .feat-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #fbbf24;
+      margin-bottom: 0.35rem;
+    }
+
+    .feat-desc {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="badge-bar">
+      <span>📊 Markdown & Documentation Utility</span>
+      <span class="pwa-tag">Not PWA / Web Utility</span>
+    </div>
+
+    <h1>Markdown Table Shaper</h1>
+    <p class="subtitle">
+      Fix unaligned, jagged Markdown tables with perfect spacing. Convert spreadsheets, TSV, and CSV directly into polished GitHub Markdown tables, HTML, and JSON. 100% private in-browser tool.
+    </p>
+
+    <div class="lang-grid">
+      <a href="en/index.html" class="lang-card">
+        <div class="lang-flag">🇺🇸</div>
+        <div class="lang-name">English</div>
+        <div class="lang-desc">Open English Edition</div>
+      </a>
+
+      <a href="ja/index.html" class="lang-card">
+        <div class="lang-flag">🇯🇵</div>
+        <div class="lang-name">日本語</div>
+        <div class="lang-desc">日本語版アプリを開く</div>
+      </a>
+    </div>
+
+    <div class="features-list">
+      <div class="feat-item">
+        <div class="feat-title">✨ Pixel-Perfect Padding</div>
+        <div class="feat-desc">Calculates column widths including full-width CJK characters to ensure clean, aligned vertical pipes.</div>
+      </div>
+      <div class="feat-item">
+        <div class="feat-title">📑 Excel & Sheets Ready</div>
+        <div class="feat-desc">Paste tab-separated cells or CSV directly to generate structured Markdown tables in 1ms.</div>
+      </div>
+      <div class="feat-item">
+        <div class="feat-title">🔄 Multi-Format Export</div>
+        <div class="feat-desc">Switch seamlessly between padded Markdown, live HTML table preview, CSV, TSV, and structured JSON.</div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

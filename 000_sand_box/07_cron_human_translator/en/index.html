@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cron Human Translator - Human-Readable Cron & Schedule Predictor</title>
+  <meta name="description" content="Translate cryptic cron expressions (e.g. */15 0-6 * * 1-5) into clear human language instantly. Live forecast of upcoming runs in Local & UTC time. 100% client-side.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: #111726;
+      --card-border: #1e293b;
+      --accent: #10b981;
+      --accent-glow: rgba(16, 185, 129, 0.2);
+      --accent-hover: #059669;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --font-mono: 'Fira Code', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      padding: 1rem 2rem;
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(17, 23, 38, 0.8);
+      backdrop-filter: blur(8px);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #10b981, #06b6d4);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 15px var(--accent-glow);
+    }
+
+    .brand-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-badge {
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      background: #064e3b;
+      color: #34d399;
+      font-weight: 600;
+      border: 1px solid rgba(52, 211, 153, 0.3);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .lang-link {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      padding: 0.35rem 0.75rem;
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+    .lang-link:hover {
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      border-radius: 6px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-secondary {
+      background: #1e293b;
+      color: var(--text);
+      border-color: #334155;
+    }
+    .btn-secondary:hover {
+      background: #334155;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #042f2e;
+    }
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    main {
+      flex: 1;
+      padding: 1.5rem 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .preset-container {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .preset-title {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .preset-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .preset-btn {
+      background: #0b0f19;
+      border: 1px solid #334155;
+      color: #cbd5e1;
+      padding: 0.35rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .preset-btn:hover {
+      border-color: var(--accent);
+      color: #34d399;
+      background: rgba(16, 185, 129, 0.08);
+    }
+    .preset-btn code {
+      font-family: var(--font-mono);
+      font-weight: 600;
+      color: #38bdf8;
+    }
+
+    .cron-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .input-wrapper {
+      position: relative;
+    }
+
+    input.cron-input {
+      width: 100%;
+      background: #070a12;
+      border: 2px solid #334155;
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      font-family: var(--font-mono);
+      font-size: 1.6rem;
+      color: #34d399;
+      letter-spacing: 0.1em;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input.cron-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 15px var(--accent-glow);
+    }
+
+    .fields-breakdown {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 0.5rem;
+      text-align: center;
+    }
+
+    .field-tag {
+      background: #0b0f19;
+      border: 1px solid #1e293b;
+      border-radius: 6px;
+      padding: 0.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .field-tag .name {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+    .field-tag .val {
+      font-family: var(--font-mono);
+      font-size: 1rem;
+      font-weight: 700;
+      color: #38bdf8;
+    }
+
+    .translation-box {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(6, 182, 212, 0.05));
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: 10px;
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .trans-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #34d399;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .trans-text {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: #ffffff;
+      line-height: 1.4;
+    }
+
+    .schedule-panel {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .schedule-header {
+      padding: 0.85rem 1.25rem;
+      background: rgba(15, 23, 42, 0.6);
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .runs-list {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .run-item {
+      padding: 0.85rem 1.25rem;
+      border-bottom: 1px solid #1e293b;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.875rem;
+      transition: background 0.15s;
+    }
+    .run-item:last-child { border-bottom: none; }
+    .run-item:hover { background: rgba(255, 255, 255, 0.02); }
+
+    .run-left {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .run-num {
+      width: 24px;
+      height: 24px;
+      border-radius: 9999px;
+      background: #1e293b;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      font-family: var(--font-mono);
+    }
+
+    .run-time-jst {
+      font-family: var(--font-mono);
+      font-weight: 600;
+      color: #f8fafc;
+    }
+
+    .run-time-utc {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .run-relative {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      padding: 2px 8px;
+      background: rgba(56, 189, 248, 0.12);
+      color: #38bdf8;
+      border-radius: 4px;
+      border: 1px solid rgba(56, 189, 248, 0.25);
+    }
+
+    .reference-box {
+      background: #0b0f19;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    #toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: #10b981;
+      color: #042f2e;
+      padding: 0.6rem 1.2rem;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.875rem;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.25s ease;
+      pointer-events: none;
+      z-index: 100;
+    }
+    #toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    footer {
+      padding: 1.25rem;
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      border-top: 1px solid var(--card-border);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="brand-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-title">Cron Human Translator</div>
+      </div>
+      <span class="brand-badge">100% Client-Side Safe</span>
+    </div>
+
+    <div class="header-actions">
+      <button class="btn btn-secondary" id="btn-load-sample">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        Reload Sample Cron
+      </button>
+      <a href="../ja/index.html" class="lang-link">日本語</a>
+    </div>
+  </header>
+
+  <main>
+    <div class="preset-container">
+      <div class="preset-title">
+        <span>💡 Quick Sample Presets (Click to Test):</span>
+      </div>
+      <div class="preset-chips">
+        <button class="preset-btn" data-cron="*/15 0-6 * * 1-5">
+          <code>*/15 0-6 * * 1-5</code> Every 15 min on weekdays (12am-6am)
+        </button>
+        <button class="preset-btn" data-cron="0 9 * * 1-5">
+          <code>0 9 * * 1-5</code> Every weekday at 9:00 AM
+        </button>
+        <button class="preset-btn" data-cron="0 0 1,15 * *">
+          <code>0 0 1,15 * *</code> 1st & 15th of month at 12:00 AM
+        </button>
+        <button class="preset-btn" data-cron="*/5 * * * *">
+          <code>*/5 * * * *</code> Every 5 minutes continuously
+        </button>
+        <button class="preset-btn" data-cron="0 2 * * 0">
+          <code>0 2 * * 0</code> Every Sunday at 2:00 AM
+        </button>
+        <button class="preset-btn" data-cron="30 18 * * 5">
+          <code>30 18 * * 5</code> Every Friday at 6:30 PM
+        </button>
+      </div>
+    </div>
+
+    <div class="cron-card">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <label for="inp-cron" style="font-size:0.85rem; font-weight:600; color:var(--text-muted);">
+          Cron Expression (Standard 5-Field: Minute Hour Day Month Weekday)
+        </label>
+        <button class="btn btn-secondary" style="padding:2px 8px; font-size:0.75rem;" id="btn-copy-cron">
+          Copy Cron
+        </button>
+      </div>
+
+      <div class="input-wrapper">
+        <input type="text" id="inp-cron" class="cron-input" value="*/15 0-6 * * 1-5" placeholder="* * * * *">
+      </div>
+
+      <div class="fields-breakdown">
+        <div class="field-tag">
+          <span class="name">Minute (0-59)</span>
+          <span class="val" id="tag-min">*/15</span>
+        </div>
+        <div class="field-tag">
+          <span class="name">Hour (0-23)</span>
+          <span class="val" id="tag-hour">0-6</span>
+        </div>
+        <div class="field-tag">
+          <span class="name">Day (1-31)</span>
+          <span class="val" id="tag-day">*</span>
+        </div>
+        <div class="field-tag">
+          <span class="name">Month (1-12)</span>
+          <span class="val" id="tag-month">*</span>
+        </div>
+        <div class="field-tag">
+          <span class="name">Weekday (0-7: Sun-Sat)</span>
+          <span class="val" id="tag-dow">1-5</span>
+        </div>
+      </div>
+
+      <div class="translation-box">
+        <div class="trans-label">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+          Human-Readable Translation:
+        </div>
+        <div class="trans-text" id="trans-text">Loading...</div>
+      </div>
+    </div>
+
+    <div class="schedule-panel">
+      <div class="schedule-header">
+        <span>📅 Next Upcoming Executions (Top 5)</span>
+        <span style="font-size:0.75rem;">Current local time: <span id="curr-time"></span></span>
+      </div>
+      <div class="runs-list" id="runs-list"></div>
+    </div>
+
+    <div class="reference-box">
+      <strong>📖 Syntax Quick Guide:</strong>
+      <code>*</code> (any value) &bull;
+      <code>,</code> (value list separator e.g. <code>1,15</code>) &bull;
+      <code>-</code> (range of values e.g. <code>1-5</code> for Mon-Fri) &bull;
+      <code>/</code> (step values e.g. <code>*/15</code> for every 15 min) &bull;
+      Weekdays: <code>0</code>=Sunday, <code>1</code>=Monday, ..., <code>6</code>=Saturday, <code>7</code>=Sunday
+    </div>
+  </main>
+
+  <div id="toast">Copied cron expression!</div>
+
+  <footer>
+    <p>Cron Human Translator &bull; 100% Client-Side Execution &bull; Zero Server Tracking</p>
+  </footer>
+
+  <script>
+    const inpCron = document.getElementById('inp-cron');
+    const transText = document.getElementById('trans-text');
+    const runsList = document.getElementById('runs-list');
+    const currTime = document.getElementById('curr-time');
+    const toast = document.getElementById('toast');
+
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2200);
+    }
+
+    const DOW_NAMES_EN = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+    function parseField(fieldStr, min, max) {
+      const result = new Set();
+      const parts = fieldStr.split(',');
+
+      for (let part of parts) {
+        part = part.trim();
+        if (part === '') continue;
+
+        if (part === '*') {
+          for (let i = min; i <= max; i++) result.add(i);
+        } else if (part.startsWith('*/')) {
+          const step = parseInt(part.slice(2), 10);
+          if (!isNaN(step) && step > 0) {
+            for (let i = min; i <= max; i += step) result.add(i);
+          }
+        } else if (part.includes('-')) {
+          const [startStr, endStr] = part.split('-');
+          const start = parseInt(startStr, 10);
+          const end = parseInt(endStr, 10);
+          if (!isNaN(start) && !isNaN(end) && start <= end) {
+            for (let i = Math.max(min, start); i <= Math.min(max, end); i++) result.add(i);
+          }
+        } else {
+          const num = parseInt(part, 10);
+          if (!isNaN(num) && num >= min && num <= max) {
+            result.add(num);
+          }
+        }
+      }
+
+      return Array.from(result).sort((a, b) => a - b);
+    }
+
+    function translateCronEn(minStr, hourStr, domStr, monStr, dowStr) {
+      let desc = '';
+
+      if (minStr.startsWith('*/')) {
+        const step = minStr.replace('*/', '');
+        desc += `Every ${step} minutes`;
+      } else if (minStr === '0' && hourStr === '*') {
+        desc += 'Every hour on the hour';
+      } else if (hourStr !== '*' && minStr !== '*') {
+        const padM = minStr.padStart(2, '0');
+        desc += `At ${hourStr}:${padM}`;
+      } else {
+        desc += `At minute ${minStr} past hour ${hourStr}`;
+      }
+
+      if (hourStr.includes('-')) {
+        const [hStart, hEnd] = hourStr.split('-');
+        desc += `, between hours ${hStart}:00 and ${hEnd}:59`;
+      }
+
+      if (domStr !== '*') {
+        desc += `, on day ${domStr} of the month`;
+      }
+
+      if (monStr !== '*') {
+        desc += `, in month ${monStr}`;
+      }
+
+      if (dowStr === '1-5') {
+        desc += ', Monday through Friday';
+      } else if (dowStr === '0,6' || dowStr === '6,0') {
+        desc += ', on Saturday and Sunday';
+      } else if (dowStr !== '*') {
+        const dows = parseField(dowStr, 0, 7).map(d => DOW_NAMES_EN[d % 7]);
+        desc += `, on ${Array.from(new Set(dows)).join(', ')}`;
+      }
+
+      return desc;
+    }
+
+    function getNextRuns(minStr, hourStr, domStr, monStr, dowStr, count = 5) {
+      const mins = parseField(minStr, 0, 59);
+      const hours = parseField(hourStr, 0, 23);
+      const doms = parseField(domStr, 1, 31);
+      const mons = parseField(monStr, 1, 12);
+      const dows = parseField(dowStr, 0, 7);
+
+      if (!mins.length || !hours.length || !doms.length || !mons.length || !dows.length) {
+        return [];
+      }
+
+      const runs = [];
+      let current = new Date();
+      current.setSeconds(0);
+      current.setMilliseconds(0);
+      current = new Date(current.getTime() + 60000);
+
+      const limit = 50000;
+      let iterations = 0;
+
+      while (runs.length < count && iterations < limit) {
+        iterations++;
+        const m = current.getMinutes();
+        const h = current.getHours();
+        const dom = current.getDate();
+        const mon = current.getMonth() + 1;
+        const dow = current.getDay();
+
+        const matchMin = mins.includes(m);
+        const matchHour = hours.includes(h);
+        const matchDom = domStr === '*' || doms.includes(dom);
+        const matchMon = mons.includes(mon);
+        const matchDow = dowStr === '*' || dows.includes(dow) || (dow === 0 && dows.includes(7));
+
+        let dayMatch = false;
+        if (domStr === '*' && dowStr === '*') {
+          dayMatch = true;
+        } else if (domStr !== '*' && dowStr === '*') {
+          dayMatch = matchDom;
+        } else if (domStr === '*' && dowStr !== '*') {
+          dayMatch = matchDow;
+        } else {
+          dayMatch = matchDom || matchDow;
+        }
+
+        if (matchMin && matchHour && matchMon && dayMatch) {
+          runs.push(new Date(current));
+        }
+
+        current = new Date(current.getTime() + 60000);
+      }
+
+      return runs;
+    }
+
+    function formatRelative(targetDate) {
+      const diffMs = targetDate.getTime() - Date.now();
+      if (diffMs <= 0) return 'shortly';
+      const diffMins = Math.floor(diffMs / 60000);
+      if (diffMins < 60) return `in ${diffMins} min`;
+      const diffHours = Math.floor(diffMins / 60);
+      const remMins = diffMins % 60;
+      if (diffHours < 24) return `in ${diffHours}h ${remMins}m`;
+      const diffDays = Math.floor(diffHours / 24);
+      return `in ${diffDays} day${diffDays > 1 ? 's' : ''}`;
+    }
+
+    function updateCron() {
+      const val = inpCron.value.trim();
+      const parts = val.split(/\s+/);
+
+      currTime.textContent = new Date().toLocaleTimeString();
+
+      if (parts.length !== 5) {
+        transText.textContent = '⚠️ Please enter exactly 5 fields (minute hour day month weekday) separated by space';
+        runsList.innerHTML = '<div style="padding:1rem; color:#f87171; font-size:0.85rem;">Syntax error: 5 fields required (e.g. */15 0-6 * * 1-5)</div>';
+        return;
+      }
+
+      const [minStr, hourStr, domStr, monStr, dowStr] = parts;
+
+      document.getElementById('tag-min').textContent = minStr;
+      document.getElementById('tag-hour').textContent = hourStr;
+      document.getElementById('tag-day').textContent = domStr;
+      document.getElementById('tag-month').textContent = monStr;
+      document.getElementById('tag-dow').textContent = dowStr;
+
+      try {
+        const trans = translateCronEn(minStr, hourStr, domStr, monStr, dowStr);
+        transText.textContent = trans || 'Runs as specified';
+
+        const runs = getNextRuns(minStr, hourStr, domStr, monStr, dowStr, 5);
+        if (runs.length === 0) {
+          runsList.innerHTML = '<div style="padding:1rem; color:#f87171; font-size:0.85rem;">No upcoming runs found in search window</div>';
+          return;
+        }
+
+        runsList.innerHTML = runs.map((d, idx) => {
+          const locStr = d.toLocaleString('en-US', { year:'numeric', month:'short', day:'2-digit', weekday:'short', hour:'2-digit', minute:'2-digit' });
+          const utcStr = d.toISOString().replace('T', ' ').substring(0, 16) + ' UTC';
+          const rel = formatRelative(d);
+          return `
+            <div class="run-item">
+              <div class="run-left">
+                <div class="run-num">${idx + 1}</div>
+                <div>
+                  <div class="run-time-jst">${locStr}</div>
+                  <div class="run-time-utc">${utcStr}</div>
+                </div>
+              </div>
+              <div class="run-relative">${rel}</div>
+            </div>
+          `;
+        }).join('');
+      } catch (err) {
+        transText.textContent = 'Error parsing cron expression';
+      }
+    }
+
+    inpCron.addEventListener('input', updateCron);
+
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        inpCron.value = btn.dataset.cron;
+        updateCron();
+        showToast(`Preset "${btn.dataset.cron}" loaded`);
+      });
+    });
+
+    document.getElementById('btn-copy-cron').addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(inpCron.value);
+        showToast('Copied cron to clipboard!');
+      } catch (e) {
+        showToast('Failed to copy');
+      }
+    });
+
+    async function loadSample() {
+      try {
+        const res = await fetch('sample.txt?t=' + Date.now());
+        if (res.ok) {
+          const text = await res.text();
+          const firstLine = text.split('\n')[0].trim();
+          if (firstLine) {
+            inpCron.value = firstLine;
+            updateCron();
+            showToast('Sample cron (sample.txt) loaded');
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching sample.txt:', err);
+      }
+    }
+
+    document.getElementById('btn-load-sample').addEventListener('click', loadSample);
+    window.addEventListener('DOMContentLoaded', loadSample);
+  </script>
+</body>
+</html>

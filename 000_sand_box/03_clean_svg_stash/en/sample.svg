@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Generator: Adobe Illustrator 28.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="svg_layer_icon_export" x="0px" y="0px" viewBox="0 0 128 128" style="enable-background:new 0 0 128 128;" xml:space="preserve" sketch:type="MSPage">
+  <metadata>
+    <rdf:RDF>
+      <cc:Work rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title>Rocket Launch Vector Asset</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs>
+    <style type="text/css">
+      .st0{fill:url(#grad_primary);}
+      .st1{fill:#FFFFFF;}
+      .st2{fill:#F59E0B;}
+      .st3{fill:#EF4444;}
+    </style>
+    <linearGradient id="grad_primary" gradientUnits="userSpaceOnUse" x1="16.5" y1="111.5" x2="111.5" y2="16.5">
+      <stop offset="0" style="stop-color:#4F46E5"/>
+      <stop offset="1" style="stop-color:#9333EA"/>
+    </linearGradient>
+  </defs>
+  <g id="Layer_Artwork_Group" sketch:type="MSLayerGroup">
+    <!-- Outer Shield / Circle -->
+    <circle id="bg_circle" class="st0" cx="64" cy="64" r="56" fill="url(#grad_primary)"/>
+    
+    <!-- Rocket Body -->
+    <path id="rocket_fuselage" class="st1" fill="#FFFFFF" d="M64,28c0,0,18,12,18,36c0,14-8,24-18,28c-10-4-18-14-18-28C46,40,64,28,64,28z"/>
+    
+    <!-- Porthole Window -->
+    <circle id="window_outer" cx="64" cy="50" r="8" fill="#4F46E5"/>
+    <circle id="window_inner" cx="64" cy="50" r="5" fill="#67E8F9"/>
+    
+    <!-- Wings / Fins -->
+    <path id="fin_left" class="st2" fill="#F59E0B" d="M46,68c-8,6-12,16-12,16s10-2,16-6L46,68z"/>
+    <path id="fin_right" class="st2" fill="#F59E0B" d="M82,68c8,6,12,16,12,16s-10-2-16-6L82,68z"/>
+    
+    <!-- Engine Flame Thruster -->
+    <polygon id="flame" class="st3" fill="#EF4444" points="58,92 64,106 70,92 64,96"/>
+  </g>
+</svg>

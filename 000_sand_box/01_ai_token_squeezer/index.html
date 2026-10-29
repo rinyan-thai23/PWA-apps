@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Token Squeezer - Compress Context & Cut LLM API Costs</title>
+  <meta name="description" content="Dedicated client-side tool to strip useless whitespace, comments, and redundant metadata from code, logs, and text before sending to ChatGPT, Claude, and LLM APIs. Save up to 50% tokens.">
+  <meta name="keywords" content="Token Squeezer, AI Token Reducer, LLM Context Optimizer, Token Saver, Prompt Minifier">
+  <meta name="theme-color" content="#10b981">
+
+  <!-- Hreflang Canonical Links -->
+  <link rel="alternate" hreflang="ja" href="./ja/" />
+  <link rel="alternate" hreflang="en" href="./en/" />
+  <link rel="alternate" hreflang="x-default" href="./en/" />
+
+  <!-- Schema.org JSON-LD -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebApplication",
+        "name": "AI Token Squeezer",
+        "url": "./",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "All (Web, Windows, macOS, Linux)",
+        "description": "An ultra-fast client-side web utility to strip redundant whitespace, code comments, and JSON formatting to save tokens and minimize LLM API expenses.",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        }
+      }
+    ]
+  }
+  </script>
+
+  <!-- Tailwind CSS & Lucide Icons -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    :root {
+      --bg-main: #090d16;
+      --bg-card: #111827;
+      --bg-card-alt: #1a2234;
+      --border-color: #1f293d;
+      --accent-color: #10b981;
+    }
+    body {
+      background-color: var(--bg-main);
+      color: #e2e8f0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    }
+    .lang-card:hover {
+      border-color: rgba(16, 185, 129, 0.6) !important;
+    }
+    .lang-card.is-recommended {
+      border-color: #10b981 !important;
+      background: linear-gradient(135deg, #111827 0%, #064e3b 100%) !important;
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.25);
+    }
+    .flag-icon {
+      width: 32px;
+      height: 24px;
+      border-radius: 3px;
+      vertical-align: middle;
+      display: inline-block;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Header -->
+  <header class="border-b py-3 px-6 backdrop-blur-md sticky top-0 z-50" style="border-color: var(--border-color); background: rgba(9, 13, 22, 0.85);">
+    <div class="max-w-4xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-md">
+          <i data-lucide="zap" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h1 class="font-bold text-base text-white tracking-tight">AI Token Squeezer</h1>
+          <p class="text-[11px] text-gray-400">Context Optimizer & Token Squeezer</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <!-- PWA Status: Pure Web Utility -->
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" title="No installation needed, works instantly in browser">
+          <i data-lucide="globe" class="w-3.5 h-3.5"></i>
+          Web Utility (Zero Install)
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-4xl w-full mx-auto px-6 py-8 sm:py-12 flex flex-col items-center">
+
+    <!-- Hero Title -->
+    <div class="text-center max-w-2xl mx-auto mb-8">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold mb-4">
+        <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Stop Burning LLM Context on Whitespace
+      </div>
+      <h2 class="text-2xl sm:text-4xl font-extrabold text-white tracking-tight mb-3">
+        Select Your Language
+      </h2>
+      <p class="text-sm sm:text-base text-gray-400 max-w-lg mx-auto">
+        Cut token costs and fit more information into Claude, ChatGPT, and Gemini context windows.
+      </p>
+    </div>
+
+    <!-- Detected Language Quick Action Banner -->
+    <div id="detectedBanner" class="hidden w-full max-w-2xl mb-6 p-3 rounded-xl border bg-gradient-to-r from-emerald-950/40 via-zinc-900 to-emerald-950/40 border-emerald-500/40 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-2.5">
+        <span class="flex h-2 w-2 relative">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+        </span>
+        <span class="text-xs text-gray-300">
+          Detected browser preference: <strong id="detectedLangName" class="text-emerald-300">English</strong>
+        </span>
+      </div>
+      <a id="detectedLaunchBtn" href="./en/" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition flex items-center gap-1.5 shadow-sm flex-shrink-0">
+        <span>Launch App</span>
+        <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+      </a>
+    </div>
+
+    <!-- Compact Language Selector Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-2xl mb-12">
+      
+      <!-- Japanese (ja) -->
+      <a href="./ja/" data-lang="ja" class="lang-card group relative p-3.5 rounded-xl border transition-all duration-200 hover:scale-[1.02] hover:shadow-lg flex items-center justify-between gap-3" style="background-color: var(--bg-card); border-color: var(--border-color);">
+        <div class="flex items-center gap-3 min-w-0">
+          <svg viewBox="0 0 32 24" class="flag-icon" xmlns="http://www.w3.org/2000/svg" aria-label="Japan">
+            <rect width="32" height="24" fill="#ffffff"/>
+            <circle cx="16" cy="12" r="6.2" fill="#bc002d"/>
+          </svg>
+          <div class="min-w-0">
+            <div class="flex items-center gap-1.5">
+              <h3 class="font-bold text-sm text-white group-hover:text-emerald-400 transition-colors truncate">日本語</h3>
+              <span class="rec-badge hidden px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Auto</span>
+            </div>
+            <p class="text-[11px] text-gray-400 truncate">Japanese · 日本</p>
+          </div>
+        </div>
+        <i data-lucide="chevron-right" class="w-4 h-4 text-gray-500 group-hover:text-emerald-400 group-hover:translate-x-0.5 transition-all flex-shrink-0"></i>
+      </a>
+
+      <!-- English (en) -->
+      <a href="./en/" data-lang="en" class="lang-card group relative p-3.5 rounded-xl border transition-all duration-200 hover:scale-[1.02] hover:shadow-lg flex items-center justify-between gap-3" style="background-color: var(--bg-card); border-color: var(--border-color);">
+        <div class="flex items-center gap-3 min-w-0">
+          <svg viewBox="0 0 32 24" class="flag-icon" xmlns="http://www.w3.org/2000/svg" aria-label="English / USA">
+            <rect width="32" height="24" fill="#b22234"/>
+            <path d="M0 1.85h32v1.85H0zm0 3.69h32v1.85H0zm0 3.69h32v1.85H0zm0 3.69h32v1.85H0zm0 3.69h32v1.85H0zm0 3.69h32v1.85H0z" fill="#ffffff"/>
+            <rect width="14" height="13" fill="#3c3b6e"/>
+          </svg>
+          <div class="min-w-0">
+            <div class="flex items-center gap-1.5">
+              <h3 class="font-bold text-sm text-white group-hover:text-emerald-400 transition-colors truncate">English</h3>
+              <span class="rec-badge hidden px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Auto</span>
+            </div>
+            <p class="text-[11px] text-gray-400 truncate">English · Global / US</p>
+          </div>
+        </div>
+        <i data-lucide="chevron-right" class="w-4 h-4 text-gray-500 group-hover:text-emerald-400 group-hover:translate-x-0.5 transition-all flex-shrink-0"></i>
+      </a>
+
+    </div>
+
+    <!-- Feature Grid Section -->
+    <section class="w-full max-w-2xl border-t pt-10 pb-6" style="border-color: var(--border-color);">
+      <h3 class="text-lg font-bold text-white mb-4 text-center">Why Squeeze Tokens Before Prompting?</h3>
+      
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mb-8 text-xs text-gray-300">
+        <div class="p-4 rounded-xl border bg-zinc-900/50" style="border-color: var(--border-color);">
+          <div class="flex items-center gap-2 font-bold text-white mb-1.5">
+            <i data-lucide="dollar-sign" class="w-4 h-4 text-emerald-400"></i> Cut API & Token Costs
+          </div>
+          <p class="text-gray-400 leading-relaxed">
+            Eliminates 30% to 50% of wasteful tokens caused by bloated whitespace, comments, and empty lines.
+          </p>
+        </div>
+
+        <div class="p-4 rounded-xl border bg-zinc-900/50" style="border-color: var(--border-color);">
+          <div class="flex items-center gap-2 font-bold text-white mb-1.5">
+            <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i> 100% Client-Side Privacy
+          </div>
+          <p class="text-gray-400 leading-relaxed">
+            Zero server uploads. Everything executes directly inside your browser memory for confidential company code.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="w-full max-w-2xl border-t py-6 text-center text-xs text-gray-500" style="border-color: var(--border-color);">
+      <p>AI Token Squeezer — Pure Client-Side Context Optimizer.</p>
+    </footer>
+
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+
+      const navLang = (navigator.language || navigator.userLanguage || 'en').toLowerCase();
+      let matchedCode = 'en';
+      if (navLang.startsWith('ja')) matchedCode = 'ja';
+
+      const card = document.querySelector(`.lang-card[data-lang="${matchedCode}"]`);
+      if (card) {
+        card.classList.add('is-recommended');
+        const badge = card.querySelector('.rec-badge');
+        if (badge) badge.classList.remove('hidden');
+      }
+
+      const banner = document.getElementById('detectedBanner');
+      const nameEl = document.getElementById('detectedLangName');
+      const launchBtn = document.getElementById('detectedLaunchBtn');
+      if (banner && nameEl && launchBtn) {
+        nameEl.textContent = matchedCode === 'ja' ? '日本語 (Japanese)' : 'English';
+        launchBtn.href = `./${matchedCode}/`;
+        banner.classList.remove('hidden');
+      }
+    });
+  </script>
+</body>
+</html>

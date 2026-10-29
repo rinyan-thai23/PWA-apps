@@ -1,0 +1,59 @@
+diff --git a/src/auth/jwt_handler.ts b/src/auth/jwt_handler.ts
+index 8a3f910..e4b2190 100644
+--- a/src/auth/jwt_handler.ts
++++ b/src/auth/jwt_handler.ts
+@@ -12,18 +12,24 @@ interface TokenPayload {
+   sub: string;
+   role: string;
+   exp: number;
++  organizationId?: string;
++  tierLevel?: 'free' | 'pro' | 'enterprise';
+ }
+ 
+-export function verifyToken(token: string): TokenPayload | null {
+-  if (!token) {
+-    return null;
++export async function verifyToken(token: string, secretKey: string): Promise<TokenPayload> {
++  if (!token || token.trim() === '') {
++    throw new Error('Authentication token is required');
+   }
+-  try {
+-    // Legacy insecure decoding
+-    const decoded = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+-    return decoded as TokenPayload;
+-  } catch (e) {
+-    return null;
++
++  // Enforce cryptographic HMAC SHA-256 verification
++  const [headerB64, payloadB64, signature] = token.split('.');
++  if (!headerB64 || !payloadB64 || !signature) {
++    throw new Error('Malformed JWT structure');
+   }
++
++  const expectedSignature = crypto.createHmac('sha256', secretKey)
++    .update(`${headerB64}.${payloadB64}`)
++    .digest('base64url');
++
++  if (signature !== expectedSignature) {
++    throw new Error('Invalid token cryptographic signature');
++  }
++
++  const payload = JSON.parse(Buffer.from(payloadB64, 'base64url').toString('utf8'));
++  return payload as TokenPayload;
+ }
+diff --git a/src/config/rate_limit.json b/src/config/rate_limit.json
+index 3b018f2..79cfa14 100644
+--- a/src/config/rate_limit.json
++++ b/src/config/rate_limit.json
+@@ -2,7 +2,9 @@
+   "version": "1.0.0",
+   "limits": {
+     "freeTierRpm": 60,
+-    "proTierRpm": 600,
+-    "enterpriseTierRpm": 6000
++    "proTierRpm": 1200,
++    "enterpriseTierRpm": 60000,
++    "enableRedisBurst": true,
++    "circuitBreakerTripThreshold": 5
+   }
+ }

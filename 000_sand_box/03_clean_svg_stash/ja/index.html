@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clean SVG Stash - 即席SVGクリーンアップ＆JSX変換</title>
+  <meta name="description" content="FigmaやIllustratorの不要なメタデータ、ゴミタグ、名前空間を瞬時にクリーンアップ。React JSXやVue、CSS Data URIへ1クリックで変換・コピーできる完全クライアントサイドSVG最適化ツール。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #090d16;
+      --card-bg: #111726;
+      --card-border: #1e293b;
+      --accent: #06b6d4;
+      --accent-glow: rgba(6, 182, 212, 0.2);
+      --accent-hover: #0891b2;
+      --success: #10b981;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --font-mono: 'Fira Code', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      padding: 1rem 2rem;
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(17, 23, 38, 0.8);
+      backdrop-filter: blur(8px);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #06b6d4, #3b82f6);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 15px var(--accent-glow);
+    }
+
+    .brand-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-badge {
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      background: #064e3b;
+      color: #34d399;
+      font-weight: 600;
+      border: 1px solid rgba(52, 211, 153, 0.3);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .lang-link {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      padding: 0.35rem 0.75rem;
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+    .lang-link:hover {
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      border-radius: 6px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-secondary {
+      background: #1e293b;
+      color: var(--text-main);
+      border-color: #334155;
+    }
+    .btn-secondary:hover {
+      background: #334155;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #042f2e;
+    }
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    main {
+      flex: 1;
+      padding: 1.5rem 2rem;
+      max-width: 1600px;
+      margin: 0 auto;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .stats-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 0.85rem 1.25rem;
+    }
+
+    .stats-group {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .stat-val {
+      font-family: var(--font-mono);
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .reduction-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.25rem 0.75rem;
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(52, 211, 153, 0.4);
+      border-radius: 9999px;
+      font-size: 0.95rem;
+      font-family: var(--font-mono);
+      font-weight: 700;
+    }
+
+    .workspace-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      flex: 1;
+      min-height: 560px;
+    }
+
+    @media (max-width: 1024px) {
+      .workspace-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      padding: 0.75rem 1rem;
+      background: rgba(15, 23, 42, 0.6);
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .panel-title {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .editor-wrapper {
+      position: relative;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    textarea.code-input {
+      width: 100%;
+      height: 100%;
+      min-height: 280px;
+      padding: 1rem;
+      background: transparent;
+      color: #e2e8f0;
+      border: none;
+      resize: none;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      line-height: 1.5;
+      outline: none;
+      white-space: pre;
+    }
+
+    /* Options bar inside input */
+    .clean-options {
+      padding: 0.75rem 1rem;
+      background: #0b0f19;
+      border-top: 1px solid var(--card-border);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem 1.25rem;
+    }
+
+    .opt-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      user-select: none;
+    }
+    .opt-label input[type="checkbox"] {
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    /* Output Panel */
+    .tabs {
+      display: flex;
+      gap: 0.25rem;
+    }
+
+    .tab-btn {
+      padding: 0.35rem 0.75rem;
+      font-size: 0.8rem;
+      font-weight: 500;
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .tab-btn.active {
+      background: #1e293b;
+      color: var(--accent);
+      border-color: #334155;
+    }
+
+    .preview-box-container {
+      height: 200px;
+      border-bottom: 1px solid var(--card-border);
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      background-color: #1a1f2c;
+    }
+
+    .bg-checker {
+      background-image: linear-gradient(45deg, #161b26 25%, transparent 25%),
+                        linear-gradient(-45deg, #161b26 25%, transparent 25%),
+                        linear-gradient(45deg, transparent 75%, #161b26 75%),
+                        linear-gradient(-45deg, transparent 75%, #161b26 75%);
+      background-size: 20px 20px;
+      background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+    }
+    .bg-light { background-color: #ffffff; }
+    .bg-dark-preview { background-color: #090d16; }
+
+    .preview-svg-wrapper {
+      max-width: 90%;
+      max-height: 90%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .preview-svg-wrapper svg {
+      max-width: 100%;
+      max-height: 180px;
+      height: auto;
+    }
+
+    .preview-controls {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      display: flex;
+      gap: 0.25rem;
+      background: rgba(17, 23, 38, 0.85);
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      padding: 2px;
+    }
+
+    .bg-toggle-btn {
+      width: 22px;
+      height: 22px;
+      border-radius: 4px;
+      border: 1px solid transparent;
+      cursor: pointer;
+    }
+    .bg-toggle-btn.active {
+      border-color: var(--accent);
+    }
+
+    .output-code-area {
+      flex: 1;
+      padding: 1rem;
+      background: #080c14;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      line-height: 1.5;
+      color: #38bdf8;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+      user-select: all;
+    }
+
+    /* Toast Notification */
+    #toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: #10b981;
+      color: #042f2e;
+      padding: 0.6rem 1.2rem;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.875rem;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.25s ease;
+      pointer-events: none;
+      z-index: 100;
+    }
+    #toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    footer {
+      padding: 1.25rem;
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      border-top: 1px solid var(--card-border);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="brand-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+          <polyline points="2 17 12 22 22 17"></polyline>
+          <polyline points="2 12 12 17 22 12"></polyline>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-title">Clean SVG Stash</div>
+      </div>
+      <span class="brand-badge">100% Client-Side Safe</span>
+    </div>
+
+    <div class="header-actions">
+      <button class="btn btn-secondary" id="btn-load-sample">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        外部テストサンプル再読込
+      </button>
+      <a href="../en/index.html" class="lang-link">English</a>
+    </div>
+  </header>
+
+  <main>
+    <div class="stats-bar">
+      <div class="stats-group">
+        <div class="stat-item">
+          <span class="stat-label">元サイズ</span>
+          <span class="stat-val" id="stat-orig-size">0 B</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">クリーン後</span>
+          <span class="stat-val" id="stat-clean-size">0 B</span>
+        </div>
+        <div class="reduction-pill" id="stat-reduction-badge">
+          <span>📉 -0% 削減</span>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:0.5rem;">
+        <button class="btn btn-secondary" id="btn-copy-code">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+          クリップボードにコピー
+        </button>
+        <button class="btn btn-primary" id="btn-download-svg">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          .svg を保存
+        </button>
+      </div>
+    </div>
+
+    <div class="workspace-grid">
+      <!-- Input Panel -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            元SVGコード (貼り付け または ファイルドラッグ)
+          </span>
+          <button class="btn btn-secondary" style="padding:2px 8px; font-size:0.75rem;" id="btn-clear">クリア</button>
+        </div>
+        <div class="editor-wrapper">
+          <textarea class="code-input" id="svg-input" placeholder="ここへFigmaやIllustratorのSVGコードを貼り付けてください..."></textarea>
+          
+          <div class="clean-options">
+            <label class="opt-label"><input type="checkbox" id="opt-metadata" checked> メタデータ/XML宣言除去</label>
+            <label class="opt-label"><input type="checkbox" id="opt-comments" checked> コメント削除</label>
+            <label class="opt-label"><input type="checkbox" id="opt-editor-attrs" checked> Figma/Inkscape独自属性除去</label>
+            <label class="opt-label"><input type="checkbox" id="opt-empty-tags" checked> 空タグ・無駄なdefs削除</label>
+            <label class="opt-label"><input type="checkbox" id="opt-viewbox" checked> 寸法をviewBoxに統一</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Output Panel -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="tabs">
+            <button class="tab-btn active" data-format="svg">Clean SVG</button>
+            <button class="tab-btn" data-format="jsx">React (JSX)</button>
+            <button class="tab-btn" data-format="vue">Vue 3 SFC</button>
+            <button class="tab-btn" data-format="datauri">CSS Data URI</button>
+          </div>
+        </div>
+
+        <!-- Real-time Preview Area -->
+        <div class="preview-box-container bg-checker" id="preview-container">
+          <div class="preview-controls">
+            <button class="bg-toggle-btn active" data-bg="bg-checker" title="チェッカー背景" style="background:#1e293b;"></button>
+            <button class="bg-toggle-btn" data-bg="bg-dark-preview" title="ダーク背景" style="background:#090d16;"></button>
+            <button class="bg-toggle-btn" data-bg="bg-light" title="ライト背景" style="background:#ffffff;"></button>
+          </div>
+          <div class="preview-svg-wrapper" id="svg-preview">
+            <!-- Rendered SVG lives here -->
+          </div>
+        </div>
+
+        <!-- Output Code -->
+        <div class="output-code-area" id="output-code"></div>
+      </div>
+    </div>
+  </main>
+
+  <div id="toast">クリップボードにコピーしました！</div>
+
+  <footer>
+    <p>Clean SVG Stash &bull; 完全静音・100%クライアントサイド処理 &bull; データはサーバーに一切送信されません</p>
+  </footer>
+
+  <script>
+    let currentFormat = 'svg';
+    let cleanedSvgCache = '';
+
+    const svgInput = document.getElementById('svg-input');
+    const outputCode = document.getElementById('output-code');
+    const svgPreview = document.getElementById('svg-preview');
+    const previewContainer = document.getElementById('preview-container');
+    const statOrigSize = document.getElementById('stat-orig-size');
+    const statCleanSize = document.getElementById('stat-clean-size');
+    const statReductionBadge = document.getElementById('stat-reduction-badge');
+    const toast = document.getElementById('toast');
+
+    // フォーマットサイズ計算ユーティリティ
+    function formatBytes(bytes) {
+      if (bytes === 0) return '0 B';
+      const k = 1024;
+      const sizes = ['B', 'KB', 'MB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2200);
+    }
+
+    // SVGクリーンアップコアロジック
+    function cleanSvg(rawSvg) {
+      if (!rawSvg || !rawSvg.trim()) return '';
+
+      let text = rawSvg;
+
+      // オプション取得
+      const optMetadata = document.getElementById('opt-metadata').checked;
+      const optComments = document.getElementById('opt-comments').checked;
+      const optEditorAttrs = document.getElementById('opt-editor-attrs').checked;
+      const optEmptyTags = document.getElementById('opt-empty-tags').checked;
+      const optViewBox = document.getElementById('opt-viewbox').checked;
+
+      // 1. XML宣言・DOCTYPEの除去
+      if (optMetadata) {
+        text = text.replace(/<\?xml[\s\S]*?\?>/gi, '');
+        text = text.replace(/<!DOCTYPE[\s\S]*?>/gi, '');
+        text = text.replace(/<metadata[\s\S]*?<\/metadata>/gi, '');
+      }
+
+      // 2. コメント削除
+      if (optComments) {
+        text = text.replace(/<!--[\s\S]*?-->/g, '');
+      }
+
+      // 3. Figma / Illustrator / Sketch / Inkscape などの独自属性・名前空間の除去
+      if (optEditorAttrs) {
+        text = text.replace(/\s*(xmlns:sketch|xmlns:sodipodi|xmlns:inkscape|xmlns:vectornator|sketch:type|inkscape:[a-z0-9_-]+|sodipodi:[a-z0-9_-]+)="[^"]*"/gi, '');
+        text = text.replace(/\s*data-name="[^"]*"/gi, '');
+      }
+
+      // 4. 空タグ・無駄なdefsの除去
+      if (optEmptyTags) {
+        text = text.replace(/<defs>\s*<\/defs>/gi, '');
+        text = text.replace(/<desc[\s\S]*?<\/desc>/gi, '');
+        text = text.replace(/<title[\s\S]*?<\/title>/gi, '');
+      }
+
+      // DOMパースによる安全性確保＆寸法正規化
+      try {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(text, 'image/svg+xml');
+        const svgEl = doc.querySelector('svg');
+
+        if (svgEl) {
+          if (optViewBox) {
+            const width = svgEl.getAttribute('width');
+            const height = svgEl.getAttribute('height');
+            let viewBox = svgEl.getAttribute('viewBox');
+
+            if (!viewBox && width && height) {
+              const numW = parseFloat(width);
+              const numH = parseFloat(height);
+              if (!isNaN(numW) && !isNaN(numH)) {
+                svgEl.setAttribute('viewBox', `0 0 ${numW} ${numH}`);
+              }
+            }
+          }
+
+          // 不要な空白の除去とシリアライズ
+          const serializer = new XMLSerializer();
+          text = serializer.serializeToString(svgEl);
+        }
+      } catch (e) {
+        // フォールバック（正規表現のみ）
+      }
+
+      // 連続する改行や余計な空白をクリーンに整形
+      text = text.replace(/^\s*[\r\n]/gm, '').trim();
+      return text;
+    }
+
+    // JSX用キャメルケース変換
+    function toReactJsx(svgStr) {
+      if (!svgStr) return '';
+      let jsx = svgStr;
+
+      // 属性名のReact JSX対応変換辞書
+      const attrMap = {
+        'class': 'className',
+        'clip-path': 'clipPath',
+        'fill-rule': 'fillRule',
+        'clip-rule': 'clipRule',
+        'stroke-width': 'strokeWidth',
+        'stroke-linecap': 'strokeLinecap',
+        'stroke-linejoin': 'strokeLinejoin',
+        'stroke-miterlimit': 'strokeMiterlimit',
+        'stroke-dasharray': 'strokeDasharray',
+        'stroke-dashoffset': 'strokeDashoffset',
+        'stroke-opacity': 'strokeOpacity',
+        'fill-opacity': 'fillOpacity',
+        'stop-color': 'stopColor',
+        'stop-opacity': 'stopOpacity',
+        'xmlns:xlink': 'xmlnsXlink',
+        'xlink:href': 'xlinkHref'
+      };
+
+      for (const [key, val] of Object.entries(attrMap)) {
+        const re = new RegExp(`\\b${key}=`, 'g');
+        jsx = jsx.replace(re, `${val}=`);
+      }
+
+      // インラインスタイルの簡易JSXオブジェクト化
+      jsx = jsx.replace(/style="([^"]*)"/g, (match, styleStr) => {
+        const styleObj = styleStr.split(';').reduce((acc, rule) => {
+          const [prop, val] = rule.split(':');
+          if (prop && val) {
+            const camelProp = prop.trim().replace(/-([a-z])/g, g => g[1].toUpperCase());
+            acc.push(`${camelProp}: "${val.trim()}"`);
+          }
+          return acc;
+        }, []).join(', ');
+        return `style={{ ${styleObj} }}`;
+      });
+
+      // 単純なコンポーネントテンプレートでラップ
+      return `export function SvgIcon(props) {\n  return (\n    ${jsx.replace(/\n/g, '\n    ')}\n  );\n}`;
+    }
+
+    // Vue 3 SFC変換
+    function toVueSfc(svgStr) {
+      if (!svgStr) return '';
+      return `<template>\n  ${svgStr.replace(/\n/g, '\n  ')}\n</template>\n\n<script setup>\n// Clean Vue 3 SVG Component\n<\/script>`;
+    }
+
+    // CSS Data URI
+    function toCssDataUri(svgStr) {
+      if (!svgStr) return '';
+      const encoded = encodeURIComponent(svgStr)
+        .replace(/'/g, '%27')
+        .replace(/"/g, '%22');
+      return `background-image: url("data:image/svg+xml,${encoded}");`;
+    }
+
+    // メイン更新処理
+    function updateOutputs() {
+      const raw = svgInput.value;
+      const rawBytes = new Blob([raw]).size;
+      statOrigSize.textContent = formatBytes(rawBytes);
+
+      cleanedSvgCache = cleanSvg(raw);
+      const cleanBytes = new Blob([cleanedSvgCache]).size;
+      statCleanSize.textContent = formatBytes(cleanBytes);
+
+      // 削減率計算
+      if (rawBytes > 0 && cleanBytes < rawBytes) {
+        const diff = rawBytes - cleanBytes;
+        const pct = Math.round((diff / rawBytes) * 100);
+        statReductionBadge.innerHTML = `<span>📉 -${pct}% 削減 (${formatBytes(diff)} 軽量化)</span>`;
+      } else {
+        statReductionBadge.innerHTML = `<span>⚡ 最適化済み</span>`;
+      }
+
+      // プレビューレンダリング
+      if (cleanedSvgCache) {
+        svgPreview.innerHTML = cleanedSvgCache;
+      } else {
+        svgPreview.innerHTML = '<span style="color:#64748b; font-size:0.85rem;">プレビューはありません</span>';
+      }
+
+      // 出力フォーマットの表示更新
+      let outputText = '';
+      switch (currentFormat) {
+        case 'svg':
+          outputText = cleanedSvgCache;
+          break;
+        case 'jsx':
+          outputText = toReactJsx(cleanedSvgCache);
+          break;
+        case 'vue':
+          outputText = toVueSfc(cleanedSvgCache);
+          break;
+        case 'datauri':
+          outputText = toCssDataUri(cleanedSvgCache);
+          break;
+      }
+      outputCode.textContent = outputText;
+    }
+
+    // イベントリスナー
+    svgInput.addEventListener('input', updateOutputs);
+    document.querySelectorAll('.clean-options input').forEach(input => {
+      input.addEventListener('change', updateOutputs);
+    });
+
+    // タブ切り替え
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentFormat = btn.dataset.format;
+        updateOutputs();
+      });
+    });
+
+    // 背景切り替え
+    document.querySelectorAll('.bg-toggle-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.bg-toggle-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        previewContainer.className = 'preview-box-container ' + btn.dataset.bg;
+      });
+    });
+
+    // クリアボタン
+    document.getElementById('btn-clear').addEventListener('click', () => {
+      svgInput.value = '';
+      updateOutputs();
+    });
+
+    // コピーボタン
+    document.getElementById('btn-copy-code').addEventListener('click', async () => {
+      if (!outputCode.textContent) return;
+      try {
+        await navigator.clipboard.writeText(outputCode.textContent);
+        showToast('クリップボードにコピーしました！');
+      } catch (e) {
+        showToast('コピーに失敗しました');
+      }
+    });
+
+    // ダウンロードボタン
+    document.getElementById('btn-download-svg').addEventListener('click', () => {
+      if (!cleanedSvgCache) return;
+      const blob = new Blob([cleanedSvgCache], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'cleaned-icon.svg';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('SVGをダウンロードしました！');
+    });
+
+    // 外部サンプルのロード関数
+    async function loadSample() {
+      try {
+        const res = await fetch('sample.svg?t=' + Date.now());
+        if (res.ok) {
+          const text = await res.text();
+          svgInput.value = text;
+          updateOutputs();
+          showToast('外部サンプル (sample.svg) をロードしました');
+        } else {
+          console.error('Failed to load sample.svg');
+        }
+      } catch (err) {
+        console.error('Error fetching sample.svg:', err);
+      }
+    }
+
+    document.getElementById('btn-load-sample').addEventListener('click', loadSample);
+
+    // ドラッグ＆ドロップ対応
+    window.addEventListener('dragover', (e) => e.preventDefault());
+    window.addEventListener('drop', (e) => {
+      e.preventDefault();
+      const file = e.dataTransfer.files[0];
+      if (file && (file.type.includes('svg') || file.name.endsWith('.svg'))) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          svgInput.value = event.target.result;
+          updateOutputs();
+          showToast(`${file.name} を読み込みました`);
+        };
+        reader.readAsText(file);
+      }
+    });
+
+    // 初期化ロード
+    window.addEventListener('DOMContentLoaded', loadSample);
+  </script>
+</body>
+</html>
