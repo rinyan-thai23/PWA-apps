@@ -127,6 +127,130 @@ body.indoor .col-indoor{display:block;margin-top:36px}
 @media (max-width:360px){.presets button{font-size:.75rem}.mode label{font-size:.8rem;padding:10px 8px}}
 [hidden]{display:none!important}
 button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--line);outline-offset:2px}
+
+/* 大画面HUDトリガーボタン */
+.hud-trigger-btn{
+  display:inline-flex;align-items:center;gap:6px;padding:6px 14px;
+  background:rgba(255,255,255,0.06);border:1.5px solid var(--line);
+  border-radius:20px;color:var(--ink);font:inherit;font-size:.85rem;
+  font-weight:700;cursor:pointer;transition:all .2s;
+}
+.hud-trigger-btn:hover{background:var(--line);color:#090d14}
+
+/* 大画面HUDオーバーレイ */
+.hud-overlay{
+  position:fixed;inset:0;z-index:99999;
+  background:#090d14;color:#f1f5f9;
+  display:flex;flex-direction:column;padding:20px 28px;
+  overflow-y:auto;box-sizing:border-box;
+  font-family:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",sans-serif;
+}
+.hud-header{
+  display:flex;justify-content:space-between;align-items:center;
+  gap:16px;flex-wrap:wrap;padding-bottom:14px;
+  border-bottom:1px solid rgba(255,255,255,0.1);margin-bottom:16px;
+}
+.hud-title-wrap{display:flex;align-items:center;gap:12px}
+.hud-badge{
+  font-size:.85rem;font-weight:700;padding:4px 12px;border-radius:14px;
+  background:var(--line);color:#090d14;transition:background .2s;
+}
+.hud-subinfo{color:#94a3b8;font-size:.88rem}
+.hud-keys-help{
+  display:flex;gap:12px;flex-wrap:wrap;color:#64748b;font-size:.78rem;margin-left:auto;
+}
+.hud-keys-help kbd{
+  background:#1e293b;color:#cbd5e1;padding:2px 6px;border-radius:4px;
+  border:1px solid #334155;font-family:inherit;font-weight:700;
+}
+.hud-close-btn{
+  padding:6px 16px;border-radius:18px;border:1px solid #475569;
+  background:#1e293b;color:#f8fafc;font:inherit;font-size:.85rem;
+  font-weight:700;cursor:pointer;
+}
+.hud-close-btn:hover{background:#334155}
+.hud-grid{
+  display:grid;grid-template-columns:minmax(280px,1fr) minmax(320px,1.2fr) minmax(280px,1fr);
+  gap:20px;flex:1;align-items:stretch;
+}
+@media (max-width:960px){
+  .hud-grid{grid-template-columns:1fr;gap:16px}
+  .hud-keys-help{display:none}
+}
+.hud-card{
+  background:rgba(18,26,38,0.85);border:1px solid rgba(255,255,255,0.08);
+  border-radius:20px;padding:20px 24px;display:flex;flex-direction:column;
+  align-items:center;text-align:center;box-shadow:0 12px 30px rgba(0,0,0,0.5);
+  backdrop-filter:blur(10px);min-height:320px;
+}
+.hud-card-label{
+  font-size:.75rem;font-weight:700;letter-spacing:.1em;color:#94a3b8;
+  margin-bottom:8px;text-transform:uppercase;
+}
+.hud-cadence-visual{width:min(180px,24vh);height:auto;margin:6px 0}
+.hud-cadence-visual svg{width:100%;height:auto;display:block}
+.hud-rpm-val{
+  font-family:"Barlow Condensed",sans-serif;font-weight:700;
+  font-size:clamp(4.5rem,7vw,6.5rem);line-height:1;color:var(--line);
+  text-shadow:0 0 24px var(--zone-glow,rgba(242,183,5,0.4));
+  transition:color .2s;
+}
+.hud-rpm-val small{font-size:1.4rem;color:#94a3b8;margin-left:6px;font-weight:500}
+.hud-feel-text{font-size:.92rem;color:#94a3b8;min-height:1.4em;margin-top:4px}
+.hud-rpm-ctrls{display:flex;gap:12px;margin-top:auto;width:100%}
+.hud-step-btn{
+  flex:1;padding:12px 0;border-radius:14px;border:1px solid #334155;
+  background:#1e293b;color:#f8fafc;font-family:"Barlow Condensed",sans-serif;
+  font-size:1.6rem;font-weight:700;cursor:pointer;
+}
+.hud-step-btn:hover{background:#334155;border-color:var(--line)}
+.hud-timer-big{
+  font-family:"Barlow Condensed",sans-serif;font-weight:700;
+  font-size:clamp(4.5rem,9vw,8rem);line-height:1;margin:auto 0;
+  color:#f8fafc;letter-spacing:1px;
+}
+.hud-progress-wrap{width:100%;background:#1e293b;height:12px;border-radius:6px;overflow:hidden;margin:12px 0}
+.hud-progress-bar{height:100%;width:100%}
+.hud-progress-bar i{display:block;height:100%;width:0;background:var(--line);transition:width .2s,background .2s}
+.hud-next-banner{
+  font-size:1.05rem;font-weight:700;color:var(--line);min-height:1.8em;
+  background:rgba(255,255,255,0.03);padding:8px 16px;border-radius:10px;
+  width:100%;margin-bottom:16px;display:flex;align-items:center;justify-content:center;
+}
+.hud-main-btn{
+  width:100%;padding:18px;border:0;border-radius:30px;
+  background:var(--line);color:#090d14;font:inherit;font-size:1.25rem;
+  font-weight:700;cursor:pointer;box-shadow:0 6px 20px var(--zone-glow,rgba(242,183,5,0.3));
+  transition:transform .1s,background .2s;
+}
+.hud-main-btn:active{transform:scale(0.98)}
+.hud-speed-big{
+  font-family:"Barlow Condensed",sans-serif;font-weight:700;
+  font-size:clamp(4.2rem,6.5vw,5.8rem);line-height:1;color:#f8fafc;margin:8px 0;
+}
+.hud-speed-big small{font-size:1.4rem;color:#94a3b8;margin-left:6px;font-weight:500}
+.hud-gear-box{
+  width:100%;background:rgba(255,255,255,0.04);border-radius:14px;
+  padding:12px 14px;margin:10px 0;border:1px solid #1e293b;
+}
+.hud-gear-tag{font-size:1.15rem;font-weight:700;color:var(--line);margin-bottom:10px}
+.hud-gear-ctrls{display:flex;gap:10px;align-items:center}
+.hud-gear-btn{
+  flex:1;padding:10px 8px;border-radius:10px;border:1.5px solid var(--line);
+  background:#1e293b;color:#f8fafc;font:inherit;font-size:.9rem;font-weight:700;cursor:pointer;
+}
+.hud-shift-col{display:flex;gap:6px;flex:1}
+.hud-shift-btn{
+  flex:1;padding:10px 4px;border-radius:10px;border:1px solid #334155;
+  background:#1e293b;color:#f8fafc;font:inherit;font-size:.85rem;font-weight:700;cursor:pointer;
+}
+.hud-shift-btn:hover,.hud-gear-btn:hover{background:#334155}
+.hud-log-box{
+  display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;
+  margin-top:auto;padding-top:12px;border-top:1px dashed #334155;
+}
+.hud-log-item{font-size:.82rem;color:#94a3b8}
+.hud-log-val{display:block;font-family:"Barlow Condensed",sans-serif;font-size:1.6rem;font-weight:700;color:#f8fafc}
 </style>
 </head>
 <body>
@@ -134,9 +258,12 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid
 <section class="col-main">
   <header>
     <h1>ケイデンスを耳で覚える</h1>
-    <div class="modes" role="group" aria-label="使う場所">
-      <button data-mode="road">車道で走る</button>
-      <button data-mode="indoor">室内トレーニング</button>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <button class="hud-trigger-btn" id="openHudBtn" title="モニター・タブレット用全画面HUDモード">⛶ 全画面HUD</button>
+      <div class="modes" role="group" aria-label="使う場所">
+        <button data-mode="road">車道で走る</button>
+        <button data-mode="indoor">室内トレーニング</button>
+      </div>
     </div>
   </header>
   <p class="lead" id="lead"></p>
@@ -238,8 +365,8 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid
       <h2>速度</h2>
       <div class="glabel">前</div>
       <div class="chips gearpick" id="ringSide">
-        <button data-side="outer"><svg viewBox="-20 -20 40 40" aria-hidden="true"><circle r="17" fill="none" stroke="currentColor" stroke-width="3" stroke-dasharray="3 2"/><circle r="3" fill="currentColor"/></svg><span><b>アウター</b></span></button>
-        <button data-side="inner"><svg viewBox="-20 -20 40 40" aria-hidden="true"><circle r="10" fill="none" stroke="currentColor" stroke-width="3" stroke-dasharray="3 2"/><circle r="3" fill="currentColor"/></svg><span><b>インナー</b></span></button>
+        <button data-side="outer"><svg viewBox="-20 -20 40 40" aria-hidden="true"><circle r="17" fill="none" stroke="currentColor" stroke-width="3" stroke-dasharray="3 2"/><circle r="3" fill="currentColor"/></svg><span><b id="outerLabel">50T</b></span></button>
+        <button data-side="inner"><svg viewBox="-20 -20 40 40" aria-hidden="true"><circle r="10" fill="none" stroke="currentColor" stroke-width="3" stroke-dasharray="3 2"/><circle r="3" fill="currentColor"/></svg><span><b id="innerLabel">34T</b></span></button>
       </div>
       <div class="glabel">後ろ <span class="gsub" id="cogLabel"></span></div>
       <div class="row shift">
@@ -282,6 +409,81 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid
 
   </div>
 </section>
+</div>
+
+<!-- 大画面HUDオーバーレイ -->
+<div id="hudOverlay" class="hud-overlay" hidden>
+  <div class="hud-header">
+    <div class="hud-title-wrap">
+      <span class="hud-badge" id="hudZoneBadge">巡航 90</span>
+      <span class="hud-subinfo" id="hudModeName">室内トレーニング</span>
+    </div>
+    <div class="hud-keys-help">
+      <span><kbd>Space</kbd> 再生/停止</span>
+      <span><kbd>←</kbd><kbd>→</kbd> ±5 RPM</span>
+      <span><kbd>↑</kbd><kbd>↓</kbd> 変速</span>
+      <span><kbd>F</kbd> 全画面切替</span>
+      <span><kbd>Esc</kbd> 終了</span>
+    </div>
+    <button class="hud-close-btn" id="closeHudBtn" aria-label="全画面を閉じる">✕ 閉じる (Esc)</button>
+  </div>
+
+  <div class="hud-grid">
+    <!-- 左: ケイデンス計器 -->
+    <div class="hud-card hud-cadence-card">
+      <div class="hud-card-label">CADENCE</div>
+      <div class="hud-cadence-visual">
+        <svg viewBox="-110 -110 220 220" aria-hidden="true">
+          <circle r="100" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="2"/>
+          <circle id="hudRing" r="54" fill="none" stroke="var(--line)" stroke-width="8" stroke-dasharray="4 4" style="transition:stroke .12s"/>
+          <g id="hudArm">
+            <rect x="-8" y="-92" width="16" height="92" rx="8" fill="#ffffff"/>
+            <rect x="-8" y="0" width="16" height="92" rx="8" fill="#555555"/>
+            <g id="hudPR" transform="translate(0,-92)"><rect x="-26" y="-8" width="52" height="16" rx="4" fill="var(--line)" style="transition:fill .12s"/></g>
+            <g id="hudPL" transform="translate(0,92)"><rect x="-26" y="-8" width="52" height="16" rx="4" fill="#555555" style="transition:fill .12s"/></g>
+          </g>
+          <circle r="14" fill="var(--line)"/>
+        </svg>
+      </div>
+      <div class="hud-rpm-val"><span id="hudVal">90</span><small>RPM</small></div>
+      <div class="hud-feel-text" id="hudFeel"></div>
+      <div class="hud-rpm-ctrls">
+        <button class="hud-step-btn" id="hudMinus" aria-label="5下げる">−</button>
+        <button class="hud-step-btn" id="hudPlus" aria-label="5上げる">＋</button>
+      </div>
+    </div>
+
+    <!-- 中央: インターバル & タイマー -->
+    <div class="hud-card hud-interval-card">
+      <div class="hud-card-label" id="hudIvTitle">INTERVAL & TIMER</div>
+      <div class="hud-timer-big" id="hudTimer">00:00</div>
+      <div class="hud-progress-wrap">
+        <div class="hud-progress-bar"><i id="hudBar"></i></div>
+      </div>
+      <div class="hud-next-banner" id="hudNext">NEXT: —</div>
+      <button class="hud-main-btn" id="hudPlayBtn">スタート</button>
+    </div>
+
+    <!-- 右: 速度 & ギア & ログ -->
+    <div class="hud-card hud-stats-card">
+      <div class="hud-card-label">SPEED & GEAR</div>
+      <div class="hud-speed-big"><span id="hudKmh">0.0</span><small>km/h</small></div>
+      <div class="hud-gear-box">
+        <div class="hud-gear-tag" id="hudGearRatio">50T × 17T</div>
+        <div class="hud-gear-ctrls">
+          <button class="hud-gear-btn" id="hudShiftFront">前: <span id="hudFrontLabel">50T</span></button>
+          <div class="hud-shift-col">
+            <button class="hud-shift-btn" id="hudShiftUp" title="シフトアップ（重く）">▲ 重く</button>
+            <button class="hud-shift-btn" id="hudShiftDown" title="シフトダウン（軽く）">▼ 軽く</button>
+          </div>
+        </div>
+      </div>
+      <div class="hud-log-box">
+        <div class="hud-log-item"><span class="hud-log-val" id="hudTotalRevs">0</span> 回転</div>
+        <div class="hud-log-item"><span class="hud-log-val" id="hudTotalKm">0.0</span> km 走行</div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -372,6 +574,10 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid
   function speed(){return value*ratio()*circ()*60/1e6;}
   function renderGear(){
     const c=cogs(),pos=$('cogPos');pos.max=c.length;if(+pos.value>c.length)pos.value=c.length;
+    const oT=crankKey!=='custom'?CRANKS[crankKey][0]:(+$('outerT').value||50);
+    const iT=crankKey!=='custom'?CRANKS[crankKey][1]:(+$('innerT').value||34);
+    if($('outerLabel'))$('outerLabel').textContent=oT+'T';
+    if($('innerLabel'))$('innerLabel').textContent=iT+'T';
     $('cogLabel').textContent=`${cog()}T（${pos.value}/${c.length}）`;
     $('endL').textContent=c[c.length-1]+'T';$('endR').textContent=c[0]+'T';
     const mx=c[c.length-1];
@@ -396,9 +602,22 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid
   ['cogPos','outerT','innerT','cassetteText','circ'].forEach(id=>$(id).addEventListener('input',gearChange));
   function shift(d){const p=$('cogPos'),n=Math.max(1,Math.min(+p.max,+p.value+d));if(n!==+p.value){p.value=n;gearChange();}}
 
+  // ---------- ゾーンカラー ----------
+  const ZONES=[
+    {max:75,name:'blue',color:'#38bdf8',glow:'rgba(56,189,248,0.35)',title:'ウォームアップ'},
+    {max:95,name:'green',color:'#22c55e',glow:'rgba(34,197,94,0.35)',title:'巡航・理想の90'},
+    {max:110,name:'yellow',color:'#f59e0b',glow:'rgba(245,158,11,0.35)',title:'ハイケイデンス'},
+    {max:999,name:'red',color:'#ef4444',glow:'rgba(239,68,68,0.45)',title:'スプリント・もがき'}
+  ];
+  function getZone(rpm){return ZONES.find(z=>rpm<=z.max)||ZONES[ZONES.length-1];}
+
   // ---------- 表示 ----------
   function render(){
     value=Math.max(40,Math.min(140,value));
+    const z=getZone(value);
+    document.documentElement.style.setProperty('--line',z.color);
+    document.documentElement.style.setProperty('--zone-glow',z.glow);
+
     slider.value=value;$('val').textContent=value;
     $('feel').textContent=FEELS.find(f=>value<=f[0])[1];
     $('presets').innerHTML=PRESETS.map(p=>`<button data-v="${p[0]}" aria-pressed="${p[0]===value}"><b>${p[0]}</b>${p[1]}</button>`).join('');
@@ -412,13 +631,24 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid
     $('kmh').textContent=kmh?`時速 ${kmh.toFixed(1)} km`:'—';
     $('speedLine').hidden=!(indoor&&kmh);$('speedLine').textContent=kmh?`≒ 時速 ${kmh.toFixed(1)} km`:'';
     renderLog();
+    renderHud();
   }
   function setValue(v){rebase();value=Math.round(v);render();if(playing)updateMediaSession();}
 
   function flash(right){
     const el=(right?$('pR'):$('pL')).querySelector('rect');
     el.style.fill='var(--line)';$('ring').style.stroke='var(--line)';
-    setTimeout(()=>{el.style.fill=right?'var(--ink)':'var(--rubber)';$('ring').style.stroke='var(--rubber)';},110);
+    if(hudOpen){
+      const hel=(right?$('hudPR'):$('hudPL')).querySelector('rect');
+      hel.style.fill='var(--line)';$('hudRing').style.stroke='var(--line)';
+    }
+    setTimeout(()=>{
+      el.style.fill=right?'var(--ink)':'var(--rubber)';$('ring').style.stroke='var(--rubber)';
+      if(hudOpen){
+        const hel=(right?$('hudPR'):$('hudPL')).querySelector('rect');
+        hel.style.fill=right?'#ffffff':'#555555';$('hudRing').style.stroke='var(--line)';
+      }
+    },110);
   }
   function draw(){
     const now=ctx.currentTime,p=phaseAt(now);
@@ -427,6 +657,11 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid
     $('arm').setAttribute('transform',`rotate(${deg})`);
     $('pR').setAttribute('transform',`translate(0,-92) rotate(${-deg})`);
     $('pL').setAttribute('transform',`translate(0,92) rotate(${-deg})`);
+    if(hudOpen){
+      $('hudArm').setAttribute('transform',`rotate(${deg})`);
+      $('hudPR').setAttribute('transform',`translate(0,-92) rotate(${-deg})`);
+      $('hudPL').setAttribute('transform',`translate(0,92) rotate(${-deg})`);
+    }
     while(queue.length&&queue[0].t<=now)flash(queue.shift().right);
     raf=requestAnimationFrame(draw);
   }
@@ -483,10 +718,12 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid
     }else{
       updateMediaSession();
     }
+    if(hudOpen)renderHud();
   }
   function stop(){
     playing=false;clearInterval(timer);cancelAnimationFrame(raf);queue.length=0;go.textContent='音を鳴らす';
     unlockScreen();if(silentAudio)silentAudio.pause();updateMediaSession();if(run)endRun('');saveLog();
+    if(hudOpen)renderHud();
   }
 
   // ---------- インターバル ----------
@@ -584,10 +821,17 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid
     const repTxt=run.rep>1?`　${seg.r+1}/${run.rep}回目`:'';
     $('nowLine').textContent=`${seg.rpm}回転　残り ${fmt(left)}${next?`　次は ${next.rpm}`:'　ラスト'}${repTxt}`;
     $('runBar').style.width=(el/run.total*100)+'%';
+    if(hudOpen){
+      $('hudTimer').textContent=fmt(left);
+      $('hudBar').style.width=(el/run.total*100)+'%';
+      $('hudNext').textContent=next?`NEXT: ${next.rpm} RPM (${fmt(left)} 後)`:'ラストスパート！';
+      $('hudIvTitle').textContent=`INTERVAL ${seg.r+1}/${run.rep} (${seg.rpm} RPM)`;
+    }
   }
   function endRun(msg){
     if(!run)return;clearInterval(run.iv);run=null;say(msg);highlight(null);
     $('simRun').textContent=$('runBtn').textContent='スタート';$('nowLine').textContent='';$('runBar').style.width='0';
+    if(hudOpen)renderHud();
   }
   $('simRun').onclick=()=>run?endRun(''):startRun({rep:sim.rep,segs:[{...sim.a,msg:''},{...sim.b,msg:''}]},'sim');
   $('runBtn').onclick=()=>run?endRun(''):startRun(prog,'custom');
@@ -626,10 +870,80 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid
     if(!indoor&&run)endRun('');
     render();
   }
+  $('openHudBtn').onclick=openHud;
+  $('closeHudBtn').onclick=closeHud;
+  $('hudMinus').onclick=()=>setValue(value-5);
+  $('hudPlus').onclick=()=>setValue(value+5);
+  $('hudPlayBtn').onclick=()=>{
+    if(run){endRun('');}
+    else if(playing){stop();}
+    else{
+      if(indoor){
+        startRun({rep:sim.rep,segs:[{...sim.a,msg:''},{...sim.b,msg:''}]},'sim');
+      }else{
+        start();
+      }
+    }
+    renderHud();
+  };
+  $('hudShiftFront').onclick=()=>{side=side==='outer'?'inner':'outer';gearChange();};
+  $('hudShiftUp').onclick=()=>shift(1);
+  $('hudShiftDown').onclick=()=>shift(-1);
+  document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement&&hudOpen){/*ESC等*/}});
+
+  // ---------- 大画面HUDモード ----------
+  let hudOpen=false;
+  function openHud(){
+    hudOpen=true;$('hudOverlay').hidden=false;
+    try{if(document.documentElement.requestFullscreen&&!document.fullscreenElement)document.documentElement.requestFullscreen();}catch(e){}
+    renderHud();
+  }
+  function closeHud(){
+    hudOpen=false;$('hudOverlay').hidden=true;
+    try{if(document.fullscreenElement)document.exitFullscreen();}catch(e){}
+  }
+  function toggleHud(){hudOpen?closeHud():openHud();}
+
+  function renderHud(){
+    if(!hudOpen)return;
+    const z=getZone(value);
+    $('hudVal').textContent=value;
+    $('hudFeel').textContent=FEELS.find(f=>value<=f[0])[1];
+    $('hudZoneBadge').textContent=`${z.title} ${value}`;
+    $('hudModeName').textContent=indoor?'室内トレーニング':'車道走行モード';
+    $('hudPlayBtn').textContent=playing?'止める':'スタート';
+    $('hudPlayBtn').style.background=z.color;
+
+    const kmh=speed();
+    $('hudKmh').textContent=kmh?kmh.toFixed(1):'0.0';
+    $('hudGearRatio').textContent=`${ring()}T × ${cog()}T（ギア比 ${ratio().toFixed(2)}）`;
+    const oT=crankKey!=='custom'?CRANKS[crankKey][0]:(+$('outerT').value||50);
+    const iT=crankKey!=='custom'?CRANKS[crankKey][1]:(+$('innerT').value||34);
+    $('hudFrontLabel').textContent=(side==='outer'?oT:iT)+'T';
+
+    $('hudTotalRevs').textContent=Math.floor(log.revs).toLocaleString();
+    $('hudTotalKm').textContent=log.km.toFixed(1);
+
+    if(!run){
+      $('hudTimer').textContent=playing?'走行中':'00:00';
+      $('hudNext').textContent='NEXT: —';
+      $('hudBar').style.width='0%';
+      $('hudIvTitle').textContent=indoor?'FREE RIDE':'ROAD RIDE';
+    }
+  }
+
   document.querySelectorAll('.modes button').forEach(b=>b.onclick=()=>setMode(b.dataset.mode==='indoor'));
   document.addEventListener('keydown',e=>{
     const t=e.target;if(t.tagName==='INPUT'&&!['checkbox','radio','range'].includes(t.type))return;
-    if(e.code==='Space'&&t.tagName!=='BUTTON'){e.preventDefault();playing?stop():start();}
+    if(e.code==='KeyF'){e.preventDefault();toggleHud();}
+    else if(e.code==='Escape'&&hudOpen){e.preventDefault();closeHud();}
+    else if(e.code==='Space'&&t.tagName!=='BUTTON'){
+      e.preventDefault();
+      if(run){endRun('');}else{playing?stop():start();}
+      if(hudOpen)renderHud();
+    }
+    else if(e.code==='ArrowLeft'){e.preventDefault();setValue(value-5);}
+    else if(e.code==='ArrowRight'){e.preventDefault();setValue(value+5);}
     else if(indoor&&t.type!=='range'&&(e.code==='ArrowUp'||e.code==='ArrowDown')){e.preventDefault();shift(e.code==='ArrowUp'?1:-1);}
   });
   window.addEventListener('pagehide',saveLog);

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cadence90-v5';
+const CACHE_NAME = 'cadence90-v6';
 
 const ASSETS_TO_CACHE = [
   './',
