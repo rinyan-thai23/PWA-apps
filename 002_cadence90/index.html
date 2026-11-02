@@ -4,6 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ケイデンスを耳で覚える</title>
+<meta name="theme-color" content="#1B2A3A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ケイデンス90">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" href="icons/favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;700&display=swap" rel="stylesheet">
@@ -53,10 +61,6 @@ legend{font-weight:700;font-size:.9rem;margin-bottom:8px}
 .mode .sub{display:block;color:var(--muted);font-size:.78rem;margin-left:22px}
 .go{position:sticky;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:5;box-shadow:0 0 0 8px var(--sky);margin-top:24px;width:100%;padding:20px;border:0;border-radius:40px;background:var(--ink);color:var(--sky);font:inherit;font-size:1.15rem;font-weight:700;cursor:pointer}
 .hint{color:var(--muted);font-size:.8rem;text-align:center;margin-top:10px}
-.mp3box{margin-top:22px;padding:12px 14px;border:1.5px dashed var(--rubber);border-radius:14px;background:var(--panel)}
-.mp3box .glabel{margin-top:0}
-.mp3msg{margin:6px 0 0;font-size:.82rem;color:var(--muted);min-height:1.3em}
-body.indoor .mp3box{display:none}
 .roadnote{margin-top:18px;padding:12px 14px;border-left:4px solid var(--line);background:var(--panel);font-size:.82rem;color:var(--muted);border-radius:0 10px 10px 0}
 body.indoor .roadnote{display:none}
 /* 室内パネル */
@@ -176,16 +180,7 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid
 
   <button class="go" id="go">音を鳴らす</button>
   <p class="hint" id="hint"></p>
-  <div class="mp3box">
-    <div class="glabel">MP3で持ち出す <span class="gsub">画面ロック中も鳴る</span></div>
-    <div class="row">
-      <div class="chips" id="lenChips" style="flex:1"></div>
-      <button class="small-btn primary" id="mp3Btn">作る</button>
-    </div>
-    <div class="runbar"><i id="mp3Bar"></i></div>
-    <p class="mp3msg" id="mp3Msg"></p>
-  </div>
-  <div class="roadnote">画面ロックすると音が止まる。イヤホンは片耳で。</div>
+  <div class="roadnote">走行中は画面スリープを自動防止します。安全のためイヤホンは片耳でご利用ください。</div>
 </section>
 
 <section class="col-indoor" aria-label="室内トレーニングの設定">
@@ -414,13 +409,13 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid
     $('hint').textContent='';
     document.querySelectorAll('#soundChips button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.s===soundKey));
     $('dayNote').textContent=soundKey==='daily'?`今日は${DAYNAME[new Date().getDay()]}曜日なので「${SOUNDS[DAY[new Date().getDay()]]}」`:'';
-    renderGear();renderMp3();
+    renderGear();
     const kmh=speed();
     $('kmh').textContent=kmh?`時速 ${kmh.toFixed(1)} km`:'—';
     $('speedLine').hidden=!(indoor&&kmh);$('speedLine').textContent=kmh?`≒ 時速 ${kmh.toFixed(1)} km`:'';
     renderLog();
   }
-  function setValue(v){rebase();const nv=Math.round(v);if(nv!==value&&ready){ready=null;$('mp3Btn').textContent='作る';}value=nv;render();}
+  function setValue(v){rebase();value=Math.round(v);render();}
 
   function flash(right){
     const el=(right?$('pR'):$('pL')).querySelector('rect');
@@ -557,82 +552,6 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid
   $('simRun').onclick=()=>run?endRun(''):startRun({rep:sim.rep,segs:[{...sim.a,msg:''},{...sim.b,msg:''}]},'sim');
   $('runBtn').onclick=()=>run?endRun(''):startRun(prog,'custom');
 
-  // ---------- MP3書き出し ----------
-  const LENS=[[30,'30分'],[60,'1時間'],[120,'2時間']];
-  const SR=16000,KBPS=24;
-  let lenMin=+store.get('cad-len')||120,building=null,ready=null;
-  if(!LENS.some(l=>l[0]===lenMin))lenMin=120;
-  const lenLabel=()=>LENS.find(l=>l[0]===lenMin)[1];
-  const sizeMB=()=>(KBPS*1000*lenMin*60/8/1e6).toFixed(1);
-  function renderMp3(){
-    $('lenChips').innerHTML=LENS.map(l=>`<button data-m="${l[0]}" aria-pressed="${l[0]===lenMin}">${l[1]}</button>`).join('');
-    if(!building&&!ready)$('mp3Msg').textContent=`${value}回転・${lenLabel()}・約${sizeMB()}MB`;
-  }
-  $('lenChips').onclick=e=>{const b=e.target.closest('button');if(!b||building)return;lenMin=+b.dataset.m;store.set('cad-len',lenMin);ready=null;$('mp3Btn').textContent='作る';renderMp3();};
-  function loadLame(){
-    if(window.lamejs)return Promise.resolve();
-    return new Promise((res,rej)=>{const sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js';sc.onload=()=>window.lamejs?res():rej();sc.onerror=rej;document.head.appendChild(sc);});
-  }
-  const yieldNow=(()=>{const ch=new MessageChannel(),q=[];ch.port1.onmessage=()=>{const f=q.shift();f&&f();};return()=>new Promise(r=>{q.push(r);ch.port2.postMessage(0);});})();
-  function clickWave(f){
-    const n=Math.round(SR*.075),a=new Float32Array(n),tau=.066/Math.log(9000);
-    for(let i=0;i<n;i++){const t=i/SR,env=t<.004?t/.004*.9:.9*Math.exp(-(t-.004)/tau),ph=(t*f)%1;a[i]=env*(4*Math.abs(ph-.5)-1);}
-    return a;
-  }
-  function mp3Idle(){building=null;$('mp3Bar').style.width='0';if(!playing)unlockScreen();}
-  async function buildMp3(){
-    const rpm=value,b=bpr,mins=lenMin,label=lenLabel();
-    building={cancel:false};ready=null;$('mp3Btn').textContent='中止';$('mp3Msg').textContent='準備中';lockScreen();
-    try{await loadLame();}catch(e){mp3Idle();$('mp3Btn').textContent='作る';$('mp3Msg').textContent='MP3の部品を読み込めなかった。通信を確認してもう一度';return;}
-    const cR=clickWave(b===1?1000:1320),cL=clickWave(b===1?1000:760),AMP=23600;
-    const beat=SR*60/rpm/b,total=SR*mins*60,CH=1152*40,buf=new Int16Array(CH);
-    const enc=new window.lamejs.Mp3Encoder(1,SR,KBPS),chunks=[];let s=0;
-    while(s<total){
-      const t=performance.now();
-      while(s<total&&performance.now()-t<40){
-        const n=Math.min(CH,total-s);buf.fill(0);
-        for(let k=Math.max(0,Math.floor((s-cR.length)/beat));;k++){
-          const st=Math.round(k*beat);if(st>=s+n)break;const c=(b===1||k%2===0)?cR:cL;
-          for(let i=Math.max(0,s-st);i<c.length;i++){const j=st+i-s;if(j>=n)break;buf[j]=c[i]*AMP;}
-        }
-        const out=enc.encodeBuffer(n===CH?buf:buf.subarray(0,n));if(out.length)chunks.push(new Uint8Array(out));s+=n;
-      }
-      $('mp3Bar').style.width=(s/total*100)+'%';$('mp3Msg').textContent=`作成中 ${Math.floor(s/total*100)}%`;
-      await yieldNow();
-      if(building.cancel){mp3Idle();$('mp3Btn').textContent='作る';renderMp3();return;}
-    }
-    const last=enc.flush();if(last.length)chunks.push(new Uint8Array(last));
-    mp3Idle();
-    const base=`cadence-${rpm}rpm-${mins}min`,bytes=chunks.reduce((a,c)=>a+c.length,0);
-    ready={base,chunks,bytes};
-    $('mp3Btn').textContent='保存する';
-    $('mp3Msg').textContent=`できた。${rpm}回転・${label}・${(bytes/1e6).toFixed(1)}MB`;
-  }
-  const CRC=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0;}return t;})();
-  function put(dv,list){list.forEach(([o,v,w])=>w===4?dv.setUint32(o,v>>>0,true):dv.setUint16(o,v,true));return dv;}
-  function zipOf(name,chunks,size){
-    let crc=0xFFFFFFFF;for(const c of chunks)for(let i=0;i<c.length;i++)crc=CRC[(crc^c[i])&255]^(crc>>>8);crc=(crc^0xFFFFFFFF)>>>0;
-    const nm=new TextEncoder().encode(name),d=new Date();
-    const time=(d.getHours()<<11)|(d.getMinutes()<<5)|(d.getSeconds()>>1),date=((d.getFullYear()-1980)<<9)|((d.getMonth()+1)<<5)|d.getDate();
-    const lh=put(new DataView(new ArrayBuffer(30)),[[0,0x04034b50,4],[4,20,2],[6,0,2],[8,0,2],[10,time,2],[12,date,2],[14,crc,4],[18,size,4],[22,size,4],[26,nm.length,2],[28,0,2]]);
-    const cd=put(new DataView(new ArrayBuffer(46)),[[0,0x02014b50,4],[4,20,2],[6,20,2],[8,0,2],[10,0,2],[12,time,2],[14,date,2],[16,crc,4],[20,size,4],[24,size,4],[28,nm.length,2],[30,0,2],[32,0,2],[34,0,2],[36,0,2],[38,0,4],[42,0,4]]);
-    const end=put(new DataView(new ArrayBuffer(22)),[[0,0x06054b50,4],[4,0,2],[6,0,2],[8,1,2],[10,1,2],[12,46+nm.length,4],[16,30+nm.length+size,4],[20,0,2]]);
-    return new Blob([lh,nm,...chunks,cd,nm,end],{type:'application/zip'});
-  }
-  async function saveMp3(){
-    let dl=null;
-    try{if(window.claude&&typeof window.claude.use==='function')dl=await window.claude.use('downloads');}catch(e){dl=null;}
-    if(dl){
-      try{await dl.save({filename:ready.base+'.zip',data:zipOf(ready.base+'.mp3',ready.chunks,ready.bytes)});$('mp3Msg').textContent='保存した。zipを開くとMP3が入っている';}
-      catch(e){const c=e&&e.code;$('mp3Msg').textContent=c==='declined'?'保存をやめた。もう一度押せば保存できる':c==='rate_limited'?'少し待ってからもう一度':'この画面では保存できない';}
-    }else{
-      const url=URL.createObjectURL(new Blob(ready.chunks,{type:'audio/mpeg'})),a=document.createElement('a');
-      a.href=url;a.download=ready.base+'.mp3';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
-      $('mp3Msg').textContent='保存した';
-    }
-  }
-  $('mp3Btn').onclick=()=>{if(building){building.cancel=true;}else if(ready){saveMp3();}else{buildMp3();}};
-
   // ---------- 今日の記録 ----------
   const today=()=>{const d=new Date();return `cad-log-${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;};
   let log={revs:0,km:0};
@@ -661,7 +580,7 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid
   $('minus').onclick=()=>setValue(value-5);
   $('plus').onclick=()=>setValue(value+5);
   $('presets').onclick=e=>{const b=e.target.closest('button');if(b)setValue(+b.dataset.v);};
-  document.querySelectorAll('input[name=mode]').forEach(r=>r.onchange=()=>{bpr=+r.value;resync();if(ready){ready=null;$('mp3Btn').textContent='作る';renderMp3();}});
+  document.querySelectorAll('input[name=mode]').forEach(r=>r.onchange=()=>{bpr=+r.value;resync();});
   function setMode(m){
     indoor=m;document.body.classList.toggle('indoor',indoor);store.set('cad-mode',indoor?'indoor':'road');
     if(!indoor&&run)endRun('');
@@ -679,6 +598,13 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid
   renderSim();renderRows();renderMine();
   setMode(store.get('cad-mode')==='indoor');
 })();
+
+// PWA Service Worker 登録
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
 </script>
 </body>
 </html>
