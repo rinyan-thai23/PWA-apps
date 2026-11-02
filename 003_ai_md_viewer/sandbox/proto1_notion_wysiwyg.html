@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>プロトタイプ 1: Notion風インライン変換エディタ (TipTap)</title>
+  <meta name="description" content="ボタン不要。## と打てば自動でH2見出しになり、- で箇条書き、> で引用にリアルタイム変換されるNotionスタイルのWYSIWYG Markdownエディタ。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f141c;
+      --card-bg: #161e2e;
+      --border: #233044;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-glow: rgba(56, 189, 248, 0.2);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      padding: 0.85rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      background: rgba(22, 30, 46, 0.85);
+      backdrop-filter: blur(8px);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-weight: 700;
+      font-size: 1rem;
+    }
+    .badge {
+      font-size: 0.72rem;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--accent);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+    .header-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+    .btn {
+      padding: 0.4rem 0.85rem;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.2s;
+    }
+    .btn-secondary {
+      background: #1e293b;
+      color: #cbd5e1;
+      border-color: #334155;
+    }
+    .btn-secondary:hover { background: #334155; color: #fff; }
+    .btn-primary {
+      background: var(--accent);
+      color: #042f2e;
+    }
+    .btn-primary:hover { background: #0284c7; color: #fff; }
+
+    .help-bar {
+      background: #111827;
+      border-bottom: 1px solid var(--border);
+      padding: 0.6rem 1.5rem;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      display: flex;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .help-item kbd {
+      background: #1e293b;
+      color: #38bdf8;
+      padding: 2px 5px;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      border: 1px solid #334155;
+    }
+
+    main {
+      flex: 1;
+      max-width: 860px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* TipTap Editor Styles */
+    .tiptap-wrapper {
+      flex: 1;
+      min-height: 500px;
+    }
+    .ProseMirror {
+      outline: none;
+      min-height: 480px;
+      font-size: 1.05rem;
+      line-height: 1.75;
+      color: #e2e8f0;
+    }
+    .ProseMirror p { margin-bottom: 1rem; }
+    .ProseMirror h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: #ffffff;
+      margin: 1.8rem 0 0.8rem 0;
+      letter-spacing: -0.025em;
+    }
+    .ProseMirror h2 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #f8fafc;
+      margin: 1.5rem 0 0.7rem 0;
+      letter-spacing: -0.02em;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.3rem;
+    }
+    .ProseMirror h3 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #38bdf8;
+      margin: 1.2rem 0 0.5rem 0;
+    }
+    .ProseMirror ul, .ProseMirror ol {
+      padding-left: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    .ProseMirror li { margin-bottom: 0.35rem; }
+    .ProseMirror blockquote {
+      border-left: 3px solid var(--accent);
+      padding-left: 1rem;
+      color: #94a3b8;
+      margin: 1rem 0;
+      font-style: italic;
+    }
+    .ProseMirror pre {
+      background: #090d16;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.88rem;
+      color: #38bdf8;
+      overflow-x: auto;
+      margin-bottom: 1rem;
+    }
+    .ProseMirror code {
+      background: #1e293b;
+      color: #f43f5e;
+      padding: 2px 5px;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85em;
+    }
+    .ProseMirror hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 2rem 0;
+    }
+    .ProseMirror p.is-editor-empty:first-child::before {
+      color: #64748b;
+      content: attr(data-placeholder);
+      float: left;
+      height: 0;
+      pointer-events: none;
+    }
+
+    /* Modal for Markdown Raw Source */
+    #source-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .modal-content {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      max-width: 720px;
+      width: 100%;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    textarea.raw-textarea {
+      width: 100%;
+      height: 320px;
+      background: #090d16;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: #38bdf8;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      padding: 0.85rem;
+      resize: vertical;
+      outline: none;
+    }
+
+    #toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: #10b981;
+      color: #042f2e;
+      padding: 0.6rem 1.2rem;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.25s;
+      pointer-events: none;
+      z-index: 200;
+    }
+    #toast.show { opacity: 1; transform: translateY(0); }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <span>✨ プロトタイプ 1: Notion風インライン変換</span>
+      <span class="badge">TipTap Engine</span>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-secondary" id="btn-view-md">Markdownソース確認</button>
+      <button class="btn btn-secondary" id="btn-copy-md">Markdownをコピー</button>
+      <button class="btn btn-primary" id="btn-reset">サンプル再読込</button>
+    </div>
+  </header>
+
+  <div class="help-bar">
+    <span>💡 <strong>ボタン一切不要</strong>のタイピング操作:</span>
+    <span class="help-item"><kbd># </kbd> 大見出し</span>
+    <span class="help-item"><kbd>## </kbd> 中見出し</span>
+    <span class="help-item"><kbd>### </kbd> 小見出し</span>
+    <span class="help-item"><kbd>- </kbd> 箇条書き</span>
+    <span class="help-item"><kbd>1. </kbd> 番号リスト</span>
+    <span class="help-item"><kbd>> </kbd> 引用</span>
+    <span class="help-item"><kbd>```</kbd> コード枠</span>
+    <span class="help-item"><kbd>---</kbd> 区切り線</span>
+  </div>
+
+  <main>
+    <div class="tiptap-wrapper" id="editor"></div>
+  </main>
+
+  <!-- Markdown Source Modal -->
+  <div id="source-modal">
+    <div class="modal-content">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h3 style="font-size:1.1rem;">変換された純粋なMarkdownテキスト</h3>
+        <button class="btn btn-secondary" id="btn-close-modal">閉じる</button>
+      </div>
+      <textarea class="raw-textarea" id="raw-output" readonly></textarea>
+    </div>
+  </div>
+
+  <div id="toast">クリップボードにコピーしました！</div>
+
+  <!-- TipTap via ESM -->
+  <script type="module">
+    import { Editor } from 'https://esm.sh/@tiptap/core@2.1.13';
+    import StarterKit from 'https://esm.sh/@tiptap/starter-kit@2.1.13';
+    import Placeholder from 'https://esm.sh/@tiptap/extension-placeholder@2.1.13';
+
+    const INITIAL_CONTENT = `
+<h1>Notion風インラインMarkdownエディタ</h1>
+<p>ここをクリックして文字を入力してみてください。<strong>ツールバーのボタンは一切不要</strong>です。</p>
+<h2>見出しの自動変換をテストする</h2>
+<p>新しい行で <kbd>## </kbd> と入力してスペースを押すと、一瞬でこのH2見出しになります。<kbd>### </kbd> なら小見出しになります。</p>
+<ul>
+  <li>新しい行で <kbd>- </kbd> または <kbd>* </kbd> を打つと箇条書きリストになります。</li>
+  <li>Enterキーを押すと次の行が自動でリストになります。</li>
+  <li>もう一度Enterを押すと通常の本文に戻ります。</li>
+</ul>
+<blockquote>新しい行で <kbd>&gt; </kbd> と打つと引用ブロックに早変わりします。</blockquote>
+<pre><code>// \`\`\` と打つとコードブロックになります
+console.log("Hello, frictionless Markdown!");</code></pre>
+<p>ストレスフリーで快適なタイピングを体験してください。</p>
+`;
+
+    const editor = new Editor({
+      element: document.querySelector('#editor'),
+      extensions: [
+        StarterKit,
+        Placeholder.configure({
+          placeholder: '## で見出し、- でリスト、文字を自由に入力...',
+        }),
+      ],
+      content: INITIAL_CONTENT,
+      autofocus: 'end',
+      onUpdate({ editor }) {
+        // 必要に応じてローカルストレージに自動保存可能
+      },
+    });
+
+    // 簡易 HTML -> Markdown 変換
+    function htmlToMarkdown(html) {
+      let md = html;
+      md = md.replace(/<h1>(.*?)<\/h1>/gi, '# $1\n\n');
+      md = md.replace(/<h2>(.*?)<\/h2>/gi, '## $1\n\n');
+      md = md.replace(/<h3>(.*?)<\/h3>/gi, '### $1\n\n');
+      md = md.replace(/<blockquote><p>(.*?)<\/p><\/blockquote>/gi, '> $1\n\n');
+      md = md.replace(/<pre><code>([\s\S]*?)<\/code><\/pre>/gi, '```\n$1\n```\n\n');
+      md = md.replace(/<ul>([\s\S]*?)<\/ul>/gi, (m, c) => c.replace(/<li><p>(.*?)<\/p><\/li>/gi, '- $1\n') + '\n');
+      md = md.replace(/<ol>([\s\S]*?)<\/ol>/gi, (m, c) => {
+        let i = 1;
+        return c.replace(/<li><p>(.*?)<\/p><\/li>/gi, () => `${i++}. $1\n`) + '\n';
+      });
+      md = md.replace(/<p>(.*?)<\/p>/gi, '$1\n\n');
+      md = md.replace(/<strong>(.*?)<\/strong>/gi, '**$1**');
+      md = md.replace(/<em>(.*?)<\/em>/gi, '*$1*');
+      md = md.replace(/<kbd>(.*?)<\/kbd>/gi, '`$1`');
+      md = md.replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&amp;/g, '&');
+      return md.trim();
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2000);
+    }
+
+    // Markdownコピー
+    document.getElementById('btn-copy-md').addEventListener('click', async () => {
+      const md = htmlToMarkdown(editor.getHTML());
+      try {
+        await navigator.clipboard.writeText(md);
+        showToast('Markdownテキストをコピーしました！');
+      } catch (e) {
+        showToast('コピーに失敗しました');
+      }
+    });
+
+    // Markdown確認モーダル
+    const modal = document.getElementById('source-modal');
+    const rawOutput = document.getElementById('raw-output');
+    document.getElementById('btn-view-md').addEventListener('click', () => {
+      rawOutput.value = htmlToMarkdown(editor.getHTML());
+      modal.style.display = 'flex';
+    });
+    document.getElementById('btn-close-modal').addEventListener('click', () => {
+      modal.style.display = 'none';
+    });
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) modal.style.display = 'none';
+    });
+
+    // リセット
+    document.getElementById('btn-reset').addEventListener('click', () => {
+      editor.commands.setContent(INITIAL_CONTENT);
+      showToast('サンプルを初期状態にリセットしました');
+    });
+  </script>
+</body>
+</html>

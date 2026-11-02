@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>プロトタイプ 3: Obsidian風 ライブハイブリッドエディタ</title>
+  <meta name="description" content="ボタン一切不要。## と打つとフォントが自動的に見出しサイズに拡大・装飾されるObsidian風のライブハイブリッドMarkdownエディタ。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css">
+  <style>
+    :root {
+      --bg: #0f141c;
+      --card-bg: #161e2e;
+      --border: #233044;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --accent: #f59e0b;
+      --accent-glow: rgba(245, 158, 11, 0.2);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      padding: 0.85rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      background: rgba(22, 30, 46, 0.85);
+      backdrop-filter: blur(8px);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-weight: 700;
+      font-size: 1rem;
+    }
+    .badge {
+      font-size: 0.72rem;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--accent);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+    .header-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+    .btn {
+      padding: 0.4rem 0.85rem;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.2s;
+    }
+    .btn-secondary {
+      background: #1e293b;
+      color: #cbd5e1;
+      border-color: #334155;
+    }
+    .btn-secondary:hover { background: #334155; color: #fff; }
+    .btn-primary {
+      background: var(--accent);
+      color: #0f172a;
+    }
+    .btn-primary:hover { background: #d97706; color: #fff; }
+
+    .help-bar {
+      background: #111827;
+      border-bottom: 1px solid var(--border);
+      padding: 0.6rem 1.5rem;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      display: flex;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    main {
+      flex: 1;
+      max-width: 860px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* EasyMDE / CodeMirror Custom Dark Theme */
+    .EasyMDEContainer {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .EasyMDEContainer .CodeMirror {
+      flex: 1;
+      min-height: 520px;
+      background: #090d16 !important;
+      border: 1px solid var(--border) !important;
+      border-radius: 10px;
+      color: #e2e8f0 !important;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.05rem;
+      line-height: 1.7;
+      padding: 1.5rem;
+    }
+    .EasyMDEContainer .CodeMirror-cursor {
+      border-left: 2px solid var(--accent) !important;
+    }
+    .EasyMDEContainer .CodeMirror-selected {
+      background: rgba(245, 158, 11, 0.25) !important;
+    }
+
+    /* Dynamic Header Sizes in CodeMirror */
+    .cm-header-1 {
+      font-size: 2.1rem !important;
+      line-height: 1.3 !important;
+      font-weight: 800 !important;
+      color: #ffffff !important;
+      font-family: 'Inter', sans-serif !important;
+    }
+    .cm-header-2 {
+      font-size: 1.6rem !important;
+      line-height: 1.35 !important;
+      font-weight: 700 !important;
+      color: #fbbf24 !important;
+      font-family: 'Inter', sans-serif !important;
+    }
+    .cm-header-3 {
+      font-size: 1.25rem !important;
+      font-weight: 600 !important;
+      color: #38bdf8 !important;
+      font-family: 'Inter', sans-serif !important;
+    }
+    .cm-formatting-header {
+      color: #64748b !important;
+      font-weight: 400 !important;
+      opacity: 0.6;
+    }
+    .cm-strong {
+      color: #f8fafc !important;
+      font-weight: 700 !important;
+    }
+    .cm-em {
+      color: #e2e8f0 !important;
+      font-style: italic !important;
+    }
+    .cm-quote {
+      color: #94a3b8 !important;
+      font-style: italic;
+    }
+    .cm-comment {
+      color: #34d399 !important;
+      background: rgba(16, 185, 129, 0.1);
+      padding: 2px 4px;
+      border-radius: 3px;
+    }
+
+    /* Status Bar */
+    .editor-statusbar {
+      padding: 0.5rem 0;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      border-top: none;
+    }
+
+    #toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: #10b981;
+      color: #042f2e;
+      padding: 0.6rem 1.2rem;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.25s;
+      pointer-events: none;
+      z-index: 200;
+    }
+    #toast.show { opacity: 1; transform: translateY(0); }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <span>💎 プロトタイプ 3: Obsidian風 ライブハイブリッド</span>
+      <span class="badge">CodeMirror Engine</span>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-secondary" id="btn-copy">Markdownをコピー</button>
+      <button class="btn btn-primary" id="btn-reset">サンプル再読込</button>
+    </div>
+  </header>
+
+  <div class="help-bar">
+    <span>💡 <strong>操作方法:</strong> ツールバーなし。<code># </code> や <code>## </code> を打つと、文字サイズが自動的に見出しサイズへ拡大・ハイライト装飾されます。</span>
+  </div>
+
+  <main>
+    <textarea id="markdown-editor"></textarea>
+  </main>
+
+  <div id="toast">クリップボードにコピーしました！</div>
+
+  <script src="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js"></script>
+  <script>
+    const INITIAL_CONTENT = `# Obsidian風 ライブハイブリッドエディタ
+
+ツールバーのボタンは一切表示していません。
+純粋なキーボードタイピングのみで執筆できるミニマルな空間です。
+
+## 見出しタイピングのテスト
+行頭で \`## \` と打つと、その行全体のフォントサイズが即座に大きくなり、見出しスタイルとして装飾されます。
+小見出しにしたい場合は \`### \` と入力します。
+
+### リストと装飾のテスト
+- 行頭で \`- \` や \`* \` を打つとリストになります
+- **太字** (\`**太字**\`) や *斜体* (\`*斜体*\`) も即座にスタイリング
+- \`> 引用\` も自動的にインデントとイタリック装飾されます
+
+\`\`\`javascript
+// コードブロックも美しくシンタックスハイライトされます
+function hybridMarkdown() {
+  return "Write pure markdown, see rich typography.";
+}
+\`\`\`
+
+手元のファイルを壊すことなく、生テキストの扱いやすさとビジュアルの美しさを両立しています。
+`;
+
+    const easyMDE = new EasyMDE({
+      element: document.getElementById('markdown-editor'),
+      initialValue: INITIAL_CONTENT,
+      toolbar: false, // ツールバーを完全に非表示（ボタン不要）
+      spellChecker: false,
+      nativeSpellcheck: true,
+      autofocus: true,
+      status: ["lines", "words", "cursor"],
+      placeholder: "## で見出し、- でリスト、自由に入力...",
+    });
+
+    const toast = document.getElementById('toast');
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2000);
+    }
+
+    document.getElementById('btn-copy').addEventListener('click', async () => {
+      const text = easyMDE.value();
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast('Markdownをコピーしました！');
+      } catch (e) {
+        showToast('コピーに失敗しました');
+      }
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', () => {
+      easyMDE.value(INITIAL_CONTENT);
+      showToast('サンプルを初期状態にリセットしました');
+    });
+  </script>
+</body>
+</html>

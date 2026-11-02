@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Markdown 編集プロトタイプ 比較検証ハブ - AI Markdown Viewer</title>
+  <meta name="description" content="AI Markdown Viewer を『読み込み・閲覧専用』から『編集可能』にするための4つのアプローチ（Notion風インライン変換、インプレース編集、Obsidian風ハイブリッド、シームレス切替）の実機比較サンドボックス。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: #111726;
+      --card-border: #1e293b;
+      --accent: #38bdf8;
+      --accent-glow: rgba(56, 189, 248, 0.2);
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      padding: 1.25rem 2rem;
+      border-bottom: 1px solid var(--card-border);
+      background: rgba(17, 23, 38, 0.85);
+      backdrop-filter: blur(10px);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #38bdf8, #8b5cf6);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 20px var(--accent-glow);
+    }
+    .brand-title {
+      font-size: 1.2rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    .badge {
+      font-size: 0.75rem;
+      padding: 3px 9px;
+      border-radius: 9999px;
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--accent);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      font-weight: 600;
+    }
+
+    .header-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.85rem;
+      padding: 0.4rem 0.85rem;
+      border-radius: 6px;
+      border: 1px solid var(--card-border);
+      transition: all 0.2s;
+    }
+    .header-links a:hover {
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    main {
+      flex: 1;
+      max-width: 1400px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    .hero {
+      text-align: center;
+      max-width: 820px;
+      margin: 0 auto;
+    }
+    .hero h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.75rem;
+      background: linear-gradient(135deg, #ffffff 40%, #38bdf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero p {
+      font-size: 1rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* Interactive Switcher Bar */
+    .tabs-wrapper {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 0.75rem;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.6rem;
+    }
+    @media (max-width: 900px) {
+      .tabs-wrapper {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+    @media (max-width: 550px) {
+      .tabs-wrapper {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .tab-card {
+      background: #090d16;
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      padding: 1rem;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      text-align: left;
+      transition: all 0.2s;
+      position: relative;
+    }
+    .tab-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+    .tab-card.active {
+      border-color: var(--accent);
+      background: rgba(56, 189, 248, 0.08);
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.15);
+    }
+    .tab-tag {
+      font-size: 0.7rem;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: var(--accent);
+    }
+    .tab-name {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #fff;
+    }
+    .tab-desc {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    /* Live Preview Stage */
+    .stage-container {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    }
+    .stage-header {
+      padding: 0.85rem 1.25rem;
+      background: rgba(15, 23, 42, 0.6);
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+    .stage-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #cbd5e1;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .stage-actions a {
+      color: var(--accent);
+      font-size: 0.8rem;
+      text-decoration: none;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.35rem 0.75rem;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      border-radius: 6px;
+      background: rgba(56, 189, 248, 0.08);
+      transition: all 0.2s;
+    }
+    .stage-actions a:hover {
+      background: var(--accent);
+      color: #042f2e;
+    }
+
+    iframe.stage-iframe {
+      width: 100%;
+      height: 680px;
+      border: none;
+      background: #0f141c;
+    }
+
+    /* Detailed Evaluation Matrix */
+    .eval-section {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 1.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    .eval-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .matrix-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+    .matrix-table th, .matrix-table td {
+      border: 1px solid #1e293b;
+      padding: 0.85rem 1rem;
+      text-align: left;
+    }
+    .matrix-table th {
+      background: #090d16;
+      color: #cbd5e1;
+      font-weight: 700;
+    }
+    .matrix-table tr:nth-child(even) {
+      background: rgba(255, 255, 255, 0.015);
+    }
+
+    .star { color: #f59e0b; font-weight: 700; }
+    .rec-badge {
+      font-size: 0.75rem;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-weight: 700;
+    }
+    .rec-top { background: #065f46; color: #34d399; }
+    .rec-alt { background: #1e3a8a; color: #60a5fa; }
+
+    footer {
+      padding: 1.5rem;
+      text-align: center;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      border-top: 1px solid var(--card-border);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="brand-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 20h9"></path>
+          <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-title">Markdown 編集機能プロトタイプ 検証サンドボックス</div>
+      </div>
+      <span class="badge">Prototype Lab</span>
+    </div>
+
+    <div class="header-links">
+      <a href="../index.html">← AI Markdown Viewer 本体へ</a>
+    </div>
+  </header>
+
+  <main>
+    <div class="hero">
+      <h1>「ボタンなし・## を打てば見出しになる」4つの実装比較</h1>
+      <p>
+        AI Markdown Viewer を『閲覧専用』から『編集可能』へと拡張するための4種類のプロトタイプを作成しました。<br>
+        下のタブをクリックして、各プロトタイプの手触り・タイピング感を実際に操作して比較できます。
+      </p>
+    </div>
+
+    <!-- Switcher Cards -->
+    <div class="tabs-wrapper">
+      <div class="tab-card active" data-url="proto1_notion_wysiwyg.html">
+        <span class="tab-tag">PROTOTYPE 1</span>
+        <div class="tab-name">✨ Notion風インライン変換</div>
+        <div class="tab-desc">TipTap搭載。## を打つと即座に見出しになり、- でリストに変わる最高峰の執筆体験。</div>
+      </div>
+
+      <div class="tab-card" data-url="proto2_inplace_block.html">
+        <span class="tab-tag">PROTOTYPE 2</span>
+        <div class="tab-name">⚡ ブロック即時インプレース</div>
+        <div class="tab-desc">ゼロ依存。普段は綺麗なHTML、クリックした行だけが入力欄に早変わりする超軽量方式。</div>
+      </div>
+
+      <div class="tab-card" data-url="proto3_live_hybrid.html">
+        <span class="tab-tag">PROTOTYPE 3</span>
+        <div class="tab-name">💎 Obsidian風 ライブハイブリッド</div>
+        <div class="tab-desc">CodeMirror搭載。ツールバーなしで ## を打つとフォントが自動で見出しサイズに拡大。</div>
+      </div>
+
+      <div class="tab-card" data-url="proto4_seamless_toggle.html">
+        <span class="tab-tag">PROTOTYPE 4</span>
+        <div class="tab-name">🚀 シームレス即座編集</div>
+        <div class="tab-desc">ダブルクリックやCtrl+Eで流れるように生Markdown編集 ⇄ 閲覧を行き来。最も壊れにくい。</div>
+      </div>
+    </div>
+
+    <!-- Live Stage Frame -->
+    <div class="stage-container">
+      <div class="stage-header">
+        <span class="stage-title" id="stage-title">
+          <span>✨ 動作中: プロトタイプ 1 (Notion風インライン変換 - TipTap)</span>
+        </span>
+        <div class="stage-actions">
+          <a id="open-newtab" href="proto1_notion_wysiwyg.html" target="_blank" rel="noopener">
+            別タブでフルスクリーン表示 ↗
+          </a>
+        </div>
+      </div>
+      <iframe class="stage-iframe" id="stage-frame" src="proto1_notion_wysiwyg.html"></iframe>
+    </div>
+
+    <!-- Evaluation Review Section -->
+    <div class="eval-section">
+      <div class="eval-title">
+        <span>📊 4つのプロトタイプ詳細比較＆専門家評価</span>
+      </div>
+
+      <table class="matrix-table">
+        <thead>
+          <tr>
+            <th style="width: 20%;">方式・プロトタイプ</th>
+            <th style="width: 25%;">手触り＆ユーザー体験 (UX)</th>
+            <th style="width: 20%;">実装難易度＆ライブラリ</th>
+            <th style="width: 20%;">Markdown互換性</th>
+            <th style="width: 15%;">総合評価・おすすめ度</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <strong>1. Notion風インライン変換</strong><br>
+              <small style="color:var(--text-muted);">(TipTap Engine)</small>
+            </td>
+            <td>
+              <span class="star">★★★★★</span><br>
+              最もリクエスト通り。ボタンなしで <code>## </code> を打った瞬間、本物のH2見出しに生まれ変わる驚きと気持ちよさがある。
+            </td>
+            <td>中程度 (TipTap 2.x)<br>※CDN経由で導入可能</td>
+            <td>HTML ⇄ MDの双方向変換を挟む</td>
+            <td><span class="rec-badge rec-top">★ ユーザーウケNo.1</span></td>
+          </tr>
+
+          <tr>
+            <td>
+              <strong>2. ブロック即時インプレース</strong><br>
+              <small style="color:var(--text-muted);">(Zero Dependency)</small>
+            </td>
+            <td>
+              <span class="star">★★★★☆</span><br>
+              「直したい行をクリックするだけ」で手軽。文章の一部だけを修正したいときに最適。
+            </td>
+            <td>極めて簡単 (Vanilla JS)<br>外部ライブラリ 0個</td>
+            <td>行単位のMarkdownを完全維持</td>
+            <td><span class="rec-badge rec-alt">軽量＆保守性No.1</span></td>
+          </tr>
+
+          <tr>
+            <td>
+              <strong>3. Obsidian風 ライブハイブリッド</strong><br>
+              <small style="color:var(--text-muted);">(CodeMirror Engine)</small>
+            </td>
+            <td>
+              <span class="star">★★★★☆</span><br>
+              入力中も <code>## </code> の記号が見えつつ、文字サイズが大きく装飾される。プログラマーや技術者に大好評。
+            </td>
+            <td>簡単〜中 (CodeMirror / EasyMDE)</td>
+            <td>100% 生のMarkdownを保持</td>
+            <td><span class="rec-badge rec-alt">技術者ウケNo.1</span></td>
+          </tr>
+
+          <tr>
+            <td>
+              <strong>4. シームレス即座編集</strong><br>
+              <small style="color:var(--text-muted);">(Dual Mode)</small>
+            </td>
+            <td>
+              <span class="star">★★★★☆</span><br>
+              閲覧中にダブルクリックやCtrl+Eで即座にフルエディタ化。長文の一気書きや外部ファイル貼り付けに最適。
+            </td>
+            <td>極めて簡単 (marked.js のみ)</td>
+            <td>100% 生のMarkdownを保持</td>
+            <td><span class="rec-badge rec-alt">実用安定性No.1</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <footer>
+    <p>AI Markdown Viewer Sandbox &bull; 完全静音・100%クライアントサイド処理 &bull; Cloudflare Pages / GitHub Pages 互換</p>
+  </footer>
+
+  <script>
+    const cards = document.querySelectorAll('.tab-card');
+    const stageFrame = document.getElementById('stage-frame');
+    const stageTitle = document.getElementById('stage-title');
+    const openNewtab = document.getElementById('open-newtab');
+
+    cards.forEach(card => {
+      card.addEventListener('click', () => {
+        cards.forEach(c => c.classList.remove('active'));
+        card.classList.add('active');
+
+        const url = card.dataset.url;
+        const name = card.querySelector('.tab-name').textContent;
+        stageFrame.src = url;
+        stageTitle.innerHTML = `<span>動作中: ${name}</span>`;
+        openNewtab.href = url;
+      });
+    });
+  </script>
+</body>
+</html>

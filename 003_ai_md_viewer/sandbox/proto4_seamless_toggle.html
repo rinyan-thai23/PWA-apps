@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>プロトタイプ 4: シームレス即座編集 (ビューア ⇄ 生Markdown)</title>
+  <meta name="description" content="普段は100%綺麗なMarkdownプレビュー。ダブルクリックまたはCtrl+Eを押した瞬間に生Markdown編集モードへ切り替わる、最も実用的で壊れにくいハイブリッド方式。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    :root {
+      --bg: #0f141c;
+      --card-bg: #161e2e;
+      --border: #233044;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --accent: #ec4899;
+      --accent-glow: rgba(236, 72, 153, 0.2);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      padding: 0.85rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      background: rgba(22, 30, 46, 0.85);
+      backdrop-filter: blur(8px);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-weight: 700;
+      font-size: 1rem;
+    }
+    .badge {
+      font-size: 0.72rem;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      background: rgba(236, 72, 153, 0.15);
+      color: var(--accent);
+      border: 1px solid rgba(236, 72, 153, 0.3);
+    }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .btn {
+      padding: 0.4rem 0.85rem;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.2s;
+    }
+    .btn-secondary {
+      background: #1e293b;
+      color: #cbd5e1;
+      border-color: #334155;
+    }
+    .btn-secondary:hover { background: #334155; color: #fff; }
+    .btn-toggle {
+      background: rgba(236, 72, 153, 0.2);
+      color: #f472b6;
+      border: 1px solid var(--accent);
+    }
+    .btn-toggle.active {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .help-bar {
+      background: #111827;
+      border-bottom: 1px solid var(--border);
+      padding: 0.6rem 1.5rem;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      display: flex;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    main {
+      flex: 1;
+      max-width: 860px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* View Mode (Beautiful Render) */
+    #view-pane {
+      flex: 1;
+      cursor: text;
+    }
+    #view-pane h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: #ffffff;
+      margin-bottom: 1rem;
+      letter-spacing: -0.025em;
+    }
+    #view-pane h2 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #f8fafc;
+      margin: 1.8rem 0 0.8rem 0;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.3rem;
+    }
+    #view-pane h3 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #38bdf8;
+      margin: 1.4rem 0 0.6rem 0;
+    }
+    #view-pane p {
+      font-size: 1.05rem;
+      line-height: 1.75;
+      color: #cbd5e1;
+      margin-bottom: 1rem;
+    }
+    #view-pane ul, #view-pane ol {
+      padding-left: 1.5rem;
+      margin-bottom: 1rem;
+      font-size: 1.05rem;
+      line-height: 1.7;
+    }
+    #view-pane li { margin-bottom: 0.35rem; }
+    #view-pane blockquote {
+      border-left: 3px solid var(--accent);
+      padding-left: 1rem;
+      color: #94a3b8;
+      margin: 1rem 0;
+      font-style: italic;
+    }
+    #view-pane pre {
+      background: #090d16;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.88rem;
+      color: #38bdf8;
+      overflow-x: auto;
+      margin-bottom: 1rem;
+    }
+    #view-pane code {
+      background: #1e293b;
+      color: #f43f5e;
+      padding: 2px 5px;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.88em;
+    }
+
+    /* Edit Mode (Textarea) */
+    #edit-pane {
+      display: none;
+      flex: 1;
+      flex-direction: column;
+    }
+    textarea.full-editor {
+      flex: 1;
+      width: 100%;
+      min-height: 520px;
+      background: #090d16;
+      border: 2px solid var(--accent);
+      border-radius: 10px;
+      padding: 1.25rem;
+      color: #f8fafc;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.05rem;
+      line-height: 1.7;
+      outline: none;
+      resize: vertical;
+      box-shadow: 0 0 20px var(--accent-glow);
+    }
+
+    .edit-hint {
+      position: absolute;
+      top: 1rem;
+      right: 1.5rem;
+      font-size: 0.72rem;
+      color: #64748b;
+      pointer-events: none;
+    }
+
+    #toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: #10b981;
+      color: #042f2e;
+      padding: 0.6rem 1.2rem;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.25s;
+      pointer-events: none;
+      z-index: 200;
+    }
+    #toast.show { opacity: 1; transform: translateY(0); }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <span>🚀 プロトタイプ 4: シームレス即座編集</span>
+      <span class="badge">Dual Mode</span>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-toggle" id="btn-mode-toggle">✏️ 編集する (Ctrl+E)</button>
+      <button class="btn btn-secondary" id="btn-copy">Markdownをコピー</button>
+      <button class="btn btn-secondary" id="btn-reset">リセット</button>
+    </div>
+  </header>
+
+  <div class="help-bar">
+    <span>💡 <strong>操作方法:</strong> 画面内を<strong>ダブルクリック</strong>するか、<kbd>Ctrl+E</kbd> (Mac: <kbd>⌘+E</kbd>) を押すと、即座にタイピング編集モードに切り替わります。編集後は <kbd>Esc</kbd> で閲覧に戻ります。</span>
+  </div>
+
+  <main>
+    <div id="view-pane" title="ダブルクリックで編集"></div>
+    <div id="edit-pane">
+      <textarea class="full-editor" id="raw-editor" placeholder="## で見出し、- でリスト、自由に入力..."></textarea>
+    </div>
+  </main>
+
+  <div id="toast">クリップボードにコピーしました！</div>
+
+  <script>
+    const INITIAL_MARKDOWN = `# シームレス即座編集 (ビューア ⇄ 生Markdown)
+
+この文書のどこでも **ダブルクリック** してみてください。
+またはキーボードの \`Ctrl + E\`（Macは \`⌘ + E\`）を押します。
+
+## なぜこの方式が最も選ばれているのか？
+1. **絶対に壊れない**: HTMLタグやリッチエディタの不具合でMarkdownファイルが崩れる心配がゼロです。
+2. **ボタン一切不要**: タイピングに100%集中でき、\`## \` や \`- \` の記号を直感的にそのまま編集できます。
+3. **完成形の美しさを100%維持**: 閲覧時は完璧にスタイリングされた美しい記事として読めます。
+
+### 編集テスト
+- ここに新しい箇条書きを追加してみてください
+- \`Esc\` キーを押すと一瞬で綺麗な閲覧ビューに戻ります
+
+\`\`\`javascript
+// コードブロックもそのままプレーンテキストで安全に編集可能
+const simpleIsBest = true;
+\`\`\`
+`;
+
+    let currentMarkdown = INITIAL_MARKDOWN;
+    let isEditing = false;
+
+    const viewPane = document.getElementById('view-pane');
+    const editPane = document.getElementById('edit-pane');
+    const rawEditor = document.getElementById('raw-editor');
+    const btnToggle = document.getElementById('btn-mode-toggle');
+    const toast = document.getElementById('toast');
+
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2000);
+    }
+
+    function renderView() {
+      viewPane.innerHTML = marked.parse(currentMarkdown);
+    }
+
+    function toggleMode(toEdit) {
+      isEditing = (toEdit !== undefined) ? toEdit : !isEditing;
+
+      if (isEditing) {
+        rawEditor.value = currentMarkdown;
+        viewPane.style.display = 'none';
+        editPane.style.display = 'flex';
+        btnToggle.textContent = '👁️ 閲覧モードへ (Esc)';
+        btnToggle.classList.add('active');
+        rawEditor.focus();
+      } else {
+        currentMarkdown = rawEditor.value;
+        renderView();
+        editPane.style.display = 'none';
+        viewPane.style.display = 'block';
+        btnToggle.textContent = '✏️ 編集する (Ctrl+E)';
+        btnToggle.classList.remove('active');
+      }
+    }
+
+    btnToggle.addEventListener('click', () => toggleMode());
+    viewPane.addEventListener('dblclick', () => toggleMode(true));
+
+    // キーボードショートカット (Ctrl+E でトグル, Esc で閲覧モードに戻る)
+    window.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'e') {
+        e.preventDefault();
+        toggleMode();
+      } else if (e.key === 'Escape' && isEditing) {
+        e.preventDefault();
+        toggleMode(false);
+      }
+    });
+
+    document.getElementById('btn-copy').addEventListener('click', async () => {
+      const text = isEditing ? rawEditor.value : currentMarkdown;
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast('Markdownをコピーしました！');
+      } catch (e) {
+        showToast('コピーに失敗しました');
+      }
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', () => {
+      currentMarkdown = INITIAL_MARKDOWN;
+      if (isEditing) rawEditor.value = currentMarkdown;
+      renderView();
+      showToast('サンプルを初期状態にリセットしました');
+    });
+
+    renderView();
+  </script>
+</body>
+</html>

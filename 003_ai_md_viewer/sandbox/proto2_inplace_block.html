@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>プロトタイプ 2: ブロック即時インプレース編集 (ゼロ依存)</title>
+  <meta name="description" content="外部ライブラリ不要。普段は美しいHTML表示、クリックしたブロックだけが入力ボックスに変わり ## 見出しなどを直接編集できる軽量インプレース方式。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f141c;
+      --card-bg: #161e2e;
+      --border: #233044;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --accent: #10b981;
+      --accent-glow: rgba(16, 185, 129, 0.2);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      padding: 0.85rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      background: rgba(22, 30, 46, 0.85);
+      backdrop-filter: blur(8px);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-weight: 700;
+      font-size: 1rem;
+    }
+    .badge {
+      font-size: 0.72rem;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--accent);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    .header-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+    .btn {
+      padding: 0.4rem 0.85rem;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.2s;
+    }
+    .btn-secondary {
+      background: #1e293b;
+      color: #cbd5e1;
+      border-color: #334155;
+    }
+    .btn-secondary:hover { background: #334155; color: #fff; }
+    .btn-primary {
+      background: var(--accent);
+      color: #042f2e;
+    }
+    .btn-primary:hover { background: #059669; color: #fff; }
+
+    .help-bar {
+      background: #111827;
+      border-bottom: 1px solid var(--border);
+      padding: 0.6rem 1.5rem;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      display: flex;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    main {
+      flex: 1;
+      max-width: 860px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Blocks Container */
+    #blocks-container {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .doc-block {
+      padding: 0.4rem 0.6rem;
+      border-radius: 6px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.15s;
+      position: relative;
+    }
+    .doc-block:hover {
+      background: rgba(255, 255, 255, 0.02);
+      border-color: rgba(255, 255, 255, 0.08);
+    }
+    .doc-block:hover::after {
+      content: '✏️ クリックで編集';
+      position: absolute;
+      right: 0.5rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      background: #1e293b;
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid #334155;
+      pointer-events: none;
+    }
+
+    /* Rendered HTML inside blocks */
+    .doc-block h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: -0.025em;
+    }
+    .doc-block h2 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #f8fafc;
+      letter-spacing: -0.02em;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.2rem;
+    }
+    .doc-block h3 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--accent);
+    }
+    .doc-block p {
+      font-size: 1.05rem;
+      line-height: 1.7;
+      color: #cbd5e1;
+    }
+    .doc-block ul, .doc-block ol {
+      padding-left: 1.5rem;
+      font-size: 1.05rem;
+      line-height: 1.7;
+    }
+    .doc-block blockquote {
+      border-left: 3px solid var(--accent);
+      padding-left: 1rem;
+      color: #94a3b8;
+      font-style: italic;
+    }
+    .doc-block pre {
+      background: #090d16;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.85rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.88rem;
+      color: #34d399;
+      overflow-x: auto;
+    }
+
+    /* Active Editing State */
+    .doc-block.editing {
+      background: #090d16;
+      border: 2px solid var(--accent);
+      box-shadow: 0 0 15px var(--accent-glow);
+      padding: 0;
+      cursor: default;
+    }
+    .doc-block.editing::after { display: none; }
+
+    textarea.block-input {
+      width: 100%;
+      background: transparent;
+      border: none;
+      padding: 0.6rem 0.8rem;
+      color: #f8fafc;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1rem;
+      line-height: 1.6;
+      outline: none;
+      resize: none;
+      min-height: 48px;
+    }
+
+    .add-block-btn {
+      margin-top: 1.5rem;
+      padding: 0.75rem;
+      border: 2px dashed #334155;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.88rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: all 0.2s;
+    }
+    .add-block-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(16, 185, 129, 0.05);
+    }
+
+    #toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: #10b981;
+      color: #042f2e;
+      padding: 0.6rem 1.2rem;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.25s;
+      pointer-events: none;
+      z-index: 200;
+    }
+    #toast.show { opacity: 1; transform: translateY(0); }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <span>⚡ プロトタイプ 2: ブロック即時インプレース編集</span>
+      <span class="badge">Zero Dependency</span>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-secondary" id="btn-copy-all">全Markdownをコピー</button>
+      <button class="btn btn-primary" id="btn-reset">サンプル再読込</button>
+    </div>
+  </header>
+
+  <div class="help-bar">
+    <span>💡 <strong>操作方法:</strong> 編集したい行をクリックするとテキストボックスになり <code>## 見出し</code> や <code>- リスト</code> を直接編集できます（Enterまたは外側クリックで確定）。</span>
+  </div>
+
+  <main>
+    <div id="blocks-container"></div>
+    <button class="add-block-btn" id="btn-add-block">➕ 新しいブロックを追加 (## で見出し、- でリスト)</button>
+  </main>
+
+  <div id="toast">クリップボードにコピーしました！</div>
+
+  <script>
+    const INITIAL_BLOCKS = [
+      "# ブロック即時インプレース編集 (ゼロ依存)",
+      "この行をクリックしてみてください。即座にテキスト編集ボックスに切り替わります。",
+      "## 見出しやリストの編集テスト",
+      "先頭の `## ` を消せば通常の文章になり、`### ` にすれば小見出しになります。",
+      "- 箇条書きリストも行ごとに独立して直感的に管理できます。",
+      "> 外部ライブラリを一切使わないため、超軽量で動作が最も安定しています。",
+      "```js\nconsole.log('Zero libraries, 100% stable performance');\n```"
+    ];
+
+    let blocks = [...INITIAL_BLOCKS];
+    const container = document.getElementById('blocks-container');
+    const toast = document.getElementById('toast');
+
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2000);
+    }
+
+    // Markdown行を安全なHTMLに簡易パース
+    function renderMarkdownLine(md) {
+      const trimmed = md.trim();
+      if (trimmed.startsWith('# ')) {
+        return `<h1>${escapeHtml(trimmed.slice(2))}</h1>`;
+      } else if (trimmed.startsWith('## ')) {
+        return `<h2>${escapeHtml(trimmed.slice(3))}</h2>`;
+      } else if (trimmed.startsWith('### ')) {
+        return `<h3>${escapeHtml(trimmed.slice(4))}</h3>`;
+      } else if (trimmed.startsWith('> ')) {
+        return `<blockquote>${escapeHtml(trimmed.slice(2))}</blockquote>`;
+      } else if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+        return `<ul><li>${escapeHtml(trimmed.slice(2))}</li></ul>`;
+      } else if (trimmed.startsWith('```')) {
+        const code = trimmed.replace(/^```[a-z]*\n?/, '').replace(/\n?```$/, '');
+        return `<pre><code>${escapeHtml(code)}</code></pre>`;
+      } else {
+        return `<p>${escapeHtml(md)}</p>`;
+      }
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function renderBlocks() {
+      container.innerHTML = '';
+      blocks.forEach((content, index) => {
+        const div = document.createElement('div');
+        div.className = 'doc-block';
+        div.dataset.index = index;
+        div.innerHTML = renderMarkdownLine(content);
+
+        div.addEventListener('click', () => startEditing(index, div));
+        container.appendChild(div);
+      });
+    }
+
+    function startEditing(index, blockEl) {
+      if (blockEl.classList.contains('editing')) return;
+
+      blockEl.classList.add('editing');
+      const currentMd = blocks[index];
+
+      const textarea = document.createElement('textarea');
+      textarea.className = 'block-input';
+      textarea.value = currentMd;
+
+      // 自動高さ調整
+      const lines = currentMd.split('\n').length;
+      textarea.style.height = Math.max(48, lines * 26) + 'px';
+
+      blockEl.innerHTML = '';
+      blockEl.appendChild(textarea);
+      textarea.focus();
+
+      function finishEditing() {
+        const newText = textarea.value.trim();
+        if (newText === '') {
+          blocks.splice(index, 1);
+        } else {
+          blocks[index] = newText;
+        }
+        renderBlocks();
+      }
+
+      textarea.addEventListener('blur', finishEditing);
+      textarea.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey && !currentMd.startsWith('```')) {
+          e.preventDefault();
+          textarea.blur();
+        }
+      });
+    }
+
+    // 新規ブロック追加
+    document.getElementById('btn-add-block').addEventListener('click', () => {
+      blocks.push('新しいブロック (## を打つと見出しになります)');
+      renderBlocks();
+      const lastBlock = container.lastElementChild;
+      startEditing(blocks.length - 1, lastBlock);
+    });
+
+    // 全コピー
+    document.getElementById('btn-copy-all').addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(blocks.join('\n\n'));
+        showToast('全体のMarkdownをコピーしました！');
+      } catch (e) {
+        showToast('コピーに失敗しました');
+      }
+    });
+
+    // リセット
+    document.getElementById('btn-reset').addEventListener('click', () => {
+      blocks = [...INITIAL_BLOCKS];
+      renderBlocks();
+      showToast('サンプルを初期状態にリセットしました');
+    });
+
+    renderBlocks();
+  </script>
+</body>
+</html>
