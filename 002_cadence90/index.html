@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>ケイデンスを耳で覚える</title>
+<title>ケイデンス90タイマー</title>
 <meta name="theme-color" content="#1B2A3A">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -24,43 +24,44 @@
 :root[data-theme="dark"]{--sky:#141C24;--ink:#E4EAF0;--rubber:#8C99A6;--muted:#93A2B0;--panel:#1C2630;}
 *,*::before,*::after{box-sizing:inherit}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
-body{margin:0;background:var(--sky);color:var(--ink);font-family:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",sans-serif;line-height:1.6}
-.app{max-width:520px;margin:0 auto;padding:24px 20px 40px}
+body{margin:0;background:var(--sky);color:var(--ink);font-family:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",sans-serif;line-height:1.5}
+.app{max-width:520px;margin:0 auto;padding:14px 16px 20px}
 body.indoor .app{max-width:1180px}
 @media (min-width:960px){
   body.indoor .app{display:grid;grid-template-columns:minmax(380px,460px) 1fr;gap:36px;align-items:start}
   body.indoor .col-main{position:sticky;top:calc(16px + env(safe-area-inset-top,0px))}
 }
-header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px 12px;margin-bottom:6px}
-h1{font-size:1.15rem;font-weight:700;margin:0}
-.modes{display:flex;background:var(--panel);border:1.5px solid var(--rubber);border-radius:22px;padding:3px;gap:2px}
-.modes button{border:0;background:transparent;color:var(--ink);font:inherit;font-size:.85rem;padding:6px 14px;border-radius:18px;cursor:pointer}
+header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px 10px;margin-bottom:4px}
+h1{font-size:1.05rem;font-weight:700;margin:0}
+.modes{display:flex;background:var(--panel);border:1.5px solid var(--rubber);border-radius:20px;padding:2px;gap:2px}
+.modes button{border:0;background:transparent;color:var(--ink);font:inherit;font-size:.82rem;padding:5px 12px;border-radius:16px;cursor:pointer}
 .modes button[aria-pressed="true"]{background:var(--ink);color:var(--sky)}
-.lead{color:var(--muted);font-size:.9rem;margin:6px 0 20px}
+.lead{color:var(--muted);font-size:.85rem;margin:4px 0 12px}
 .hint:empty,.box p:empty{display:none}
-.lead:empty{margin:0 0 14px}
+.lead:empty{margin:0 0 8px}
 .visual{display:flex;flex-direction:column;align-items:center}
-.visual svg{width:min(78vw,300px,34vh);height:auto;display:block}
-.rpm{font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-weight:700;font-size:5.5rem;line-height:1;margin-top:8px}
-.rpm small{font-size:1.4rem;font-weight:500;color:var(--muted);margin-left:6px}
-.feel{min-height:1.6em;color:var(--muted);font-size:.95rem;margin-top:2px;text-align:center}
-.speed{font-family:"Barlow Condensed",sans-serif;font-size:1.5rem}
-.road{height:6px;margin:22px 0;background:repeating-linear-gradient(90deg,var(--line) 0 28px,transparent 28px 48px);border-radius:3px}
-.row{display:flex;align-items:center;gap:10px}
-.step{flex:none;width:48px;height:48px;border-radius:50%;border:2px solid var(--ink);background:transparent;color:var(--ink);font-size:1.5rem;cursor:pointer}
-input[type=range]{flex:1;accent-color:var(--line);height:32px;min-width:0}
-.presets{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
-.presets button{flex:1 1 30%;padding:10px 6px;border:1.5px solid var(--rubber);border-radius:10px;background:var(--panel);color:var(--ink);font:inherit;font-size:.85rem;cursor:pointer;line-height:1.3}
-.presets button b{display:block;font-family:"Barlow Condensed",sans-serif;font-size:1.4rem}
+.visual svg{width:min(48vw,165px,18vh);height:auto;display:block}
+.rpm{font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-weight:700;font-size:clamp(3.5rem,9.5vw,4.4rem);line-height:1;margin-top:2px}
+.rpm small{font-size:1.15rem;font-weight:500;color:var(--muted);margin-left:4px}
+.feel{min-height:1.4em;color:var(--muted);font-size:.85rem;margin-top:1px;text-align:center}
+.speed{font-family:"Barlow Condensed",sans-serif;font-size:1.35rem}
+.road{height:4px;margin:10px 0;background:repeating-linear-gradient(90deg,var(--line) 0 24px,transparent 24px 40px);border-radius:2px}
+.row{display:flex;align-items:center;gap:8px}
+.step{flex:none;width:40px;height:40px;border-radius:50%;border:2px solid var(--ink);background:transparent;color:var(--ink);font-size:1.3rem;cursor:pointer}
+input[type=range]{flex:1;accent-color:var(--line);height:28px;min-width:0}
+.presets{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.presets button{flex:1 1 30%;padding:6px 4px;border:1.5px solid var(--rubber);border-radius:8px;background:var(--panel);color:var(--ink);font:inherit;font-size:.8rem;cursor:pointer;line-height:1.2}
+.presets button b{display:block;font-family:"Barlow Condensed",sans-serif;font-size:1.25rem}
 .presets button[aria-pressed="true"],.chips button[aria-pressed="true"]{border-color:var(--line);box-shadow:inset 0 0 0 2px var(--line)}
-fieldset{border:0;padding:0;margin:20px 0 0}
-legend{font-weight:700;font-size:.9rem;margin-bottom:8px}
-.mode{display:flex;gap:8px}
-.mode label{flex:1;display:block;padding:10px 12px;border:1.5px solid var(--rubber);border-radius:10px;background:var(--panel);cursor:pointer;font-size:.88rem}
+fieldset{border:0;padding:0;margin:10px 0 0}
+legend{font-weight:700;font-size:.82rem;margin-bottom:4px}
+.mode{display:flex;gap:6px}
+.mode label{flex:1;display:block;padding:8px 10px;border:1.5px solid var(--rubber);border-radius:8px;background:var(--panel);cursor:pointer;font-size:.82rem}
 .mode input{accent-color:var(--line);margin-right:6px}
-.mode .sub{display:block;color:var(--muted);font-size:.78rem;margin-left:22px}
-.go{position:sticky;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:5;box-shadow:0 0 0 8px var(--sky);margin-top:24px;width:100%;padding:20px;border:0;border-radius:40px;background:var(--ink);color:var(--sky);font:inherit;font-size:1.15rem;font-weight:700;cursor:pointer}
-.hint{color:var(--muted);font-size:.8rem;text-align:center;margin-top:10px}
+.mode .sub{display:block;color:var(--muted);font-size:.75rem;margin-left:20px}
+.go{position:sticky;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:5;box-shadow:0 0 0 6px var(--sky);margin-top:12px;width:100%;padding:14px;border:0;border-radius:32px;background:var(--ink);color:var(--sky);font:inherit;font-size:1.1rem;font-weight:700;cursor:pointer;transition:transform .1s}
+.go:active{transform:scale(0.99)}
+.hint{color:var(--muted);font-size:.78rem;text-align:center;margin-top:6px}
 /* 室内パネル */
 .col-indoor{display:none}
 body.indoor .col-indoor{display:block;margin-top:36px}
@@ -257,7 +258,7 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid
 <div class="app">
 <section class="col-main">
   <header>
-    <h1>ケイデンスを耳で覚える</h1>
+    <h1>ケイデンス90タイマー</h1>
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
       <button class="hud-trigger-btn" id="openHudBtn" title="モニター・タブレット用全画面HUDモード">⛶ 全画面HUD</button>
       <div class="modes" role="group" aria-label="使う場所">
@@ -303,7 +304,7 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid
     </div>
   </fieldset>
 
-  <button class="go" id="go">音を鳴らす</button>
+  <button class="go" id="go">スタート</button>
   <p class="hint" id="hint"></p>
   <audio id="bgAudio" loop playsinline preload="auto" src="silence.wav" style="display:none"></audio>
 </section>
@@ -711,7 +712,7 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid
   function start(){
     if(!ctx)initAudio();ctx.resume();
     t0=ctx.currentTime+.05;ph0=0;nextPh=0;lastPh=0;queue.length=0;noteIdx=0;
-    playing=true;timer=setInterval(schedule,25);schedule();draw();go.textContent='止める';lockScreen();
+    playing=true;timer=setInterval(schedule,25);schedule();draw();go.textContent='ストップ';lockScreen();
     if(silentAudio){
       silentAudio.currentTime=0;
       silentAudio.play().then(()=>{updateMediaSession();}).catch(()=>{updateMediaSession();});
@@ -721,7 +722,7 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid
     if(hudOpen)renderHud();
   }
   function stop(){
-    playing=false;clearInterval(timer);cancelAnimationFrame(raf);queue.length=0;go.textContent='音を鳴らす';
+    playing=false;clearInterval(timer);cancelAnimationFrame(raf);queue.length=0;go.textContent='スタート';
     unlockScreen();if(silentAudio)silentAudio.pause();updateMediaSession();if(run)endRun('');saveLog();
     if(hudOpen)renderHud();
   }
