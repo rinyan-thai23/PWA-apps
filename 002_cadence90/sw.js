@@ -1,8 +1,12 @@
-const CACHE_NAME = 'cadence90-v8';
+const CACHE_NAME = 'cadence90-v9';
 
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
+  './ja/',
+  './ja/index.html',
+  './en/',
+  './en/index.html',
   './manifest.json',
   './silence.wav',
   './icons/icon-192.png',

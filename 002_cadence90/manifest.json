@@ -1,7 +1,7 @@
 {
-  "name": "ケイデンス90タイマー",
-  "short_name": "ケイデンス90",
-  "description": "自転車ペダリングケイデンス（RPM）リズムガイド＆室内インターバルトレーナー",
+  "name": "Cadence 90 Timer - ケイデンス90タイマー",
+  "short_name": "Cadence 90",
+  "description": "Ideal 90 RPM cadence metronome for road cycling & indoor smart trainer HUD",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

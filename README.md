@@ -59,11 +59,14 @@ PWA-apps/
 │   ├── es/                        # 🇪🇸 スペイン語版アプリ本体 (index.html)
 │   ├── de/                        # 🇩🇪 ドイツ語版アプリ本体 (index.html)
 │   └── fr/                        # 🇫🇷 フランス語版アプリ本体 (index.html)
-├── 002_cadence90/                 # 002: ケイデンス90タイマー (自転車ペダリングリズム & 室内インターバルトレーナー / PWA対応)
-│   ├── index.html                 # ケイデンスタイマー本体 (ロード走行音 / 室内ギア・速度シミュレータ / オフライン動作)
+├── 002_cadence90/                 # 002: ケイデンス90タイマー (自転車ペダリングリズム & 室内HUD / PWA対応)
+│   ├── index.html                 # 英語Language Hub (PWA対応明記・言語選択カード)
 │   ├── manifest.json              # Webアプリマニフェスト (PWA)
 │   ├── sw.js                      # Service Worker (オフラインキャッシュ)
-│   └── icons/                     # アプリアイコン群 (192, 512, apple-touch, favicon)
+│   ├── silence.wav                # バックグラウンド再生・ロック画面リモコン用無音WAV
+│   ├── icons/                     # アプリアイコン群 (192, 512, apple-touch, favicon)
+│   ├── ja/                        # 🇯🇵 日本語版アプリ本体 (index.html)
+│   └── en/                        # 🇺🇸 英語版アプリ本体 (index.html)
 └── 003_ai_md_viewer/              # 003: AI Markdown Reader (長文MD専用Webビューア / 7言語対応 / 純粋Webツール)
     ├── index.html                 # 英語Language Hub (PWA非該当明記)
     ├── icons/                     # アプリアイコン群

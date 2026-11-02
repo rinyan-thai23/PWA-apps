@@ -34,15 +34,20 @@
 
 ```text
 002_cadence90/
-├── index.html                 # アプリ本体（PWA対応）
-├── manifest.json              # Webアプリマニフェスト
+├── index.html                 # 英語Language Hub（PWA対応明記・多言語アクセス・SEO）
+├── manifest.json              # Webアプリマニフェスト（PWA）
 ├── sw.js                      # Service Worker（オフラインキャッシュ制御）
+├── silence.wav                # バックグラウンド再生・ロック画面リモコン用無音WAV
 ├── README.md                  # 仕様・ドキュメント（本ファイル）
 ├── test.html                  # デプロイ確認用テストページ
-└── icons/                     # アプリアイコン群
-    ├── icon-192.png           # PWA用 192x192 アイコン
-    ├── icon-512.png           # PWA用 512x512 アイコン
-    ├── apple-touch-icon.png   # iOS用 180x180 アイコン
-    ├── favicon-32.png         # ブラウザ用 32x32 ファビコン
-    └── favicon.ico            # ファビコンICO
+├── icons/                     # アプリアイコン群
+│   ├── icon-192.png           # PWA用 192x192 アイコン
+│   ├── icon-512.png           # PWA用 512x512 アイコン
+│   ├── apple-touch-icon.png   # iOS用 180x180 アイコン
+│   ├── favicon-32.png         # ブラウザ用 32x32 ファビコン
+│   └── favicon.ico            # ファビコンICO
+├── ja/                        # 🇯🇵 日本語版アプリ本体
+│   └── index.html             # ケイデンス90タイマー（日本語版）
+└── en/                        # 🇺🇸 英語版アプリ本体
+    └── index.html             # Cadence 90 Timer（英語版）
 ```

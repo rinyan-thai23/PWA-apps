@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cadence 90 Timer - Cycling Cadence Metronome & Indoor HUD</title>
+<meta name="description" content="Ideal cadence 90 RPM metronome and indoor smart trainer HUD for road cyclists. Features earphone audio guidance, lock screen remote controls, and gear ratio speed calculator.">
+<meta name="theme-color" content="#1B2A3A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Cadence 90">
+<link rel="manifest" href="../manifest.json">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="../icons/favicon-32.png">
+<link rel="icon" href="../icons/favicon.ico">
+<link rel="alternate" hreflang="ja" href="../ja/">
+<link rel="alternate" hreflang="en" href="./">
+<link rel="alternate" hreflang="x-default" href="./">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --sky:#E6ECF0;--ink:#1B2A3A;--line:#F2B705;--rubber:#39424B;--muted:#5F6F7E;--panel:#F6F8FA;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--sky:#141C24;--ink:#E4EAF0;--rubber:#8C99A6;--muted:#93A2B0;--panel:#1C2630;}}
+:root[data-theme="dark"]{--sky:#141C24;--ink:#E4EAF0;--rubber:#8C99A6;--muted:#93A2B0;--panel:#1C2630;}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--sky);color:var(--ink);font-family:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",sans-serif;line-height:1.5}
+.app{max-width:520px;margin:0 auto;padding:14px 16px 20px}
+body.indoor .app{max-width:1180px}
+@media (min-width:960px){
+  body.indoor .app{display:grid;grid-template-columns:minmax(380px,460px) 1fr;gap:36px;align-items:start}
+  body.indoor .col-main{position:sticky;top:calc(16px + env(safe-area-inset-top,0px))}
+}
+header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px 10px;margin-bottom:4px}
+h1{font-size:1.05rem;font-weight:700;margin:0}
+.modes{display:flex;background:var(--panel);border:1.5px solid var(--rubber);border-radius:20px;padding:2px;gap:2px}
+.modes button{border:0;background:transparent;color:var(--ink);font:inherit;font-size:.82rem;padding:5px 12px;border-radius:16px;cursor:pointer}
+.modes button[aria-pressed="true"]{background:var(--ink);color:var(--sky)}
+.lead{color:var(--muted);font-size:.85rem;margin:4px 0 12px}
+.hint:empty,.box p:empty{display:none}
+.lead:empty{margin:0 0 8px}
+.visual{display:flex;flex-direction:column;align-items:center}
+.visual svg{width:min(48vw,165px,18vh);height:auto;display:block}
+.rpm{font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-weight:700;font-size:clamp(3.5rem,9.5vw,4.4rem);line-height:1;margin-top:2px}
+.rpm small{font-size:1.15rem;font-weight:500;color:var(--muted);margin-left:4px}
+.feel{min-height:1.4em;color:var(--muted);font-size:.85rem;margin-top:1px;text-align:center}
+.speed{font-family:"Barlow Condensed",sans-serif;font-size:1.35rem}
+.road{height:4px;margin:10px 0;background:repeating-linear-gradient(90deg,var(--line) 0 24px,transparent 24px 40px);border-radius:2px}
+.row{display:flex;align-items:center;gap:8px}
+.step{flex:none;width:40px;height:40px;border-radius:50%;border:2px solid var(--ink);background:transparent;color:var(--ink);font-size:1.3rem;cursor:pointer}
+input[type=range]{flex:1;accent-color:var(--line);height:28px;min-width:0}
+.presets{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.presets button{flex:1 1 30%;padding:6px 4px;border:1.5px solid var(--rubber);border-radius:8px;background:var(--panel);color:var(--ink);font:inherit;font-size:.8rem;cursor:pointer;line-height:1.2}
+.presets button b{display:block;font-family:"Barlow Condensed",sans-serif;font-size:1.25rem}
+.presets button[aria-pressed="true"],.chips button[aria-pressed="true"]{border-color:var(--line);box-shadow:inset 0 0 0 2px var(--line)}
+fieldset{border:0;padding:0;margin:10px 0 0}
+legend{font-weight:700;font-size:.82rem;margin-bottom:4px}
+.mode{display:flex;gap:6px}
+.mode label{flex:1;display:block;padding:8px 10px;border:1.5px solid var(--rubber);border-radius:8px;background:var(--panel);cursor:pointer;font-size:.82rem}
+.mode input{accent-color:var(--line);margin-right:6px}
+.mode .sub{display:block;color:var(--muted);font-size:.75rem;margin-left:20px}
+.go{position:sticky;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:5;box-shadow:0 0 0 6px var(--sky);margin-top:12px;width:100%;padding:14px;border:0;border-radius:32px;background:var(--ink);color:var(--sky);font:inherit;font-size:1.1rem;font-weight:700;cursor:pointer;transition:transform .1s}
+.go:active{transform:scale(0.99)}
+.hint{color:var(--muted);font-size:.78rem;text-align:center;margin-top:6px}
+/* Indoor Trainer Panel */
+.col-indoor{display:none}
+body.indoor .col-indoor{display:block;margin-top:36px}
+@media (min-width:960px){body.indoor .col-indoor{margin-top:0}}
+.boxes{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.box{background:var(--panel);border:1.5px dashed var(--rubber);border-radius:14px;padding:14px 16px}
+.box.wide{grid-column:1/-1}
+.box h2{font-size:.95rem;margin:0 0 10px}
+.box p{margin:6px 0 0;font-size:.85rem;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{padding:6px 12px;border:1.5px solid var(--rubber);border-radius:18px;background:var(--sky);color:var(--ink);font:inherit;font-size:.85rem;cursor:pointer}
+.glabel{font-size:.82rem;font-weight:700;margin:12px 0 6px}
+.gsub{font-weight:400;color:var(--muted);margin-left:4px}
+.shift{align-items:flex-start}
+.shift .end{font-family:"Barlow Condensed",sans-serif;font-size:1.1rem;color:var(--muted);flex:none;min-width:2.2em;text-align:center;line-height:32px}
+.slidewrap{flex:1;min-width:0}
+.slidewrap input{width:100%;display:block;margin:0}
+.ticks{display:flex;justify-content:space-between;align-items:center;padding:0 6px;height:30px;margin-top:2px}
+.ticks i{width:4px;background:var(--rubber);opacity:.45;border-radius:2px;transition:opacity .15s}
+.ticks i.on{background:var(--line);opacity:1;width:6px}
+.expert{margin-top:12px;border-top:1px dashed var(--rubber);padding-top:8px}
+.expert summary{cursor:pointer;font-size:.85rem;font-weight:700;padding:4px 0}
+.gear{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.gear label,.tlabel{font-size:.78rem;color:var(--muted)}
+.tlabel{display:block;margin-top:8px}
+.in{width:100%;padding:6px 8px;border:1.5px solid var(--rubber);border-radius:8px;background:var(--sky);color:var(--ink);font:inherit;font-size:.95rem;min-width:0}
+.gear .in,.tlabel .in{display:block;margin-top:4px}
+.big{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:2.2rem;line-height:1.1;margin-top:8px}
+.small-btn{padding:8px 14px;border:1.5px solid var(--ink);border-radius:20px;background:transparent;color:var(--ink);font:inherit;font-size:.85rem;cursor:pointer}
+.primary{background:var(--ink);color:var(--sky)}
+.check{display:flex;align-items:center;gap:6px;font-size:.85rem;margin-top:10px}
+.check input{accent-color:var(--line)}
+/* Interval */
+.ivhead,.ivrow{display:grid;grid-template-columns:28px 78px 78px 1fr 34px;gap:6px;align-items:center}
+.ivhead{font-size:.75rem;color:var(--muted);margin:12px 0 4px}
+.ivrow{margin-bottom:6px}
+.ivrow .no{font-family:"Barlow Condensed",sans-serif;font-size:1.1rem;color:var(--muted);text-align:center}
+.ivrow.now{outline:2px solid var(--line);border-radius:8px}
+.del{width:34px;height:34px;border:1.5px solid var(--rubber);border-radius:50%;background:transparent;color:var(--ink);cursor:pointer;font-size:1rem}
+.ivfoot{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:10px}
+.ivfoot label{font-size:.85rem;display:flex;align-items:center;gap:6px}
+.ivfoot .in{width:64px}
+.total{font-size:.85rem;color:var(--muted);margin-left:auto}
+.runbar:has(i[style*="width: 0"]),.runbar:has(i:not([style])){visibility:hidden}
+.runbar{height:8px;border-radius:4px;background:var(--sky);overflow:hidden;margin-top:14px}
+.runbar i{display:block;height:100%;width:0;background:var(--line)}
+.caster{font-weight:700;font-size:1.05rem;margin-top:8px;min-height:1.6em}
+.nowline{font-family:"Barlow Condensed",sans-serif;font-size:1.6rem;line-height:1.2}
+@media (max-width:420px){.ivhead,.ivrow{grid-template-columns:22px 64px 64px 1fr 30px}.del{width:30px;height:30px}}
+.simrow{display:grid;grid-template-columns:34px 1fr 1fr;gap:8px;align-items:end;padding:6px;border-radius:10px;margin-bottom:4px}
+.simrow label{font-size:.78rem;color:var(--muted)}
+.simrow .in{display:block;margin-top:2px;font-size:1.05rem}
+.simrow .tag{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:1.6rem;text-align:center;line-height:1.4}
+.simrow.now,.ivrow.now{outline:2px solid var(--line)}
+.startbig{margin-top:12px;width:100%;padding:12px;border:0;border-radius:24px;background:var(--ink);color:var(--sky);font:inherit;font-weight:700;cursor:pointer}
+.chips.mini button{font-size:.75rem;padding:3px 10px;border-width:1px}
+.mine{display:inline-flex;border:1.5px solid var(--rubber);border-radius:18px;overflow:hidden}
+.mine button{border:0;border-radius:0;background:var(--sky);color:var(--ink);font:inherit;font-size:.85rem;padding:6px 10px;cursor:pointer}
+.mine button+button{border-left:1px solid var(--rubber);color:var(--muted);padding:6px 9px}
+.gearpick button{display:flex;align-items:center;gap:10px;flex:1 1 200px;text-align:left;border-radius:12px;padding:8px 12px}
+.gearpick svg{flex:none;width:34px;height:34px}
+.gearpick b{display:block;font-size:.9rem}
+.gearpick small{display:block;font-size:.75rem;color:var(--muted);line-height:1.4}
+@media (max-width:360px){.presets button{font-size:.75rem}.mode label{font-size:.8rem;padding:10px 8px}}
+[hidden]{display:none!important}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--line);outline-offset:2px}
+
+/* Fullscreen HUD Trigger Button */
+.hud-trigger-btn{
+  display:inline-flex;align-items:center;gap:6px;padding:6px 14px;
+  background:rgba(255,255,255,0.06);border:1.5px solid var(--line);
+  border-radius:20px;color:var(--ink);font:inherit;font-size:.85rem;
+  font-weight:700;cursor:pointer;transition:all .2s;
+}
+.hud-trigger-btn:hover{background:var(--line);color:#090d14}
+
+/* Fullscreen HUD Overlay */
+.hud-overlay{
+  position:fixed;inset:0;z-index:99999;
+  background:#090d14;color:#f1f5f9;
+  display:flex;flex-direction:column;padding:20px 28px;
+  overflow-y:auto;box-sizing:border-box;
+  font-family:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",sans-serif;
+}
+.hud-header{
+  display:flex;justify-content:space-between;align-items:center;
+  gap:16px;flex-wrap:wrap;padding-bottom:14px;
+  border-bottom:1px solid rgba(255,255,255,0.1);margin-bottom:16px;
+}
+.hud-title-wrap{display:flex;align-items:center;gap:12px}
+.hud-badge{
+  font-size:.85rem;font-weight:700;padding:4px 12px;border-radius:14px;
+  background:var(--line);color:#090d14;transition:background .2s;
+}
+.hud-subinfo{color:#94a3b8;font-size:.88rem}
+.hud-keys-help{
+  display:flex;gap:12px;flex-wrap:wrap;color:#64748b;font-size:.78rem;margin-left:auto;
+}
+.hud-keys-help kbd{
+  background:#1e293b;color:#cbd5e1;padding:2px 6px;border-radius:4px;
+  border:1px solid #334155;font-family:inherit;font-weight:700;
+}
+.hud-close-btn{
+  padding:6px 16px;border-radius:18px;border:1px solid #475569;
+  background:#1e293b;color:#f8fafc;font:inherit;font-size:.85rem;
+  font-weight:700;cursor:pointer;
+}
+.hud-close-btn:hover{background:#334155}
+.hud-grid{
+  display:grid;grid-template-columns:minmax(280px,1fr) minmax(320px,1.2fr) minmax(280px,1fr);
+  gap:20px;flex:1;align-items:stretch;
+}
+@media (max-width:960px){
+  .hud-grid{grid-template-columns:1fr;gap:16px}
+  .hud-keys-help{display:none}
+}
+.hud-card{
+  background:rgba(18,26,38,0.85);border:1px solid rgba(255,255,255,0.08);
+  border-radius:20px;padding:20px 24px;display:flex;flex-direction:column;
+  align-items:center;text-align:center;box-shadow:0 12px 30px rgba(0,0,0,0.5);
+  backdrop-filter:blur(10px);min-height:320px;
+}
+.hud-card-label{
+  font-size:.75rem;font-weight:700;letter-spacing:.1em;color:#94a3b8;
+  margin-bottom:8px;text-transform:uppercase;
+}
+.hud-cadence-visual{width:min(180px,24vh);height:auto;margin:6px 0}
+.hud-cadence-visual svg{width:100%;height:auto;display:block}
+.hud-rpm-val{
+  font-family:"Barlow Condensed",sans-serif;font-weight:700;
+  font-size:clamp(4.5rem,7vw,6.5rem);line-height:1;color:var(--line);
+  text-shadow:0 0 24px var(--zone-glow,rgba(242,183,5,0.4));
+  transition:color .2s;
+}
+.hud-rpm-val small{font-size:1.4rem;color:#94a3b8;margin-left:6px;font-weight:500}
+.hud-feel-text{font-size:.92rem;color:#94a3b8;min-height:1.4em;margin-top:4px}
+.hud-rpm-ctrls{display:flex;gap:12px;margin-top:auto;width:100%}
+.hud-step-btn{
+  flex:1;padding:12px 0;border-radius:14px;border:1px solid #334155;
+  background:#1e293b;color:#f8fafc;font-family:"Barlow Condensed",sans-serif;
+  font-size:1.6rem;font-weight:700;cursor:pointer;
+}
+.hud-step-btn:hover{background:#334155;border-color:var(--line)}
+.hud-timer-big{
+  font-family:"Barlow Condensed",sans-serif;font-weight:700;
+  font-size:clamp(4.5rem,9vw,8rem);line-height:1;margin:auto 0;
+  color:#f8fafc;letter-spacing:1px;
+}
+.hud-progress-wrap{width:100%;background:#1e293b;height:12px;border-radius:6px;overflow:hidden;margin:12px 0}
+.hud-progress-bar{height:100%;width:100%}
+.hud-progress-bar i{display:block;height:100%;width:0;background:var(--line);transition:width .2s,background .2s}
+.hud-next-banner{
+  font-size:1.05rem;font-weight:700;color:var(--line);min-height:1.8em;
+  background:rgba(255,255,255,0.03);padding:8px 16px;border-radius:10px;
+  width:100%;margin-bottom:16px;display:flex;align-items:center;justify-content:center;
+}
+.hud-main-btn{
+  width:100%;padding:18px;border:0;border-radius:30px;
+  background:var(--line);color:#090d14;font:inherit;font-size:1.25rem;
+  font-weight:700;cursor:pointer;box-shadow:0 6px 20px var(--zone-glow,rgba(242,183,5,0.3));
+  transition:transform .1s,background .2s;
+}
+.hud-main-btn:active{transform:scale(0.98)}
+.hud-speed-big{
+  font-family:"Barlow Condensed",sans-serif;font-weight:700;
+  font-size:clamp(4.2rem,6.5vw,5.8rem);line-height:1;color:#f8fafc;margin:8px 0;
+}
+.hud-speed-big small{font-size:1.4rem;color:#94a3b8;margin-left:6px;font-weight:500}
+.hud-gear-box{
+  width:100%;background:rgba(255,255,255,0.04);border-radius:14px;
+  padding:12px 14px;margin:10px 0;border:1px solid #1e293b;
+}
+.hud-gear-tag{font-size:1.15rem;font-weight:700;color:var(--line);margin-bottom:10px}
+.hud-gear-ctrls{display:flex;gap:10px;align-items:center}
+.hud-gear-btn{
+  flex:1;padding:10px 8px;border-radius:10px;border:1.5px solid var(--line);
+  background:#1e293b;color:#f8fafc;font:inherit;font-size:.9rem;font-weight:700;cursor:pointer;
+}
+.hud-shift-col{display:flex;gap:6px;flex:1}
+.hud-shift-btn{
+  flex:1;padding:10px 4px;border-radius:10px;border:1px solid #334155;
+  background:#1e293b;color:#f8fafc;font:inherit;font-size:.85rem;font-weight:700;cursor:pointer;
+}
+.hud-shift-btn:hover,.hud-gear-btn:hover{background:#334155}
+.hud-log-box{
+  display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;
+  margin-top:auto;padding-top:12px;border-top:1px dashed #334155;
+}
+.hud-log-item{font-size:.82rem;color:#94a3b8}
+.hud-log-val{display:block;font-family:"Barlow Condensed",sans-serif;font-size:1.6rem;font-weight:700;color:#f8fafc}
+</style>
+</head>
+<body>
+<div class="app">
+<section class="col-main">
+  <header>
+    <a href="../" title="Language Hub" style="text-decoration:none;color:inherit">
+      <h1>Cadence 90 Timer</h1>
+    </a>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <div style="display:inline-flex;align-items:center;border:1.5px solid var(--rubber);border-radius:14px;padding:2px 8px;font-size:0.75rem;font-weight:700;gap:6px;background:var(--panel)">
+        <a href="../ja/" style="color:var(--muted);text-decoration:none" title="Japanese">JA</a>
+        <span style="color:var(--muted)">|</span>
+        <span style="color:var(--line)" title="English">EN</span>
+      </div>
+      <button class="hud-trigger-btn" id="openHudBtn" title="Fullscreen HUD Mode for Monitor & Tablet">⛶ Fullscreen HUD</button>
+      <div class="modes" role="group" aria-label="Workout Environment">
+        <button data-mode="road">Road Ride</button>
+        <button data-mode="indoor">Indoor Trainer</button>
+      </div>
+    </div>
+  </header>
+  <p class="lead" id="lead"></p>
+
+  <div class="visual">
+    <svg viewBox="-110 -110 220 220" aria-hidden="true">
+      <circle r="100" fill="none" stroke="var(--rubber)" stroke-width="1" opacity=".3"/>
+      <circle id="ring" r="52" fill="none" stroke="var(--rubber)" stroke-width="7" stroke-dasharray="4 4" style="transition:stroke .12s"/>
+      <g id="arm">
+        <rect x="-7" y="-92" width="14" height="92" rx="7" fill="var(--ink)"/>
+        <rect x="-7" y="0" width="14" height="92" rx="7" fill="var(--rubber)"/>
+        <g id="pR" transform="translate(0,-92)"><rect x="-24" y="-7" width="48" height="14" rx="4" fill="var(--ink)" style="transition:fill .12s"/></g>
+        <g id="pL" transform="translate(0,92)"><rect x="-24" y="-7" width="48" height="14" rx="4" fill="var(--rubber)" style="transition:fill .12s"/></g>
+      </g>
+      <circle r="12" fill="var(--line)"/>
+    </svg>
+    <div class="rpm"><span id="val">90</span><small>RPM</small></div>
+    <div class="feel" id="feel"></div>
+    <div class="speed" id="speedLine" hidden></div>
+  </div>
+
+  <div class="road"></div>
+
+  <div class="row">
+    <button class="step" id="minus" aria-label="Decrease by 5">−</button>
+    <input type="range" id="slider" min="40" max="140" step="1" value="90" aria-label="Cadence">
+    <button class="step" id="plus" aria-label="Increase by 5">＋</button>
+  </div>
+
+  <div class="presets" id="presets"></div>
+
+  <fieldset>
+    <legend>Sound Rhythm</legend>
+    <div class="mode">
+      <label><input type="radio" name="mode" value="2" checked>Both feet (Each pedal stroke)</label>
+      <label><input type="radio" name="mode" value="1">Lead foot (1 per full revolution)</label>
+    </div>
+  </fieldset>
+
+  <button class="go" id="go">START</button>
+  <p class="hint" id="hint"></p>
+  <audio id="bgAudio" loop playsinline preload="auto" src="../silence.wav" style="display:none"></audio>
+</section>
+
+<section class="col-indoor" aria-label="Indoor Trainer Settings">
+  <div class="boxes">
+
+    <div class="box wide">
+      <h2>Interval Program</h2>
+      <div class="simrow" id="simA"><span class="tag">A</span>
+        <label>Time<input class="in" id="aT" inputmode="numeric"></label>
+        <label>RPM<input class="in" type="number" id="aR" min="40" max="140"></label></div>
+      <div class="simrow" id="simB"><span class="tag">B</span>
+        <label>Time<input class="in" id="bT" inputmode="numeric"></label>
+        <label>RPM<input class="in" type="number" id="bR" min="40" max="140"></label></div>
+      <div class="ivfoot">
+        <label>×<input class="in" type="number" id="simRep" min="1" max="50"> sets</label>
+        <span class="total" id="simTotal"></span>
+      </div>
+      <button class="startbig" id="simRun">START INTERVAL</button>
+
+      <div class="glabel">Workout Presets</div>
+      <div class="chips mini" id="progChips"></div>
+
+      <details class="expert" id="customBox">
+        <summary>Custom Workout Builder</summary>
+        <div class="chips" id="mineChips"></div>
+        <div class="ivhead"><span></span><span>Time</span><span>RPM</span><span>Cue / Note</span><span></span></div>
+        <div id="ivRows"></div>
+        <div class="ivfoot">
+          <button class="small-btn" id="addRow">＋ Add Row</button>
+          <label>Repeat<input class="in" type="number" id="rep" min="1" max="50" value="1"> sets</label>
+          <span class="total" id="total"></span>
+        </div>
+        <div class="ivfoot">
+          <input class="in" id="progName" placeholder="Workout Name" style="width:auto;flex:1;min-width:140px">
+          <button class="small-btn" id="saveProg">Save</button>
+        </div>
+        <p id="saveMsg"></p>
+        <button class="startbig" id="runBtn">START WORKOUT</button>
+      </details>
+
+      <div class="ivfoot">
+        <label class="check" style="margin:0"><input type="checkbox" id="voice">Voice Cue</label>
+        <label class="check" style="margin:0"><input type="checkbox" id="countdown" checked>3s Countdown Beep</label>
+      </div>
+      <div class="runbar"><i id="runBar"></i></div>
+      <div class="caster" id="caster"></div>
+      <div class="nowline" id="nowLine"></div>
+    </div>
+
+    <div class="box">
+      <h2>Audio Tone</h2>
+      <div class="chips" id="soundChips"></div>
+      <p id="dayNote"></p>
+    </div>
+
+    <div class="box">
+      <h2>Speed & Gearing</h2>
+      <div class="glabel">Front Chainring</div>
+      <div class="chips gearpick" id="ringSide">
+        <button data-side="outer"><svg viewBox="-20 -20 40 40" aria-hidden="true"><circle r="17" fill="none" stroke="currentColor" stroke-width="3" stroke-dasharray="3 2"/><circle r="3" fill="currentColor"/></svg><span><b id="outerLabel">50T</b></span></button>
+        <button data-side="inner"><svg viewBox="-20 -20 40 40" aria-hidden="true"><circle r="10" fill="none" stroke="currentColor" stroke-width="3" stroke-dasharray="3 2"/><circle r="3" fill="currentColor"/></svg><span><b id="innerLabel">34T</b></span></button>
+      </div>
+      <div class="glabel">Rear Sprocket <span class="gsub" id="cogLabel"></span></div>
+      <div class="row shift">
+        <span class="end" id="endL"></span>
+        <div class="slidewrap">
+          <input type="range" id="cogPos" min="1" max="12" step="1" value="7" aria-label="Rear Cog Position">
+          <div class="ticks" id="ticks" aria-hidden="true"></div>
+        </div>
+        <span class="end" id="endR"></span>
+      </div>
+      <div class="big" id="kmh">—</div>
+      <p id="gearDetail"></p>
+      <details class="expert">
+        <summary>Drivetrain Spec Setup</summary>
+        <div class="glabel">Crank Chainrings</div>
+        <div class="chips" id="crankChips"></div>
+        <div class="gear" id="crankCustom" hidden>
+          <label>Outer Ring (Teeth)<input class="in" type="number" id="outerT" value="50" min="30" max="60"></label>
+          <label>Inner Ring (Teeth)<input class="in" type="number" id="innerT" value="34" min="20" max="50"></label>
+        </div>
+        <div class="glabel">Cassette Sprocket</div>
+        <div class="chips" id="cassetteChips"></div>
+        <label class="tlabel" id="cassetteCustom" hidden>Comma-separated teeth from smallest to largest
+          <input class="in" type="text" id="cassetteText" value="11,12,13,14,15,17,19,21,24,27,30,34" inputmode="numeric">
+        </label>
+        <div class="glabel">Tire Size</div>
+        <div class="chips" id="tireChips"></div>
+        <label class="tlabel" id="tireCustom" hidden>Tire Circumference (mm)
+          <input class="in" type="number" id="circ" value="2105" min="1000" max="2400">
+        </label>
+      </details>
+    </div>
+
+    <div class="box">
+      <h2>Today's Workout</h2>
+      <div class="big" id="todayCount">0</div>
+      <p id="todayNote"></p>
+      <button class="small-btn" id="resetLog" style="margin-top:10px">Reset Today's Log</button>
+    </div>
+
+  </div>
+</section>
+</div>
+
+<!-- Fullscreen HUD Overlay -->
+<div id="hudOverlay" class="hud-overlay" hidden>
+  <div class="hud-header">
+    <div class="hud-title-wrap">
+      <span class="hud-badge" id="hudZoneBadge">CRUISING 90</span>
+      <span class="hud-subinfo" id="hudModeName">Indoor Trainer</span>
+    </div>
+    <div class="hud-keys-help">
+      <span><kbd>Space</kbd> Start/Stop</span>
+      <span><kbd>←</kbd><kbd>→</kbd> ±5 RPM</span>
+      <span><kbd>↑</kbd><kbd>↓</kbd> Shift Gear</span>
+      <span><kbd>F</kbd> Fullscreen</span>
+      <span><kbd>Esc</kbd> Exit</span>
+    </div>
+    <button class="hud-close-btn" id="closeHudBtn" aria-label="Exit Fullscreen">✕ Close HUD (Esc)</button>
+  </div>
+
+  <div class="hud-grid">
+    <!-- Left: Cadence Meter -->
+    <div class="hud-card hud-cadence-card">
+      <div class="hud-card-label">CADENCE</div>
+      <div class="hud-cadence-visual">
+        <svg viewBox="-110 -110 220 220" aria-hidden="true">
+          <circle r="100" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="2"/>
+          <circle id="hudRing" r="54" fill="none" stroke="var(--line)" stroke-width="8" stroke-dasharray="4 4" style="transition:stroke .12s"/>
+          <g id="hudArm">
+            <rect x="-8" y="-92" width="16" height="92" rx="8" fill="#ffffff"/>
+            <rect x="-8" y="0" width="16" height="92" rx="8" fill="#555555"/>
+            <g id="hudPR" transform="translate(0,-92)"><rect x="-26" y="-8" width="52" height="16" rx="4" fill="var(--line)" style="transition:fill .12s"/></g>
+            <g id="hudPL" transform="translate(0,92)"><rect x="-26" y="-8" width="52" height="16" rx="4" fill="#555555" style="transition:fill .12s"/></g>
+          </g>
+          <circle r="14" fill="var(--line)"/>
+        </svg>
+      </div>
+      <div class="hud-rpm-val"><span id="hudVal">90</span><small>RPM</small></div>
+      <div class="hud-feel-text" id="hudFeel"></div>
+      <div class="hud-rpm-ctrls">
+        <button class="hud-step-btn" id="hudMinus" aria-label="Decrease by 5">−</button>
+        <button class="hud-step-btn" id="hudPlus" aria-label="Increase by 5">＋</button>
+      </div>
+    </div>
+
+    <!-- Center: Interval & Timer -->
+    <div class="hud-card hud-interval-card">
+      <div class="hud-card-label" id="hudIvTitle">INTERVAL & TIMER</div>
+      <div class="hud-timer-big" id="hudTimer">00:00</div>
+      <div class="hud-progress-wrap">
+        <div class="hud-progress-bar"><i id="hudBar"></i></div>
+      </div>
+      <div class="hud-next-banner" id="hudNext">NEXT: —</div>
+      <button class="hud-main-btn" id="hudPlayBtn">START</button>
+    </div>
+
+    <!-- Right: Speed, Gearing & Log -->
+    <div class="hud-card hud-stats-card">
+      <div class="hud-card-label">SPEED & GEAR</div>
+      <div class="hud-speed-big"><span id="hudKmh">0.0</span><small>km/h</small></div>
+      <div class="hud-gear-box">
+        <div class="hud-gear-tag" id="hudGearRatio">50T × 17T</div>
+        <div class="hud-gear-ctrls">
+          <button class="hud-gear-btn" id="hudShiftFront">Front: <span id="hudFrontLabel">50T</span></button>
+          <div class="hud-shift-col">
+            <button class="hud-shift-btn" id="hudShiftUp" title="Shift Up (Harder)">▲ Harder</button>
+            <button class="hud-shift-btn" id="hudShiftDown" title="Shift Down (Easier)">▼ Easier</button>
+          </div>
+        </div>
+      </div>
+      <div class="hud-log-box">
+        <div class="hud-log-item"><span class="hud-log-val" id="hudTotalRevs">0</span> Revolutions</div>
+        <div class="hud-log-item"><span class="hud-log-val" id="hudTotalKm">0.0</span> km Distance</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const $=id=>document.getElementById(id);
+  const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+  const slider=$('slider'),go=$('go');
+
+  let value=90,bpr=2,indoor=false,soundKey='std';
+  let ctx=null,master=null,noiseBuf=null,playing=false,t0=0,ph0=0,nextPh=0,timer=null,raf=null,lastPh=0,noteIdx=0;
+  const queue=[];
+  const effSound=()=>indoor?soundKey:'std';
+  const rps=()=>value/60;
+
+  const PRESETS=[[80,'Recovery'],[90,'Standard (Ideal)'],[100,'Fast Pace'],[110,'High Spin']];
+  const FEELS=[
+    [69,'Heavy climbing / Steep hill grind'],
+    [79,'Climbing / High torque'],
+    [89,'Aerobic endurance pace'],
+    [94,'Ideal road cadence (90-93 RPM)'],
+    [104,'Fast pace / Headwind speedup'],
+    [114,'High cadence spin drill'],
+    [999,'Sprint power cadence']
+  ];
+
+  // ---------- Audio Synthesis ----------
+  const SOUNDS={std:'Standard',daily:'Daily Tone',mokugyo:'Wood Block',duck:'Duck',shishi:'Bamboo',frog:'Frog',manuke:'Boing',drum:'Acoustic Drum',scale:'Musical Scale'};
+  const DAY=['shishi','mokugyo','duck','frog','manuke','drum','scale'];
+  const DAYNAME=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  function initAudio(){
+    try{if(navigator.audioSession)navigator.audioSession.type='playback';}catch(e){}
+    ctx=new (window.AudioContext||window.webkitAudioContext)();
+    master=ctx.createGain();master.gain.value=.8;master.connect(ctx.destination);
+    noiseBuf=ctx.createBuffer(1,ctx.sampleRate*.5,ctx.sampleRate);
+    const d=noiseBuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+  }
+  function env(g,t,peak,dec){g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(peak,t+.004);g.gain.exponentialRampToValueAtTime(.0001,t+dec);}
+  function tone(type,f0,f1,t,dur,peak,dest){
+    const o=ctx.createOscillator(),g=ctx.createGain();o.type=type;o.frequency.setValueAtTime(f0,t);
+    if(f1)o.frequency.exponentialRampToValueAtTime(f1,t+dur*.8);
+    env(g,t,peak,dur);o.connect(g).connect(dest||master);o.start(t);o.stop(t+dur+.03);
+  }
+  function noise(t,dur,peak,ftype,freq){
+    const s=ctx.createBufferSource();s.buffer=noiseBuf;const f=ctx.createBiquadFilter();f.type=ftype;f.frequency.value=freq;
+    const g=ctx.createGain();env(g,t,peak,dur);s.connect(f).connect(g).connect(master);s.start(t);s.stop(t+dur+.03);
+  }
+  function filt(type,freq){const f=ctx.createBiquadFilter();f.type=type;f.frequency.value=freq;f.connect(master);return f;}
+  const MELODY=[0,2,4,7,9,7,4,2,0,4,7,12,9,7,5,4];
+  function play(t,right){
+    let k=effSound();if(k==='daily')k=DAY[new Date().getDay()];
+    switch(k){
+      case 'mokugyo':tone('sine',right?640:540,right?470:400,t,.16,.9);noise(t,.02,.25,'bandpass',1800);break;
+      case 'duck':tone('sawtooth',right?1000:850,right?640:540,t,.14,.45,filt('bandpass',1300));break;
+      case 'shishi':{const f=right?1200:980;tone('sine',f,0,t,.5,.6);tone('sine',f*1.51,0,t,.25,.22);break;}
+      case 'frog':{const lp=filt('lowpass',900);for(let i=0;i<3;i++)tone('square',right?190:160,right?150:125,t+i*.035,.03,.35,lp);break;}
+      case 'manuke':right?tone('sine',300,900,t,.1,.8):tone('sine',900,280,t,.13,.8);break;
+      case 'drum':if(right){tone('sine',160,40,t,.2,1);}else{noise(t,.13,.6,'highpass',1500);tone('triangle',220,180,t,.08,.3);}break;
+      case 'scale':{const f=523.25*Math.pow(2,MELODY[noteIdx++%MELODY.length]/12);tone('sine',f,0,t,.28,.6);tone('triangle',f*2,0,t,.1,.1);break;}
+      default:tone('triangle',bpr===1?1000:(right?1320:760),0,t,.07,.9);
+    }
+  }
+  function beep(high){if(ctx)tone('sine',high?1760:1320,0,ctx.currentTime+.01,.12,.5);}
+
+  // ---------- Timing & Phase Engine ----------
+  const phaseAt=t=>ph0+(t-t0)*rps();
+  const timeAt=p=>t0+(p-ph0)/rps();
+  function rebase(){if(playing){const n=ctx.currentTime;ph0=phaseAt(n);t0=n;}}
+  function resync(){if(playing){const p=phaseAt(ctx.currentTime);nextPh=Math.ceil(p*bpr+1e-6)/bpr;}}
+  function schedule(){
+    const ahead=ctx.currentTime+.12;
+    while(timeAt(nextPh)<ahead){
+      const idx=Math.round(nextPh*bpr),right=bpr===1||idx%2===0,t=timeAt(nextPh);
+      play(t,right);queue.push({t,right});nextPh=(idx+1)/bpr;
+    }
+  }
+
+  // ---------- Drivetrain & Gearing ----------
+  const CRANKS={c50:[50,34,'50/34 Compact'],c52:[52,36,'52/36 Semi-Compact'],c53:[53,39,'53/39 Standard'],c48:[48,35,'48/35 SRAM'],custom:[0,0,'Custom']};
+  const CASSETTES={
+    s1130:['11-30T',[11,12,13,14,15,16,17,19,21,24,27,30]],
+    s1134:['11-34T',[11,12,13,14,15,17,19,21,24,27,30,34]],
+    s1136:['11-36T',[11,12,13,14,15,17,19,21,24,27,31,36]],
+    r1033:['10-33T SRAM',[10,11,12,13,14,15,17,19,21,24,28,33]],
+    custom:['Custom',null]};
+  const TIRES={t25:['700x25C',2105],t28:['700x28C',2136],t32:['700x32C',2155],custom:['Custom mm',0]};
+  let side='outer',crankKey='c50',cassetteKey='s1134',tireKey='t25';
+  function cogs(){
+    if(cassetteKey!=='custom')return CASSETTES[cassetteKey][1];
+    const a=$('cassetteText').value.split(/[^0-9]+/).map(Number).filter(n=>n>=8&&n<=60).sort((x,y)=>x-y);
+    return a.length?a:[17];
+  }
+  function ring(){return crankKey!=='custom'?CRANKS[crankKey][side==='outer'?0:1]:(+$(side==='outer'?'outerT':'innerT').value||0);}
+  function cog(){const c=cogs(),pos=Math.min(+$('cogPos').value,c.length);return c[c.length-pos];}
+  function circ(){return tireKey==='custom'?(+$('circ').value||0):TIRES[tireKey][1];}
+  function ratio(){const f=ring(),r=cog();return f>0&&r>0?f/r:0;}
+  function speed(){return value*ratio()*circ()*60/1e6;}
+  function renderGear(){
+    const c=cogs(),pos=$('cogPos');pos.max=c.length;if(+pos.value>c.length)pos.value=c.length;
+    const oT=crankKey!=='custom'?CRANKS[crankKey][0]:(+$('outerT').value||50);
+    const iT=crankKey!=='custom'?CRANKS[crankKey][1]:(+$('innerT').value||34);
+    if($('outerLabel'))$('outerLabel').textContent=oT+'T';
+    if($('innerLabel'))$('innerLabel').textContent=iT+'T';
+    $('cogLabel').textContent=`${cog()}T（${pos.value}/${c.length}）`;
+    $('endL').textContent=c[c.length-1]+'T';$('endR').textContent=c[0]+'T';
+    const mx=c[c.length-1];
+    $('ticks').innerHTML=c.slice().reverse().map((t,i)=>`<i style="height:${Math.max(4,Math.round(t/mx*30))}px"${i+1===+pos.value?' class="on"':''}></i>`).join('');
+    const r=ratio();
+    $('gearDetail').textContent=r?`${ring()}T × ${cog()}T | Gear Ratio: ${r.toFixed(2)} (${(r*circ()/1000).toFixed(1)}m per rev)`:'Enter teeth numbers to calculate.';
+    [['#ringSide','side',side],['#crankChips','k',crankKey],['#cassetteChips','k',cassetteKey],['#tireChips','k',tireKey]].forEach(([sel,key,cur])=>
+      document.querySelectorAll(sel+' button').forEach(b=>b.setAttribute('aria-pressed',b.dataset[key]===cur)));
+    $('crankCustom').hidden=crankKey!=='custom';$('cassetteCustom').hidden=cassetteKey!=='custom';$('tireCustom').hidden=tireKey!=='custom';
+  }
+  function saveGear(){store.set('cad-gear',JSON.stringify({side,crankKey,cassetteKey,tireKey,pos:$('cogPos').value,o:$('outerT').value,i:$('innerT').value,cs:$('cassetteText').value,circ:$('circ').value}));}
+  try{const g=JSON.parse(store.get('cad-gear')||'null');if(g){side=g.side||side;crankKey=g.crankKey||crankKey;cassetteKey=g.cassetteKey||cassetteKey;tireKey=g.tireKey||tireKey;
+    if(g.pos)$('cogPos').value=g.pos;if(g.o)$('outerT').value=g.o;if(g.i)$('innerT').value=g.i;if(g.cs)$('cassetteText').value=g.cs;if(g.circ)$('circ').value=g.circ;}}catch(e){}
+  $('crankChips').innerHTML=Object.keys(CRANKS).map(k=>`<button data-k="${k}">${CRANKS[k][2]}</button>`).join('');
+  $('cassetteChips').innerHTML=Object.keys(CASSETTES).map(k=>`<button data-k="${k}">${CASSETTES[k][0]}</button>`).join('');
+  $('tireChips').innerHTML=Object.keys(TIRES).map(k=>`<button data-k="${k}">${TIRES[k][0]}</button>`).join('');
+  const gearChange=()=>{saveGear();render();};
+  $('ringSide').onclick=e=>{const b=e.target.closest('button');if(b){side=b.dataset.side;gearChange();}};
+  $('crankChips').onclick=e=>{const b=e.target.closest('button');if(b){crankKey=b.dataset.k;gearChange();}};
+  $('cassetteChips').onclick=e=>{const b=e.target.closest('button');if(b){cassetteKey=b.dataset.k;gearChange();}};
+  $('tireChips').onclick=e=>{const b=e.target.closest('button');if(b){tireKey=b.dataset.k;gearChange();}};
+  ['cogPos','outerT','innerT','cassetteText','circ'].forEach(id=>$(id).addEventListener('input',gearChange));
+  function shift(d){const p=$('cogPos'),n=Math.max(1,Math.min(+p.max,+p.value+d));if(n!==+p.value){p.value=n;gearChange();}}
+
+  // ---------- Zone Colors ----------
+  const ZONES=[
+    {max:75,name:'blue',color:'#38bdf8',glow:'rgba(56,189,248,0.35)',title:'Warm-up / Recovery'},
+    {max:95,name:'green',color:'#22c55e',glow:'rgba(34,197,94,0.35)',title:'Cruising (Ideal 90)'},
+    {max:110,name:'yellow',color:'#f59e0b',glow:'rgba(245,158,11,0.35)',title:'High Cadence Tempo'},
+    {max:999,name:'red',color:'#ef4444',glow:'rgba(239,68,68,0.45)',title:'Sprint & Power'}
+  ];
+  function getZone(rpm){return ZONES.find(z=>rpm<=z.max)||ZONES[ZONES.length-1];}
+
+  // ---------- Render UI ----------
+  function render(){
+    value=Math.max(40,Math.min(140,value));
+    const z=getZone(value);
+    document.documentElement.style.setProperty('--line',z.color);
+    document.documentElement.style.setProperty('--zone-glow',z.glow);
+
+    slider.value=value;$('val').textContent=value;
+    $('feel').textContent=FEELS.find(f=>value<=f[0])[1];
+    $('presets').innerHTML=PRESETS.map(p=>`<button data-v="${p[0]}" aria-pressed="${p[0]===value}"><b>${p[0]}</b>${p[1]}</button>`).join('');
+    document.querySelectorAll('.modes button').forEach(b=>b.setAttribute('aria-pressed',(b.dataset.mode==='indoor')===indoor));
+    $('lead').textContent='';
+    $('hint').textContent='';
+    document.querySelectorAll('#soundChips button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.s===soundKey));
+    $('dayNote').textContent=soundKey==='daily'?`Today is ${DAYNAME[new Date().getDay()]}, playing '${SOUNDS[DAY[new Date().getDay()]]}'`:'';
+    renderGear();
+    const kmh=speed();
+    $('kmh').textContent=kmh?`${kmh.toFixed(1)} km/h`:'—';
+    $('speedLine').hidden=!(indoor&&kmh);$('speedLine').textContent=kmh?`≈ ${kmh.toFixed(1)} km/h`:'';
+    renderLog();
+    renderHud();
+  }
+  function setValue(v){rebase();value=Math.round(v);render();if(playing)updateMediaSession();}
+
+  function flash(right){
+    const el=(right?$('pR'):$('pL')).querySelector('rect');
+    el.style.fill='var(--line)';$('ring').style.stroke='var(--line)';
+    if(hudOpen){
+      const hel=(right?$('hudPR'):$('hudPL')).querySelector('rect');
+      hel.style.fill='var(--line)';$('hudRing').style.stroke='var(--line)';
+    }
+    setTimeout(()=>{
+      el.style.fill=right?'var(--ink)':'var(--rubber)';$('ring').style.stroke='var(--rubber)';
+      if(hudOpen){
+        const hel=(right?$('hudPR'):$('hudPL')).querySelector('rect');
+        hel.style.fill=right?'#ffffff':'#555555';$('hudRing').style.stroke='var(--line)';
+      }
+    },110);
+  }
+  function draw(){
+    const now=ctx.currentTime,p=phaseAt(now);
+    if(p>lastPh){addLog(p-lastPh);lastPh=p;}
+    const deg=((p+.25)%1)*360;
+    $('arm').setAttribute('transform',`rotate(${deg})`);
+    $('pR').setAttribute('transform',`translate(0,-92) rotate(${-deg})`);
+    $('pL').setAttribute('transform',`translate(0,92) rotate(${-deg})`);
+    if(hudOpen){
+      $('hudArm').setAttribute('transform',`rotate(${deg})`);
+      $('hudPR').setAttribute('transform',`translate(0,-92) rotate(${-deg})`);
+      $('hudPL').setAttribute('transform',`translate(0,92) rotate(${-deg})`);
+    }
+    while(queue.length&&queue[0].t<=now)flash(queue.shift().right);
+    raf=requestAnimationFrame(draw);
+  }
+
+  // ---------- WakeLock API ----------
+  let wl=null;
+  async function lockScreen(){try{if('wakeLock' in navigator&&!wl){wl=await navigator.wakeLock.request('screen');wl.addEventListener('release',()=>{wl=null;});}}catch(e){wl=null;}}
+  function unlockScreen(){try{if(wl)wl.release();}catch(e){}wl=null;}
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&playing)lockScreen();});
+
+  // ---------- Lockscreen Remote (MediaSession API) ----------
+  const silentAudio=$('bgAudio');
+
+  function updateMediaSession(){
+    if(!('mediaSession' in navigator))return;
+    const icon192=new URL('../icons/icon-192.png',window.location.href).href;
+    const icon512=new URL('../icons/icon-512.png',window.location.href).href;
+    try{
+      navigator.mediaSession.metadata=new MediaMetadata({
+        title:`🚴‍♂️ ${value} RPM`,
+        artist:'◀ -5 RPM | +5 RPM ▶',
+        album:indoor?'Indoor Trainer Mode':'Road Ride Mode',
+        artwork:[
+          {src:icon192,sizes:'192x192',type:'image/png'},
+          {src:icon512,sizes:'512x512',type:'image/png'}
+        ]
+      });
+      navigator.mediaSession.playbackState=playing?'playing':'paused';
+    }catch(e){}
+  }
+
+  function initMediaSession(){
+    if(!('mediaSession' in navigator))return;
+    const handlers={
+      play:()=>{if(!playing)start();},
+      pause:()=>{if(playing)stop();},
+      previoustrack:()=>{setValue(value-5);},
+      nexttrack:()=>{setValue(value+5);},
+      seekbackward:()=>{setValue(value-5);},
+      seekforward:()=>{setValue(value+5);}
+    };
+    for(const[action,handler] of Object.entries(handlers)){
+      try{navigator.mediaSession.setActionHandler(action,handler);}catch(e){}
+    }
+  }
+
+  function start(){
+    if(!ctx)initAudio();ctx.resume();
+    t0=ctx.currentTime+.05;ph0=0;nextPh=0;lastPh=0;queue.length=0;noteIdx=0;
+    playing=true;timer=setInterval(schedule,25);schedule();draw();go.textContent='STOP';lockScreen();
+    if(silentAudio){
+      silentAudio.currentTime=0;
+      silentAudio.play().then(()=>{updateMediaSession();}).catch(()=>{updateMediaSession();});
+    }else{
+      updateMediaSession();
+    }
+    if(hudOpen)renderHud();
+  }
+  function stop(){
+    playing=false;clearInterval(timer);cancelAnimationFrame(raf);queue.length=0;go.textContent='START';
+    unlockScreen();if(silentAudio)silentAudio.pause();updateMediaSession();if(run)endRun('');saveLog();
+    if(hudOpen)renderHud();
+  }
+
+  // ---------- Interval Engine ----------
+  function parseT(x){x=String(x).trim();if(x.includes(':')){const[m,y]=x.split(':');return (+m||0)*60+(+y||0);}return +x||0;}
+  function fmt(sec){sec=Math.max(0,Math.round(sec));return `${Math.floor(sec/60)}:${String(sec%60).padStart(2,'0')}`;}
+  const esc=x=>String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const clampR=v=>Math.max(40,Math.min(140,+v||90));
+  const loadJSON=(k,d)=>{try{const v=JSON.parse(store.get(k)||'null');return v==null?d:v;}catch(e){return d;}};
+
+  // Simple A/B Intervals
+  let sim=loadJSON('cad-simple',{a:{t:'1:00',rpm:90},b:{t:'1:00',rpm:110},rep:5});
+  function renderSim(){
+    $('aT').value=sim.a.t;$('aR').value=sim.a.rpm;$('bT').value=sim.b.t;$('bR').value=sim.b.rpm;$('simRep').value=sim.rep;simTotal();
+  }
+  function simTotal(){$('simTotal').textContent=`Total ${fmt((parseT(sim.a.t)+parseT(sim.b.t))*sim.rep)}`;}
+  function simInput(){
+    sim={a:{t:$('aT').value,rpm:clampR($('aR').value)},b:{t:$('bT').value,rpm:clampR($('bR').value)},rep:Math.max(1,Math.min(50,+$('simRep').value||1))};
+    store.set('cad-simple',JSON.stringify(sim));simTotal();
+  }
+  ['aT','aR','bT','bR','simRep'].forEach(id=>$(id).addEventListener('input',simInput));
+
+  // Custom Interval Programs
+  const PROGS={
+    touge:{name:'Mountain Climb (8 min)',rep:1,segs:[['2:00',90,'Start. Conserve energy in the peloton'],['2:00',75,'Climb begins. Shift into easy gear'],['1:30',65,'10% grade. Hold strong cadence'],['0:30',110,'Attack! Spin up the climb'],['1:00',85,'Regulate breath and maintain pace'],['0:20',120,'Sprint to the summit!'],['0:40',90,'Summit cleared! Recover on descent']]},
+    spin:{name:'High Spin Drill',rep:6,segs:[['0:30',90,'Standard base cadence'],['0:30',115,'High spin! Keep hips stable, no bouncing']]},
+    pyramid:{name:'Pyramid Ladder',rep:1,segs:[['1:00',80,'Warm up pace'],['1:00',90,'Standard 90'],['1:00',100,'Tempo pace'],['1:00',110,'Peak spin!'],['1:00',100,'Recover to tempo'],['1:00',90,'Hold 90'],['1:00',80,'Cool down']]},
+    oneleg:{name:'Single-Leg Drill',rep:4,segs:[['0:30',70,'Right leg isolation pedal'],['0:30',70,'Left leg isolation pedal'],['1:00',90,'Both legs smooth spin']]}
+  };
+  let prog=loadJSON('cad-prog',null);
+  let mine=loadJSON('cad-mine',[]);
+  function saveDraft(){store.set('cad-prog',JSON.stringify(prog));}
+  function setDraft(p,name){prog={rep:p.rep,segs:p.segs.map(x=>({t:x.t,rpm:x.rpm,msg:x.msg||''}))};$('progName').value=name||'';saveDraft();renderRows();$('customBox').open=true;}
+  function renderRows(){
+    $('ivRows').innerHTML=prog.segs.map((x,i)=>`<div class="ivrow" data-i="${i}"><span class="no">${i+1}</span>
+      <input class="in" data-f="t" value="${esc(x.t)}" inputmode="numeric" aria-label="Section ${i+1} duration">
+      <input class="in" data-f="rpm" type="number" min="40" max="140" value="${x.rpm}" aria-label="Section ${i+1} cadence">
+      <input class="in" data-f="msg" value="${esc(x.msg)}" aria-label="Section ${i+1} voice note">
+      <button class="del" data-del="${i}" aria-label="Delete section ${i+1}">×</button></div>`).join('');
+    $('rep').value=prog.rep;renderTotal();
+  }
+  function renderTotal(){$('total').textContent=`Total ${fmt(prog.segs.reduce((a,x)=>a+parseT(x.t),0)*prog.rep)}`;}
+  function renderMine(){
+    $('mineChips').innerHTML=mine.length?mine.map((m,i)=>`<span class="mine"><button data-load="${i}">${esc(m.name)}</button><button data-rm="${i}" aria-label="Delete ${esc(m.name)}">×</button></span>`).join('')
+      :'';
+  }
+  $('ivRows').addEventListener('input',e=>{const r=e.target.closest('.ivrow');if(!r)return;const x=prog.segs[+r.dataset.i],f=e.target.dataset.f;
+    x[f]=f==='rpm'?clampR(e.target.value):e.target.value;saveDraft();renderTotal();});
+  $('ivRows').addEventListener('click',e=>{const b=e.target.closest('[data-del]');if(!b||prog.segs.length<=1)return;prog.segs.splice(+b.dataset.del,1);saveDraft();renderRows();});
+  $('addRow').onclick=()=>{const l=prog.segs[prog.segs.length-1];prog.segs.push({t:'1:00',rpm:l?l.rpm:90,msg:''});saveDraft();renderRows();};
+  $('rep').oninput=e=>{prog.rep=Math.max(1,Math.min(50,+e.target.value||1));saveDraft();renderTotal();};
+  $('progChips').innerHTML=Object.keys(PROGS).map(k=>`<button data-k="${k}">${PROGS[k].name}</button>`).join('');
+  $('progChips').onclick=e=>{const b=e.target.closest('button');if(!b||run)return;const p=PROGS[b.dataset.k];
+    setDraft({rep:p.rep,segs:p.segs.map(x=>({t:x[0],rpm:x[1],msg:x[2]}))},'');$('saveMsg').textContent='';};
+  $('saveProg').onclick=()=>{
+    const name=$('progName').value.trim()||`Workout ${mine.length+1}`;
+    const item={name,rep:prog.rep,segs:prog.segs.map(x=>({...x}))};
+    const idx=mine.findIndex(m=>m.name===name);
+    if(idx>=0)mine[idx]=item;else{if(mine.length>=20){$('saveMsg').textContent='Max 20 workouts stored';return;}mine.push(item);}
+    store.set('cad-mine',JSON.stringify(mine));$('progName').value=name;renderMine();
+    $('saveMsg').textContent=idx>=0?'Workout updated':'Workout saved';
+  };
+  $('mineChips').onclick=e=>{
+    const l=e.target.closest('[data-load]'),r=e.target.closest('[data-rm]');
+    if(l&&!run){const m=mine[+l.dataset.load];setDraft(m,m.name);$('saveMsg').textContent='';}
+    if(r){const m=mine[+r.dataset.rm];if(confirm(`Delete workout '${m.name}'?`)){mine.splice(+r.dataset.rm,1);store.set('cad-mine',JSON.stringify(mine));renderMine();}}
+  };
+
+  // Interval Execution Engine
+  let run=null;
+  function say(msg){
+    $('caster').textContent=msg;
+    if($('voice').checked&&'speechSynthesis' in window){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(msg);u.lang='en-US';u.rate=1.05;speechSynthesis.speak(u);}catch(e){}}
+  }
+  function startRun(p,src){
+    const list=[];
+    for(let r=0;r<p.rep;r++)p.segs.forEach((x,i)=>{const d=parseT(x.t);if(d>0)list.push({d,rpm:clampR(x.rpm),msg:x.msg||'',row:i,r});});
+    if(!list.length){say('Duration cannot be empty');return;}
+    if(!playing)start();
+    run={list,rep:p.rep,src,total:list.reduce((a,x)=>a+x.d,0),t:performance.now(),i:-1,beeped:null,iv:setInterval(tick,100)};
+    $('simRun').textContent=$('runBtn').textContent='STOP';tick();
+  }
+  function highlight(row){
+    document.querySelectorAll('.simrow,.ivrow').forEach(el=>el.classList.remove('now'));
+    if(row==null||!run)return;
+    const el=run.src==='sim'?$(row===0?'simA':'simB'):document.querySelector(`.ivrow[data-i="${row}"]`);
+    if(el)el.classList.add('now');
+  }
+  function tick(){
+    const el=(performance.now()-run.t)/1000;
+    if(el>=run.total){beep(true);endRun('Workout completed!');return;}
+    let acc=0,i=0;while(el>=acc+run.list[i].d){acc+=run.list[i].d;i++;}
+    const seg=run.list[i],left=acc+seg.d-el,next=run.list[i+1];
+    if(i!==run.i){run.i=i;run.beeped=null;setValue(seg.rpm);say(seg.msg?`${seg.rpm} RPM. ${seg.msg}`:`${seg.rpm} RPM`);highlight(seg.row);}
+    if($('countdown').checked&&left<=3){const c=Math.ceil(left);if(c!==run.beeped&&c>0){run.beeped=c;beep(false);}}
+    const repTxt=run.rep>1?` | Set ${seg.r+1}/${run.rep}`:'';
+    $('nowLine').textContent=`${seg.rpm} RPM | ${fmt(left)} left${next?` | Next: ${next.rpm} RPM`:' | Final sprint!'}${repTxt}`;
+    $('runBar').style.width=(el/run.total*100)+'%';
+    if(hudOpen){
+      $('hudTimer').textContent=fmt(left);
+      $('hudBar').style.width=(el/run.total*100)+'%';
+      $('hudNext').textContent=next?`NEXT: ${next.rpm} RPM (in ${fmt(left)})`:'FINAL SPRINT!';
+      $('hudIvTitle').textContent=`INTERVAL ${seg.r+1}/${run.rep} (${seg.rpm} RPM)`;
+    }
+  }
+  function endRun(msg){
+    if(!run)return;clearInterval(run.iv);run=null;say(msg);highlight(null);
+    $('simRun').textContent=$('runBtn').textContent='START';$('nowLine').textContent='';$('runBar').style.width='0';
+    if(hudOpen)renderHud();
+  }
+  $('simRun').onclick=()=>run?endRun(''):startRun({rep:sim.rep,segs:[{...sim.a,msg:''},{...sim.b,msg:''}]},'sim');
+  $('runBtn').onclick=()=>run?endRun(''):startRun(prog,'custom');
+
+  // ---------- Workout Daily Log ----------
+  const today=()=>{const d=new Date();return `cad-log-${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;};
+  let log={revs:0,km:0};
+  try{const s=JSON.parse(store.get(today())||'null');if(s)log=Object.assign(log,s);}catch(e){}
+  let lastSave=0,lastLogRender=0;
+  function addLog(dRev){
+    log.revs+=dRev;log.km+=dRev*ratio()*circ()/1e6;
+    const n=performance.now();
+    if(n-lastLogRender>500){lastLogRender=n;renderLog();}
+    if(n-lastSave>3000){lastSave=n;saveLog();}
+  }
+  function saveLog(){store.set(today(),JSON.stringify(log));}
+  function renderLog(){
+    $('todayCount').textContent=`${Math.floor(log.revs).toLocaleString()} revs`;
+    const m=log.km*1000;
+    $('todayNote').textContent=m<1?'':`Approx ${log.km.toFixed(2)} km (~${(log.km*0.621371).toFixed(2)} miles)`;
+  }
+  $('resetLog').onclick=()=>{log={revs:0,km:0};saveLog();renderLog();};
+
+  // ---------- Event Listeners & Setup ----------
+  $('soundChips').innerHTML=Object.keys(SOUNDS).map(k=>`<button data-s="${k}">${SOUNDS[k]}</button>`).join('');
+  $('soundChips').onclick=e=>{const b=e.target.closest('button');if(b){soundKey=b.dataset.s;noteIdx=0;store.set('cad-sound',soundKey);render();}};
+  const saved=store.get('cad-sound');if(saved&&SOUNDS[saved])soundKey=saved;
+  go.onclick=()=>playing?stop():start();
+  slider.oninput=e=>setValue(+e.target.value);
+  $('minus').onclick=()=>setValue(value-5);
+  $('plus').onclick=()=>setValue(value+5);
+  $('presets').onclick=e=>{const b=e.target.closest('button');if(b)setValue(+b.dataset.v);};
+  document.querySelectorAll('input[name=mode]').forEach(r=>r.onchange=()=>{bpr=+r.value;resync();});
+  function setMode(m){
+    indoor=m;document.body.classList.toggle('indoor',indoor);store.set('cad-mode',indoor?'indoor':'road');
+    if(!indoor&&run)endRun('');
+    render();
+  }
+  $('openHudBtn').onclick=openHud;
+  $('closeHudBtn').onclick=closeHud;
+  $('hudMinus').onclick=()=>setValue(value-5);
+  $('hudPlus').onclick=()=>setValue(value+5);
+  $('hudPlayBtn').onclick=()=>{
+    if(run){endRun('');}
+    else if(playing){stop();}
+    else{
+      if(indoor){
+        startRun({rep:sim.rep,segs:[{...sim.a,msg:''},{...sim.b,msg:''}]},'sim');
+      }else{
+        start();
+      }
+    }
+    renderHud();
+  };
+  $('hudShiftFront').onclick=()=>{side=side==='outer'?'inner':'outer';gearChange();};
+  $('hudShiftUp').onclick=()=>shift(1);
+  $('hudShiftDown').onclick=()=>shift(-1);
+  document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement&&hudOpen){/* ESC exit */}});
+
+  // ---------- Fullscreen HUD Mode ----------
+  let hudOpen=false;
+  function openHud(){
+    hudOpen=true;$('hudOverlay').hidden=false;
+    try{if(document.documentElement.requestFullscreen&&!document.fullscreenElement)document.documentElement.requestFullscreen();}catch(e){}
+    renderHud();
+  }
+  function closeHud(){
+    hudOpen=false;$('hudOverlay').hidden=true;
+    try{if(document.fullscreenElement)document.exitFullscreen();}catch(e){}
+  }
+  function toggleHud(){hudOpen?closeHud():openHud();}
+
+  function renderHud(){
+    if(!hudOpen)return;
+    const z=getZone(value);
+    $('hudVal').textContent=value;
+    $('hudFeel').textContent=FEELS.find(f=>value<=f[0])[1];
+    $('hudZoneBadge').textContent=`${z.title} ${value}`;
+    $('hudModeName').textContent=indoor?'Indoor Trainer Mode':'Road Ride Mode';
+    $('hudPlayBtn').textContent=playing?'STOP':'START';
+    $('hudPlayBtn').style.background=z.color;
+
+    const kmh=speed();
+    $('hudKmh').textContent=kmh?kmh.toFixed(1):'0.0';
+    $('hudGearRatio').textContent=`${ring()}T × ${cog()}T (Ratio ${ratio().toFixed(2)})`;
+    const oT=crankKey!=='custom'?CRANKS[crankKey][0]:(+$('outerT').value||50);
+    const iT=crankKey!=='custom'?CRANKS[crankKey][1]:(+$('innerT').value||34);
+    $('hudFrontLabel').textContent=(side==='outer'?oT:iT)+'T';
+
+    $('hudTotalRevs').textContent=Math.floor(log.revs).toLocaleString();
+    $('hudTotalKm').textContent=log.km.toFixed(1);
+
+    if(!run){
+      $('hudTimer').textContent=playing?'RIDING':'00:00';
+      $('hudNext').textContent='NEXT: —';
+      $('hudBar').style.width='0%';
+      $('hudIvTitle').textContent=indoor?'FREE RIDE':'ROAD RIDE';
+    }
+  }
+
+  document.querySelectorAll('.modes button').forEach(b=>b.onclick=()=>setMode(b.dataset.mode==='indoor'));
+  document.addEventListener('keydown',e=>{
+    const t=e.target;if(t.tagName==='INPUT'&&!['checkbox','radio','range'].includes(t.type))return;
+    if(e.code==='KeyF'){e.preventDefault();toggleHud();}
+    else if(e.code==='Escape'&&hudOpen){e.preventDefault();closeHud();}
+    else if(e.code==='Space'&&t.tagName!=='BUTTON'){
+      e.preventDefault();
+      if(run){endRun('');}else{playing?stop():start();}
+      if(hudOpen)renderHud();
+    }
+    else if(e.code==='ArrowLeft'){e.preventDefault();setValue(value-5);}
+    else if(e.code==='ArrowRight'){e.preventDefault();setValue(value+5);}
+    else if(indoor&&t.type!=='range'&&(e.code==='ArrowUp'||e.code==='ArrowDown')){e.preventDefault();shift(e.code==='ArrowUp'?1:-1);}
+  });
+  window.addEventListener('pagehide',saveLog);
+
+  if(!prog||!prog.segs||!prog.segs.length)prog={rep:1,segs:[{t:'1:00',rpm:90,msg:''},{t:'1:00',rpm:100,msg:''}]};
+  renderSim();renderRows();renderMine();
+  setMode(store.get('cad-mode')==='indoor');
+  initMediaSession();
+})();
+
+// PWA Service Worker Registration
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('../sw.js', { scope: '../' }).catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
