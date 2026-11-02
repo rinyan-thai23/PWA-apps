@@ -685,7 +685,7 @@
         <div class="min-w-0">
           <div class="flex items-center gap-2">
             <h1 class="font-bold text-base sm:text-lg tracking-tight truncate" id="docHeaderTitle">AI Markdown Reader</h1>
-            <span id="badgeStatus" class="hidden sm:inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">閲覧専用</span>
+            <span id="badgeStatus" class="hidden sm:inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">✨ エディタ</span>
           </div>
           <p class="text-xs text-gray-400 truncate" id="docSubTitle">ファイルをポイッと投げるだけでサクサク読める</p>
         </div>
@@ -2070,24 +2070,15 @@
       closeAllDocuments();
     });
 
-    const toggleTocBtn = document.getElementById('toggleTocBtn');
     const mobileTocModal = document.getElementById('mobileTocModal');
     const closeMobileTocBtn = document.getElementById('closeMobileTocBtn');
 
-    toggleTocBtn.addEventListener('click', () => {
-      if (window.innerWidth >= 1024) {
-        const sidebar = document.getElementById('sidebarTOC');
-        sidebar.classList.toggle('hidden');
-      } else {
-        mobileTocModal.classList.remove('hidden');
-        mobileTocModal.classList.add('flex');
-      }
-    });
-
-    closeMobileTocBtn.addEventListener('click', () => {
-      mobileTocModal.classList.add('hidden');
-      mobileTocModal.classList.remove('flex');
-    });
+    if (closeMobileTocBtn && mobileTocModal) {
+      closeMobileTocBtn.addEventListener('click', () => {
+        mobileTocModal.classList.add('hidden');
+        mobileTocModal.classList.remove('flex');
+      });
+    }
 
     mobileTocModal.addEventListener('click', (e) => {
       if (e.target === mobileTocModal) {
