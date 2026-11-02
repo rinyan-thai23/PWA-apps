@@ -428,7 +428,7 @@
     body.zen-mode #scrollProgressBar {
       display: none !important;
     }
-    body.zen-mode #mainContent {
+    body.zen-mode #tiptapEditorMount {
       max-width: 820px;
       margin: 2rem auto;
       font-size: 1.15rem;
@@ -498,8 +498,8 @@
         background: white !important;
         color: black !important;
       }
-      #mainContent {
-        max-width: 100% !important;
+      #mainContent, #tiptapEditorMount {
+        max-width: 100% !important; border: none !important;
         padding: 0 !important;
         margin: 0 !important;
       }
@@ -787,12 +787,6 @@
           </div>
         </div>
 
-        <!-- Notion Edit Mode Trigger -->
-        <button id="toggleEditBtn" class="px-2.5 py-1.5 rounded-lg text-gray-300 hover:text-white hover:bg-gray-800 border border-indigo-500/30 bg-indigo-500/10 transition flex items-center gap-1.5 text-xs font-semibold shadow-sm" title="編集モード切り替え (Ctrl+E)">
-          <i data-lucide="edit-3" class="w-3.5 h-3.5 text-indigo-400" id="editIcon"></i>
-          <span id="editBtnText">編集</span>
-        </button>
-
         <!-- Search Trigger -->
         <button id="toggleSearchBtn" class="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition" title="Search in document (Ctrl+F)">
           <i data-lucide="search" class="w-5 h-5"></i>
@@ -958,7 +952,7 @@
         </div>
       </div>
 
-      <!-- Rendered Document View -->
+      <!-- Rendered Document View (Always-Active TipTap Canvas) -->
       <div id="docViewer" class="hidden">
         
         <!-- Metrics Bar -->
@@ -987,21 +981,9 @@
           </div>
 
           <div class="flex items-center gap-2 flex-shrink-0">
-            <!-- View / Edit Segment Controls -->
-            <div class="inline-flex items-center p-1 rounded-xl bg-gray-900/80 border border-gray-700/60 text-xs shadow-inner">
-              <button id="viewModeTabBtn" class="px-3 py-1.5 rounded-lg font-semibold bg-indigo-600 text-white flex items-center gap-1.5 transition shadow-sm" title="閲覧・読書モード">
-                <i data-lucide="eye" class="w-3.5 h-3.5"></i>
-                <span>閲覧</span>
-              </button>
-              <button id="editModeTabBtn" class="px-3 py-1.5 rounded-lg font-semibold text-gray-400 hover:text-white flex items-center gap-1.5 transition" title="インライン編集モード (Ctrl+E)">
-                <i data-lucide="edit-3" class="w-3.5 h-3.5 text-indigo-400"></i>
-                <span>編集</span>
-              </button>
-            </div>
-
             <!-- Text Copy Button (Full Markdown to Clipboard) -->
-            <button id="copyFullDocBtn" class="px-3 py-1.5 rounded-lg text-gray-300 hover:text-white bg-gray-800/80 hover:bg-gray-700 border border-gray-700/60 text-xs font-medium flex items-center gap-1.5 transition shadow-sm" title="ドキュメント全文（Markdown）をクリップボードにコピー">
-              <i data-lucide="copy" class="w-3.5 h-3.5 text-indigo-400"></i>
+            <button id="copyFullDocBtn" class="px-3.5 py-1.5 rounded-lg text-white bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-xs font-semibold flex items-center gap-1.5 transition shadow-sm" title="ドキュメント全文（Markdown）をクリップボードにコピー">
+              <i data-lucide="copy" class="w-3.5 h-3.5"></i>
               <span>テキストコピー</span>
             </button>
 
@@ -1014,46 +996,24 @@
           </div>
         </div>
 
-        <article id="mainContent" class="md-content prose max-w-none pb-12 cursor-text" title="ダブルクリックで直接編集モードに切り替わります">
-        </article>
-        <div id="viewModeHintBar" class="pb-16 flex items-center justify-center text-xs text-gray-500 gap-1.5 transition">
-          <i data-lucide="info" class="w-3.5 h-3.5 text-indigo-400"></i>
-          <span>本文をダブルクリック、または上部の「編集」タブを押すと、このまま直接編集できます</span>
+        <!-- TipTap WYSIWYG Editor Canvas (Always active & editable without layout shift) -->
+        <div id="tiptapEditorMount" class="p-6 sm:p-10 rounded-2xl border min-h-[580px] focus:outline-none shadow-sm" style="background-color: var(--bg-card); border-color: var(--border-color);">
         </div>
 
-        <!-- Notion-style TipTap Editor Area (Hidden by default) -->
-        <div id="editorWrapper" class="hidden pb-24">
-          <!-- Editor Info & Action Toolbar -->
-          <div class="mb-4 p-3 rounded-xl border flex flex-wrap items-center justify-between gap-3 shadow-sm" style="background-color: var(--bg-card); border-color: var(--border-color);">
-            <div class="flex items-center gap-2 text-xs text-gray-400 flex-wrap">
-              <span class="inline-flex items-center gap-1 font-semibold text-indigo-400">
-                <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> タイピング操作:
-              </span>
-              <span class="px-1.5 py-0.5 rounded bg-gray-800/80 border border-gray-700/60 font-mono text-[11px] text-sky-400"># </span> 大見出し
-              <span class="px-1.5 py-0.5 rounded bg-gray-800/80 border border-gray-700/60 font-mono text-[11px] text-sky-400">## </span> 中見出し
-              <span class="px-1.5 py-0.5 rounded bg-gray-800/80 border border-gray-700/60 font-mono text-[11px] text-sky-400">### </span> 小見出し
-              <span class="px-1.5 py-0.5 rounded bg-gray-800/80 border border-gray-700/60 font-mono text-[11px] text-sky-400">- </span> 箇条書き
-              <span class="px-1.5 py-0.5 rounded bg-gray-800/80 border border-gray-700/60 font-mono text-[11px] text-sky-400">&gt; </span> 引用
-              <span class="px-1.5 py-0.5 rounded bg-gray-800/80 border border-gray-700/60 font-mono text-[11px] text-sky-400">```</span> コード枠
-            </div>
-            <div class="flex items-center gap-2">
-              <button id="editorCopyMdBtn" class="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-gray-800 hover:bg-gray-700 text-gray-300 transition flex items-center gap-1" title="現在のMarkdownをコピー">
-                <i data-lucide="copy" class="w-3.5 h-3.5"></i>
-                <span class="hidden sm:inline">MDコピー</span>
-              </button>
-              <button id="editorCancelBtn" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 transition">
-                キャンセル (Esc)
-              </button>
-              <button id="editorSaveBtn" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white flex items-center gap-1.5 shadow-sm transition">
-                <i data-lucide="check" class="w-3.5 h-3.5"></i>
-                <span>保存して閲覧 (Ctrl+S)</span>
-              </button>
-            </div>
+        <!-- Static Bottom Typing Hints (Placed below content to avoid any scroll or cursor jump) -->
+        <div class="mt-4 p-3 rounded-xl border flex flex-wrap items-center justify-between text-xs text-gray-400 gap-2 mb-20" style="background-color: var(--bg-card-alt, rgba(15, 23, 42, 0.4)); border-color: var(--border-color);">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="inline-flex items-center gap-1 font-semibold text-indigo-400">
+              <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> タイピング操作:
+            </span>
+            <span class="px-1.5 py-0.5 rounded bg-gray-800/80 border border-gray-700/60 font-mono text-[11px] text-sky-400"># </span> 大見出し
+            <span class="px-1.5 py-0.5 rounded bg-gray-800/80 border border-gray-700/60 font-mono text-[11px] text-sky-400">## </span> 中見出し
+            <span class="px-1.5 py-0.5 rounded bg-gray-800/80 border border-gray-700/60 font-mono text-[11px] text-sky-400">### </span> 小見出し
+            <span class="px-1.5 py-0.5 rounded bg-gray-800/80 border border-gray-700/60 font-mono text-[11px] text-sky-400">- </span> 箇条書き
+            <span class="px-1.5 py-0.5 rounded bg-gray-800/80 border border-gray-700/60 font-mono text-[11px] text-sky-400">&gt; </span> 引用
+            <span class="px-1.5 py-0.5 rounded bg-gray-800/80 border border-gray-700/60 font-mono text-[11px] text-sky-400">```</span> コード枠
           </div>
-
-          <!-- TipTap Mount Point -->
-          <div id="tiptapEditorMount" class="p-6 sm:p-8 rounded-2xl border min-h-[560px] focus:outline-none shadow-inner" style="background-color: var(--bg-card); border-color: var(--border-color);">
-          </div>
+          <span class="text-gray-500 text-[11px]">文字入力・編集内容は自動で同期されます</span>
         </div>
       </div>
 
@@ -1347,18 +1307,29 @@
       document.getElementById('docHeaderTitle').textContent = doc.title.replace(/\.(md|markdown|txt)$/i, '');
       document.getElementById('docSubTitle').textContent = `${I18N.readingText}${doc.title} (${documents.indexOf(doc) + 1} / ${documents.length})`;
 
-      const mainContent = document.getElementById('mainContent');
-      mainContent.innerHTML = doc.preprocessedHtml;
+      // TipTapエディタに直接コンテンツを設定（最初から直接閲覧＆編集可能）
+      const mountEl = document.getElementById('tiptapEditorMount');
+      const initialHtml = marked.parse(doc.rawMarkdown || '');
 
-      try {
-        await mermaid.run({
-          nodes: document.querySelectorAll('.mermaid')
-        });
-      } catch (err) {
-        console.warn('Mermaid rendering issue:', err);
+      if (!tiptapInstance) {
+        if (window.__initTipTapEditor) {
+          tiptapInstance = window.__initTipTapEditor(mountEl, initialHtml);
+          attachEditorListeners();
+        } else {
+          window.addEventListener('tiptap-ready', () => {
+            tiptapInstance = window.__initTipTapEditor(mountEl, initialHtml);
+            attachEditorListeners();
+          }, { once: true });
+        }
+      } else {
+        tiptapInstance.commands.setContent(initialHtml, false);
       }
 
-      buildTableOfContents();
+      // 見出しIDをエディタ内の要素に付与してTOCと同期
+      setTimeout(() => {
+        assignHeadingIdsToEditor();
+        buildTableOfContents();
+      }, 50);
 
       document.getElementById('statCharCount').textContent = doc.stats.charCount.toLocaleString() + I18N.unitChar;
       document.getElementById('statReadTime').textContent = I18N.statReadUnit.replace('{n}', doc.stats.readingMinutes);
@@ -1372,8 +1343,20 @@
       lucide.createIcons();
     }
 
+    function assignHeadingIdsToEditor() {
+      const mount = document.getElementById('tiptapEditorMount');
+      if (!mount) return;
+      const headingEls = mount.querySelectorAll('h1, h2, h3, h4, h5, h6');
+      const activeDoc = documents.find(d => d.id === activeDocId);
+      const headings = activeDoc ? activeDoc.headingsData : [];
+      headingEls.forEach((el, idx) => {
+        if (headings[idx]) {
+          el.id = headings[idx].id;
+        }
+      });
+    }
+
     function closeDocument(docId, event) {
-      if (typeof isEditingMode !== "undefined" && isEditingMode) cancelEditMode();
       if (event) event.stopPropagation();
       const idx = documents.findIndex(d => d.id === docId);
       if (idx === -1) return;
@@ -1642,7 +1625,7 @@
       const el = document.getElementById(id);
       if (el) {
         let parent = el;
-        while (parent && parent.id !== 'mainContent') {
+        while (parent && parent.id !== 'tiptapEditorMount') {
           if (parent.classList.contains('hidden')) {
             parent.classList.remove('hidden');
           }
@@ -1889,7 +1872,7 @@
     const fontSizeBtn = document.getElementById('fontSizeBtn');
     fontSizeBtn.addEventListener('click', () => {
       currentFontSizeIdx = (currentFontSizeIdx + 1) % fontSizes.length;
-      document.getElementById('mainContent').style.fontSize = fontSizes[currentFontSizeIdx];
+      document.getElementById('tiptapEditorMount').style.fontSize = fontSizes[currentFontSizeIdx];
     });
 
     const toggleZenBtn = document.getElementById('toggleZenBtn');
@@ -1983,7 +1966,7 @@
       searchMatches = [];
       currentSearchIdx = -1;
       searchCount.textContent = '0';
-      const container = document.getElementById('mainContent');
+      const container = document.getElementById('tiptapEditorMount');
       if (!container) return;
       const marks = container.querySelectorAll('mark.search-highlight');
       marks.forEach(mark => {
@@ -1997,7 +1980,7 @@
       clearSearchHighlights();
       if (!query || query.length < 1) return;
 
-      const container = document.getElementById('mainContent');
+      const container = document.getElementById('tiptapEditorMount');
       const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, null, false);
       const textNodes = [];
 
@@ -2104,10 +2087,9 @@
     });
   
     // ==========================================
-    // TipTap Inline Editor Integration
+    // TipTap Direct Editor Integration (Unified Experience)
     // ==========================================
     let tiptapInstance = null;
-    let isEditingMode = false;
     let turndownService = null;
     let syncTimeout = null;
 
@@ -2137,239 +2119,43 @@
       return md.trim();
     }
 
-    function syncEditorStatsRealtime() {
-      if (!tiptapInstance || !activeDocId) return;
-      const doc = documents.find(d => d.id === activeDocId);
-      if (!doc) return;
-
-      const rawHtml = tiptapInstance.getHTML();
-      const currentMd = convertHtmlToMarkdown(rawHtml);
-      doc.rawMarkdown = currentMd;
-
-      // 統計リアルタイム更新
-      const plainText = tiptapInstance.getText();
-      const charCount = plainText.length;
-      const readingMinutes = Math.max(1, Math.ceil(charCount / 500));
-      document.getElementById('statCharCount').textContent = charCount.toLocaleString() + I18N.unitChar;
-      document.getElementById('statReadTime').textContent = I18N.statReadUnit.replace('{n}', readingMinutes);
-    }
-
-    async function enterEditMode(clickEvent = null) {
-      if (isEditingMode) return;
-
-      if (!activeDocId || documents.length === 0) {
-        createNewDocAndEdit();
-        return;
-      }
-
-      const doc = documents.find(d => d.id === activeDocId);
-      if (!doc) return;
-
-      // 現在のスクロール位置を確実に保持
-      const currentScrollY = window.scrollY;
-
-      // ダブルクリック時の座標を取得
-      let clickCoords = null;
-      if (clickEvent && typeof clickEvent.clientX === 'number' && typeof clickEvent.clientY === 'number') {
-        clickCoords = { left: clickEvent.clientX, top: clickEvent.clientY };
-      }
-
-      isEditingMode = true;
-
-      // UI表示切り替え（サマリーカードは常に表示したまま！）
-      document.getElementById('mainContent').classList.add('hidden');
-      const hintBar = document.getElementById('viewModeHintBar');
-      if (hintBar) hintBar.classList.add('hidden');
-      document.getElementById('editorWrapper').classList.remove('hidden');
-
-      // セグメントタブのスタイル更新
-      const viewTab = document.getElementById('viewModeTabBtn');
-      const editTab = document.getElementById('editModeTabBtn');
-      if (viewTab && editTab) {
-        viewTab.className = 'px-3 py-1.5 rounded-lg font-semibold text-gray-400 hover:text-white flex items-center gap-1.5 transition';
-        editTab.className = 'px-3 py-1.5 rounded-lg font-semibold bg-indigo-600 text-white flex items-center gap-1.5 transition shadow-sm';
-      }
-
-      const badge = document.getElementById('badgeStatus');
-      if (badge) {
-        badge.textContent = '✨ 編集モード';
-        badge.className = 'hidden sm:inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30';
-      }
-
-      const toggleBtn = document.getElementById('toggleEditBtn');
-      if (toggleBtn) {
-        toggleBtn.classList.add('bg-indigo-600', 'text-white');
-        toggleBtn.classList.remove('bg-indigo-500/10', 'text-gray-300');
-        const editText = document.getElementById('editBtnText');
-        if (editText) editText.textContent = '閲覧に戻る';
-      }
-
-      // TipTapの初期化またはコンテンツ設定
-      const mountEl = document.getElementById('tiptapEditorMount');
-      const initialHtml = marked.parse(doc.rawMarkdown || '');
-
-      const applyEditorContentAndFocus = () => {
-        if (!tiptapInstance) return;
-
-        // まず現在のスクロール位置を復元（画面下へのジャンプを即座に抑止）
-        window.scrollTo({ top: currentScrollY, behavior: 'instant' });
-
-        // フォーカス設定：決して 'end'（末尾）に飛ばさない！
-        if (clickCoords && tiptapInstance.view) {
-          try {
-            // クリック座標に最も近いTipTapノードの位置を取得してキャレット配置
-            const posResult = tiptapInstance.view.posAtCoords(clickCoords);
-            if (posResult && typeof posResult.pos === 'number') {
-              tiptapInstance.commands.setTextSelection(posResult.pos);
-              tiptapInstance.view.focus();
-            } else if (tiptapInstance.view.dom) {
-              tiptapInstance.view.dom.focus({ preventScroll: true });
-            }
-          } catch (e) {
-            if (tiptapInstance.view.dom) {
-              tiptapInstance.view.dom.focus({ preventScroll: true });
-            }
-          }
-        } else {
-          // ボタンから入った場合：スクロールさせずに静かにフォーカス
-          if (tiptapInstance.view && tiptapInstance.view.dom) {
-            tiptapInstance.view.dom.focus({ preventScroll: true });
-          }
-        }
-
-        // フォーカス後にもスクロール位置を確実に再固定
-        window.scrollTo({ top: currentScrollY, behavior: 'instant' });
-      };
-
-      if (!tiptapInstance) {
-        if (window.__initTipTapEditor) {
-          tiptapInstance = window.__initTipTapEditor(mountEl, initialHtml);
-          attachEditorListeners();
-          applyEditorContentAndFocus();
-        } else {
-          window.addEventListener('tiptap-ready', () => {
-            tiptapInstance = window.__initTipTapEditor(mountEl, initialHtml);
-            attachEditorListeners();
-            applyEditorContentAndFocus();
-          }, { once: true });
-        }
-      } else {
-        tiptapInstance.commands.setContent(initialHtml, false);
-        applyEditorContentAndFocus();
-      }
-
-      lucide.createIcons();
-    }
-
     function attachEditorListeners() {
       if (!tiptapInstance) return;
       tiptapInstance.on('update', () => {
         clearTimeout(syncTimeout);
         syncTimeout = setTimeout(() => {
-          syncEditorStatsRealtime();
+          syncDocRealtime();
         }, 200);
       });
     }
 
-    async function saveAndExitEditMode() {
-      if (!isEditingMode) return;
-
-      if (!activeDocId || documents.length === 0) {
-        isEditingMode = false;
-        return;
-      }
-
+    function syncDocRealtime() {
+      if (!tiptapInstance || !activeDocId) return;
       const doc = documents.find(d => d.id === activeDocId);
       if (!doc) return;
 
-      // 現在のスクロール位置を保持
-      const currentScrollY = window.scrollY;
+      const editorHtml = tiptapInstance.getHTML();
+      const currentMd = convertHtmlToMarkdown(editorHtml);
+      doc.rawMarkdown = currentMd;
 
-      if (tiptapInstance) {
-        const editorHtml = tiptapInstance.getHTML();
-        const newMarkdown = convertHtmlToMarkdown(editorHtml);
+      // 見出し＆統計を再計算
+      const updated = compileMarkdownToDoc(doc.title, currentMd);
+      doc.headingsData = updated.headingsData;
+      doc.stats = updated.stats;
 
-        const updatedDoc = compileMarkdownToDoc(doc.title, newMarkdown);
-        doc.rawMarkdown = updatedDoc.rawMarkdown;
-        doc.preprocessedHtml = updatedDoc.preprocessedHtml;
-        doc.headingsData = updatedDoc.headingsData;
-        doc.stats = updatedDoc.stats;
-      }
+      document.getElementById('statCharCount').textContent = doc.stats.charCount.toLocaleString() + I18N.unitChar;
+      document.getElementById('statReadTime').textContent = I18N.statReadUnit.replace('{n}', doc.stats.readingMinutes);
+      document.getElementById('statHeadingCount').textContent = doc.stats.headingCount + I18N.unitHeading;
+      document.getElementById('statCodeCount').textContent = doc.stats.codeCount + I18N.unitCode;
+      document.getElementById('statMermaidCount').textContent = doc.stats.mermaidCount + I18N.unitMmd;
 
-      isEditingMode = false;
-
-      // UI復元
-      document.getElementById('editorWrapper').classList.add('hidden');
-      document.getElementById('mainContent').classList.remove('hidden');
-      const hintBar = document.getElementById('viewModeHintBar');
-      if (hintBar) hintBar.classList.remove('hidden');
-
-      // セグメントタブのスタイル復元
-      const viewTab = document.getElementById('viewModeTabBtn');
-      const editTab = document.getElementById('editModeTabBtn');
-      if (viewTab && editTab) {
-        viewTab.className = 'px-3 py-1.5 rounded-lg font-semibold bg-indigo-600 text-white flex items-center gap-1.5 transition shadow-sm';
-        editTab.className = 'px-3 py-1.5 rounded-lg font-semibold text-gray-400 hover:text-white flex items-center gap-1.5 transition';
-      }
-
-      const badge = document.getElementById('badgeStatus');
-      if (badge) {
-        badge.textContent = '閲覧中';
-        badge.className = 'hidden sm:inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20';
-      }
-
-      const toggleBtn = document.getElementById('toggleEditBtn');
-      if (toggleBtn) {
-        toggleBtn.classList.remove('bg-indigo-600', 'text-white');
-        toggleBtn.classList.add('bg-indigo-500/10', 'text-gray-300');
-        const editText = document.getElementById('editBtnText');
-        if (editText) editText.textContent = '編集';
-      }
-
-      // ドキュメント再描画
-      await switchDocument(activeDocId);
-      window.scrollTo({ top: currentScrollY, behavior: 'instant' });
-      launchConfetti();
-      showToastNotification('ドキュメントを保存・更新しました！');
-    }
-
-    function cancelEditMode() {
-      if (!isEditingMode) return;
-      isEditingMode = false;
-      const currentScrollY = window.scrollY;
-
-      document.getElementById('editorWrapper').classList.add('hidden');
-      document.getElementById('mainContent').classList.remove('hidden');
-      const hintBar = document.getElementById('viewModeHintBar');
-      if (hintBar) hintBar.classList.remove('hidden');
-
-      const viewTab = document.getElementById('viewModeTabBtn');
-      const editTab = document.getElementById('editModeTabBtn');
-      if (viewTab && editTab) {
-        viewTab.className = 'px-3 py-1.5 rounded-lg font-semibold bg-indigo-600 text-white flex items-center gap-1.5 transition shadow-sm';
-        editTab.className = 'px-3 py-1.5 rounded-lg font-semibold text-gray-400 hover:text-white flex items-center gap-1.5 transition';
-      }
-
-      const badge = document.getElementById('badgeStatus');
-      if (badge) {
-        badge.textContent = '閲覧中';
-        badge.className = 'hidden sm:inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20';
-      }
-
-      const toggleBtn = document.getElementById('toggleEditBtn');
-      if (toggleBtn) {
-        toggleBtn.classList.remove('bg-indigo-600', 'text-white');
-        toggleBtn.classList.add('bg-indigo-500/10', 'text-gray-300');
-        const editText = document.getElementById('editBtnText');
-        if (editText) editText.textContent = '編集';
-      }
-      window.scrollTo({ top: currentScrollY, behavior: 'instant' });
+      assignHeadingIdsToEditor();
+      buildTableOfContents();
     }
 
     async function createNewDocAndEdit() {
       const defaultContent = '# 新規ドキュメント\n\nここをクリックして自由に文章を書き始めてください。\n\n## 見出しのタイピングテスト\n`## ` と入力してスペースを押すと自動でH2見出しになります。\n\n- `- ` で箇条書きリスト\n- `> ` で引用ブロック\n- ```` でコード枠\n';
-      const doc = await addDocument('新規ドキュメント.md', defaultContent, true);
-      await enterEditMode();
+      await addDocument('新規ドキュメント.md', defaultContent, true);
     }
 
     async function copyCurrentDocumentText() {
@@ -2378,15 +2164,14 @@
       if (!doc) return;
 
       let textToCopy = doc.rawMarkdown || '';
-      if (isEditingMode && tiptapInstance) {
+      if (tiptapInstance) {
         textToCopy = convertHtmlToMarkdown(tiptapInstance.getHTML());
       }
 
       try {
         await navigator.clipboard.writeText(textToCopy);
-        showToastNotification('ドキュメントのテキストをコピーしました！');
+        showToastNotification('テキスト（Markdown）をコピーしました！');
       } catch (err) {
-        // Fallback for clipboard
         const ta = document.createElement('textarea');
         ta.value = textToCopy;
         ta.style.position = 'fixed';
@@ -2395,7 +2180,7 @@
         ta.select();
         document.execCommand('copy');
         document.body.removeChild(ta);
-        showToastNotification('ドキュメントのテキストをコピーしました！');
+        showToastNotification('テキスト（Markdown）をコピーしました！');
       }
     }
 
@@ -2419,39 +2204,6 @@
     document.addEventListener('DOMContentLoaded', () => {
       initTurndown();
 
-      const toggleEditBtn = document.getElementById('toggleEditBtn');
-      if (toggleEditBtn) {
-        toggleEditBtn.addEventListener('click', (e) => {
-          if (isEditingMode) {
-            saveAndExitEditMode();
-          } else {
-            enterEditMode(e);
-          }
-        });
-      }
-
-      const viewModeTabBtn = document.getElementById('viewModeTabBtn');
-      if (viewModeTabBtn) {
-        viewModeTabBtn.addEventListener('click', () => {
-          if (isEditingMode) saveAndExitEditMode();
-        });
-      }
-
-      const editModeTabBtn = document.getElementById('editModeTabBtn');
-      if (editModeTabBtn) {
-        editModeTabBtn.addEventListener('click', (e) => {
-          if (!isEditingMode) enterEditMode(e);
-        });
-      }
-
-      // 本文ダブルクリックで即座にその位置で編集モード突入
-      const mainContentEl = document.getElementById('mainContent');
-      if (mainContentEl) {
-        mainContentEl.addEventListener('dblclick', (e) => {
-          if (!isEditingMode) enterEditMode(e);
-        });
-      }
-
       // テキストコピーボタン
       const copyFullDocBtn = document.getElementById('copyFullDocBtn');
       if (copyFullDocBtn) {
@@ -2462,39 +2214,6 @@
       if (createNewDocBtn) {
         createNewDocBtn.addEventListener('click', createNewDocAndEdit);
       }
-
-      const editorSaveBtn = document.getElementById('editorSaveBtn');
-      if (editorSaveBtn) {
-        editorSaveBtn.addEventListener('click', saveAndExitEditMode);
-      }
-
-      const editorCancelBtn = document.getElementById('editorCancelBtn');
-      if (editorCancelBtn) {
-        editorCancelBtn.addEventListener('click', cancelEditMode);
-      }
-
-      const editorCopyMdBtn = document.getElementById('editorCopyMdBtn');
-      if (editorCopyMdBtn) {
-        editorCopyMdBtn.addEventListener('click', copyCurrentDocumentText);
-      }
-
-      // ショートカットキー (Ctrl+E で編集トグル, Ctrl+S で保存, Esc でキャンセル)
-      window.addEventListener('keydown', (e) => {
-        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'e') {
-          e.preventDefault();
-          if (isEditingMode) {
-            saveAndExitEditMode();
-          } else {
-            enterEditMode();
-          }
-        } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's' && isEditingMode) {
-          e.preventDefault();
-          saveAndExitEditMode();
-        } else if (e.key === 'Escape' && isEditingMode) {
-          e.preventDefault();
-          cancelEditMode();
-        }
-      });
     });
 </script>
 </body>
