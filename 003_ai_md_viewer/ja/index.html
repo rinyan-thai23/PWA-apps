@@ -7,6 +7,23 @@
   <meta name="description" content="AIが生成した長いMarkdownファイルをドラッグ＆ドロップで美しくリッチに変換・閲覧できる専用Webアプリ">
   <meta name="theme-color" content="#4f46e5">
 
+  <!-- Instant Theme Loader (Zero FOUC & LocalStorage Persistence) -->
+  <script>
+    (function() {
+      try {
+        const savedTheme = localStorage.getItem('ai_md_theme') || 'cyber';
+        const doc = document.documentElement;
+        doc.classList.remove('theme-cyber', 'theme-github-dark', 'theme-zen-paper', 'theme-sepia');
+        doc.classList.add('theme-' + savedTheme);
+        if (savedTheme === 'zen-paper' || savedTheme === 'sepia') {
+          doc.classList.remove('dark');
+        } else {
+          doc.classList.add('dark');
+        }
+      } catch (e) {}
+    })();
+  </script>
+
   <!-- Hreflang SEO -->
   <link rel="alternate" hreflang="ja" href="./" />
   <link rel="alternate" hreflang="en" href="../en/" />
@@ -106,38 +123,50 @@
     }
 
     /* Themes */
-    /* 1. Cyber Dark (Default) */
+    /* 1. Cyber Neon (OLED Deep Black / Neon Cyan & Violet) */
     html.theme-cyber {
-      --bg-main: #0b0f19;
-      --bg-card: #111827;
-      --bg-card-alt: #1f2937;
-      --text-main: #e2e8f0;
+      --bg-main: #06080d;
+      --bg-header: rgba(10, 14, 23, 0.9);
+      --bg-card: #0d121f;
+      --bg-card-alt: #141c2e;
+      --bg-btn: #182238;
+      --bg-btn-hover: #22304d;
+      --text-main: #f1f5f9;
       --text-muted: #94a3b8;
       --border-color: #1e293b;
-      --accent-color: #6366f1;
-      --code-bg: #0d1117;
-      --table-stripe: #151d2e;
+      --border-accent: rgba(6, 182, 212, 0.4);
+      --accent-color: #06b6d4;
+      --code-bg: #030712;
+      --code-text: #38bdf8;
+      --inline-code-bg: rgba(6, 182, 212, 0.15);
+      --inline-code-color: #22d3ee;
 
-      /* Heading Colors (Clear Distinct Levels) */
-      --h1-color: #a5b4fc;
-      --h2-color: #38bdf8;
-      --h3-color: #34d399;
-      --h4-color: #fbbf24;
-      --h5-color: #f472b6;
-      --h6-color: #c084fc;
-      --h1-border: linear-gradient(90deg, #6366f1, #a855f7, transparent);
+      --h1-color: #38bdf8;
+      --h2-color: #a855f7;
+      --h3-color: #06b6d4;
+      --h4-color: #34d399;
+      --h5-color: #fbbf24;
+      --h6-color: #f472b6;
+      --h1-border: linear-gradient(90deg, #06b6d4, #a855f7, transparent);
     }
-    /* 2. GitHub Dark */
+
+    /* 2. GitHub Slate (Classic Engineer Soft Dark - Distinct Slate Charcoal) */
     html.theme-github-dark {
-      --bg-main: #0d1117;
-      --bg-card: #161b22;
-      --bg-card-alt: #21262d;
-      --text-main: #c9d1d9;
-      --text-muted: #8b949e;
-      --border-color: #30363d;
-      --accent-color: #58a6ff;
-      --code-bg: #161b22;
-      --table-stripe: #131920;
+      --bg-main: #181d24;
+      --bg-header: rgba(24, 29, 36, 0.9);
+      --bg-card: #222731;
+      --bg-card-alt: #2c333f;
+      --bg-btn: #2d3440;
+      --bg-btn-hover: #384150;
+      --text-main: #e6edf3;
+      --text-muted: #9aa4b2;
+      --border-color: #353d4c;
+      --border-accent: rgba(88, 166, 255, 0.4);
+      --accent-color: #38bdf8;
+      --code-bg: #12161c;
+      --code-text: #79c0ff;
+      --inline-code-bg: rgba(110, 118, 129, 0.22);
+      --inline-code-color: #ff7b72;
 
       --h1-color: #58a6ff;
       --h2-color: #7ee787;
@@ -145,49 +174,62 @@
       --h4-color: #ffa657;
       --h5-color: #ff7b72;
       --h6-color: #79c0ff;
-      --h1-border: #30363d;
+      --h1-border: #353d4c;
     }
-    /* 3. Zen Paper (Clean Light) */
+
+    /* 3. Zen Paper (Crystal Clear White / Perfect Light Contrast) */
     html.theme-zen-paper {
       --bg-main: #f8fafc;
+      --bg-header: rgba(255, 255, 255, 0.92);
       --bg-card: #ffffff;
       --bg-card-alt: #f1f5f9;
-      --text-main: #1e293b;
-      --text-muted: #64748b;
-      --border-color: #e2e8f0;
-      --accent-color: #3b82f6;
-      --code-bg: #f8fafc;
-      --table-stripe: #f8fafc;
+      --bg-btn: #f1f5f9;
+      --bg-btn-hover: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --border-color: #cbd5e1;
+      --border-accent: rgba(79, 70, 229, 0.4);
+      --accent-color: #4f46e5;
+      --code-bg: #f1f5f9;
+      --code-text: #0369a1;
+      --inline-code-bg: rgba(99, 102, 241, 0.1);
+      --inline-code-color: #4338ca;
 
-      --h1-color: #1d4ed8;
-      --h2-color: #0d9488;
-      --h3-color: #7c3aed;
+      --h1-color: #1e1b4b;
+      --h2-color: #4338ca;
+      --h3-color: #0d9488;
       --h4-color: #b45309;
       --h5-color: #be123c;
-      --h6-color: #475569;
+      --h6-color: #334155;
       --h1-border: #cbd5e1;
     }
-    /* 4. Warm Sepia */
+
+    /* 4. Warm Sepia (Book & Kindle Eye Comfort / Rich Amber Brown) */
     html.theme-sepia {
-      --bg-main: #fbf7ee;
-      --bg-card: #f4ece1;
+      --bg-main: #fbf5eb;
+      --bg-header: rgba(251, 245, 235, 0.92);
+      --bg-card: #f4ecdc;
       --bg-card-alt: #ebdcc9;
-      --text-main: #3d3228;
-      --text-muted: #796655;
-      --border-color: #dfcdb7;
+      --bg-btn: #ebdcc9;
+      --bg-btn-hover: #dfcbb5;
+      --text-main: #2b2118;
+      --text-muted: #6e5945;
+      --border-color: #d8c4ad;
+      --border-accent: rgba(180, 83, 9, 0.4);
       --accent-color: #b45309;
-      --code-bg: #ece3d3;
-      --table-stripe: #f3e9db;
+      --code-bg: #ebdcc9;
+      --code-text: #854d0e;
+      --inline-code-bg: rgba(180, 83, 9, 0.12);
+      --inline-code-color: #9a3412;
 
-      --h1-color: #9a3412;
-      --h2-color: #15803d;
+      --h1-color: #7c2d12;
+      --h2-color: #166534;
       --h3-color: #854d0e;
-      --h4-color: #6b21a8;
+      --h4-color: #581c87;
       --h5-color: #991b1b;
-      --h6-color: #57534e;
-      --h1-border: #dfcdb7;
+      --h6-color: #44403c;
+      --h1-border: #d8c4ad;
     }
-
     body {
       background-color: var(--bg-main);
       color: var(--text-main);
@@ -586,6 +628,8 @@
     /* TipTap Notion-style Editor Styles */
     .ProseMirror {
       outline: none;
+      background-color: var(--bg-card);
+      color: var(--text-main);
       min-height: 480px;
       font-size: var(--editor-font-size, 1.05rem);
       line-height: 1.8;
@@ -809,11 +853,11 @@
           </button>
           <div id="themeDropdown" class="hidden absolute right-0 mt-2 w-48 rounded-xl shadow-xl py-2 border backdrop-blur-md z-50 text-sm" style="background-color: var(--bg-card); border-color: var(--border-color);">
             <button onclick="setTheme('cyber')" class="w-full text-left px-4 py-2 hover:bg-indigo-500/10 flex items-center justify-between">
-              <span>🌌 Cyber Dark</span>
+              <span>🌌 Cyber Neon</span>
               <i data-lucide="check" class="w-4 h-4 check-cyber"></i>
             </button>
             <button onclick="setTheme('github-dark')" class="w-full text-left px-4 py-2 hover:bg-indigo-500/10 flex items-center justify-between">
-              <span>🌙 GitHub Dark</span>
+              <span>💻 GitHub Slate</span>
               <i data-lucide="check" class="w-4 h-4 check-github-dark hidden"></i>
             </button>
             <button onclick="setTheme('zen-paper')" class="w-full text-left px-4 py-2 hover:bg-indigo-500/10 flex items-center justify-between">
@@ -921,10 +965,10 @@
             </p>
 
             <div class="flex flex-wrap items-center justify-center gap-2 text-xs text-gray-500">
-              <span class="px-2 py-1 rounded bg-gray-800/80 border border-gray-700/50"><code>Ctrl+V</code></span>
-              <span class="px-2 py-1 rounded bg-gray-800/80 border border-gray-700/50">Mermaid</span>
-              <span class="px-2 py-1 rounded bg-gray-800/80 border border-gray-700/50">KaTeX</span>
-              <span class="px-2 py-1 rounded bg-gray-800/80 border border-gray-700/50">Multi-Tabs</span>
+              <span class="chip-badge px-2 py-1 rounded border"><code>Ctrl+V</code></span>
+              <span class="chip-badge px-2 py-1 rounded border">Mermaid</span>
+              <span class="chip-badge px-2 py-1 rounded border">KaTeX</span>
+              <span class="chip-badge px-2 py-1 rounded border">Multi-Tabs</span>
             </div>
           </div>
 
@@ -1874,10 +1918,10 @@
       const hljsLink = document.getElementById('hljs-theme');
       if (themeName === 'zen-paper' || themeName === 'sepia') {
         html.classList.remove('dark');
-        hljsLink.href = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css';
+        if (hljsLink) hljsLink.href = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css';
       } else {
         html.classList.add('dark');
-        hljsLink.href = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark-dimmed.min.css';
+        if (hljsLink) hljsLink.href = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark-dimmed.min.css';
       }
 
       ['cyber', 'github-dark', 'zen-paper', 'sepia'].forEach(t => {
@@ -1888,8 +1932,12 @@
         }
       });
 
-      document.getElementById('themeDropdown').classList.add('hidden');
-      localStorage.setItem('ai_md_theme', themeName);
+      const dropdown = document.getElementById('themeDropdown');
+      if (dropdown) dropdown.classList.add('hidden');
+
+      try {
+        localStorage.setItem('ai_md_theme', themeName);
+      } catch (e) {}
     };
 
     // Dropdown Toggles
