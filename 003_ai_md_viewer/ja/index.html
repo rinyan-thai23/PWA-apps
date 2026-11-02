@@ -975,13 +975,7 @@
             </div>
           </div>
 
-          <div class="flex items-center gap-2 flex-shrink-0">
-            <!-- Text Copy Button (Full Markdown to Clipboard) -->
-            <button id="copyFullDocBtn" class="px-3.5 py-1.5 rounded-lg text-white bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-xs font-semibold flex items-center gap-1.5 transition shadow-sm" title="ドキュメント全文（Markdown）をクリップボードにコピー">
-              <i data-lucide="copy" class="w-3.5 h-3.5"></i>
-              <span>テキストコピー</span>
-            </button>
-
+          <div class="flex items-center gap-1.5 flex-shrink-0">
             <button id="printBtn" class="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition" title="Print / PDF">
               <i data-lucide="printer" class="w-4 h-4"></i>
             </button>
@@ -1000,6 +994,17 @@
 
     <!-- TOC Sidebar -->
     <aside id="sidebarTOC" class="w-64 flex-shrink-0 hidden lg:block sticky top-24 self-start max-h-[calc(100vh-8rem)] overflow-y-auto pr-2">
+      <!-- Document Action Buttons (Top of Sidebar) -->
+      <div class="mb-3.5 flex flex-col gap-2">
+        <button id="copyFullDocBtn" class="w-full px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white font-semibold text-xs flex items-center justify-center gap-2 shadow-sm transition active:scale-98" title="ドキュメント全文（Markdown）をクリップボードにコピー">
+          <i data-lucide="copy" class="w-4 h-4"></i>
+          <span>テキストコピー</span>
+        </button>
+        <button id="downloadMdBtn" class="w-full px-3 py-2 rounded-xl bg-gray-800/90 hover:bg-gray-700 active:bg-gray-800 text-gray-200 hover:text-white font-medium text-xs border border-gray-700/70 flex items-center justify-center gap-2 transition shadow-sm active:scale-98" title="編集後のMarkdownファイルをローカルに保存">
+          <i data-lucide="download" class="w-4 h-4 text-emerald-400"></i>
+          <span>mdダウンロード</span>
+        </button>
+      </div>
       <!-- Quick Format Toolbar (Interactive Block Formatting) -->
       <div class="mb-4 p-3.5 rounded-2xl border" style="background-color: var(--bg-card); border-color: var(--border-color);">
         <div class="flex items-center justify-between mb-2 pb-1.5 border-b" style="border-color: var(--border-color);">
@@ -2192,6 +2197,35 @@
       await addDocument('新規ドキュメント.md', defaultContent, true);
     }
 
+    async function downloadCurrentDocument() {
+      if (!activeDocId || documents.length === 0) return;
+      const doc = documents.find(d => d.id === activeDocId);
+      if (!doc) return;
+
+      let textToDownload = doc.rawMarkdown || '';
+      if (tiptapInstance) {
+        textToDownload = convertHtmlToMarkdown(tiptapInstance.getHTML());
+        doc.rawMarkdown = textToDownload;
+      }
+
+      let filename = doc.title || 'document.md';
+      if (!/\.(md|markdown|txt)$/i.test(filename)) {
+        filename += '.md';
+      }
+
+      const blob = new Blob([textToDownload], { type: 'text/markdown;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      showToastNotification(`${filename} をダウンロードしました！`);
+    }
+
     async function copyCurrentDocumentText() {
       if (!activeDocId || documents.length === 0) return;
       const doc = documents.find(d => d.id === activeDocId);
@@ -2276,6 +2310,11 @@
       initTurndown();
 
       // テキストコピーボタン
+      const downloadMdBtn = document.getElementById('downloadMdBtn');
+      if (downloadMdBtn) {
+        downloadMdBtn.addEventListener('click', downloadCurrentDocument);
+      }
+
       const copyFullDocBtn = document.getElementById('copyFullDocBtn');
       if (copyFullDocBtn) {
         copyFullDocBtn.addEventListener('click', copyCurrentDocumentText);
