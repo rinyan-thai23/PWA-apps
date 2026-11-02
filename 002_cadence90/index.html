@@ -61,8 +61,6 @@ legend{font-weight:700;font-size:.9rem;margin-bottom:8px}
 .mode .sub{display:block;color:var(--muted);font-size:.78rem;margin-left:22px}
 .go{position:sticky;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:5;box-shadow:0 0 0 8px var(--sky);margin-top:24px;width:100%;padding:20px;border:0;border-radius:40px;background:var(--ink);color:var(--sky);font:inherit;font-size:1.15rem;font-weight:700;cursor:pointer}
 .hint{color:var(--muted);font-size:.8rem;text-align:center;margin-top:10px}
-.roadnote{margin-top:18px;padding:12px 14px;border-left:4px solid var(--line);background:var(--panel);font-size:.82rem;color:var(--muted);border-radius:0 10px 10px 0}
-body.indoor .roadnote{display:none}
 /* 室内パネル */
 .col-indoor{display:none}
 body.indoor .col-indoor{display:block;margin-top:36px}
@@ -180,7 +178,6 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid
 
   <button class="go" id="go">音を鳴らす</button>
   <p class="hint" id="hint"></p>
-  <div class="roadnote">走行中は画面スリープを自動防止します。安全のためイヤホンは片耳でご利用ください。</div>
 </section>
 
 <section class="col-indoor" aria-label="室内トレーニングの設定">
