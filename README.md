@@ -59,7 +59,6 @@ PWA-apps/
 │   ├── es/                        # 🇪🇸 スペイン語版アプリ本体 (index.html)
 │   ├── de/                        # 🇩🇪 ドイツ語版アプリ本体 (index.html)
 │   └── fr/                        # 🇫🇷 フランス語版アプリ本体 (index.html)
-├── 002_vision_camera/             # 002: ビジョンカメラ
 └── 003_ai_md_viewer/              # 003: AI Markdown Reader (長文MD専用Webビューア / 7言語対応 / 純粋Webツール)
     ├── index.html                 # 英語Language Hub (PWA非該当明記)
     ├── icons/                     # アプリアイコン群
@@ -101,5 +100,4 @@ PWA-apps/
 |---|---|---|---|---|---|
 | **000** | `000_sand_box` | サンドボックス | - | 新機能・プロトタイプ検証用スペース | 準備中 |
 | **001** | `001_wisper_rec_memo` | ボイスメモ文字起こし | **Yes** (PWA) | Groq Whisper APIを利用した超高速音声認識・メモ管理ツール | 多言語Hub化対応中 |
-| **002** | `002_vision_camera` | ビジョンカメラ | **Yes** (PWA) | カメラ映像とAIビジョン連携ツール | 開発中 |
 | **003** | `003_ai_md_viewer` | AI Markdown Reader | **No** (Web Tool) | AIの長大なMarkdownをドラッグ＆ドロップで美麗・快適に閲覧する専用ビューア | 7言語対応完了 |
