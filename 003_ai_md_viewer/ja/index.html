@@ -587,7 +587,7 @@
     .ProseMirror {
       outline: none;
       min-height: 480px;
-      font-size: 1.05rem;
+      font-size: var(--editor-font-size, 1.05rem);
       line-height: 1.8;
       color: var(--text-main);
     }
@@ -832,11 +832,6 @@
           A<span class="text-xs">+</span>
         </button>
 
-        <!-- TOC Sidebar Toggle -->
-        <button id="toggleTocBtn" class="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition" title="TOC">
-          <i data-lucide="list" class="w-5 h-5"></i>
-        </button>
-
         <!-- File Open / Drop Button -->
         <label for="fileInput" class="cursor-pointer px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white text-xs sm:text-sm font-medium flex items-center gap-1.5 shadow-sm transition">
           <i data-lucide="upload" class="w-4 h-4"></i>
@@ -996,24 +991,24 @@
           </div>
         </div>
 
-        <!-- TipTap WYSIWYG Editor Canvas (Always active & editable without layout shift) -->
-        <div id="tiptapEditorMount" class="p-6 sm:p-10 rounded-2xl border min-h-[580px] focus:outline-none shadow-sm" style="background-color: var(--bg-card); border-color: var(--border-color);">
-        </div>
-
-        <!-- Static Bottom Typing Hints (Placed below content to avoid any scroll or cursor jump) -->
-        <div class="mt-4 p-3 rounded-xl border flex flex-wrap items-center justify-between text-xs text-gray-400 gap-2 mb-20" style="background-color: var(--bg-card-alt, rgba(15, 23, 42, 0.4)); border-color: var(--border-color);">
+        <!-- Slim Typing Hints Bar (Always at top, ultra-compact to minimize height) -->
+        <div class="mb-3 px-3 py-1.5 rounded-xl border flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-[11px] text-gray-400 select-none shadow-sm" style="background-color: var(--bg-card); border-color: var(--border-color);">
           <div class="flex items-center gap-2 flex-wrap">
             <span class="inline-flex items-center gap-1 font-semibold text-indigo-400">
-              <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> タイピング操作:
+              <i data-lucide="sparkles" class="w-3 h-3"></i> 入力操作:
             </span>
-            <span class="px-1.5 py-0.5 rounded bg-gray-800/80 border border-gray-700/60 font-mono text-[11px] text-sky-400"># </span> 大見出し
-            <span class="px-1.5 py-0.5 rounded bg-gray-800/80 border border-gray-700/60 font-mono text-[11px] text-sky-400">## </span> 中見出し
-            <span class="px-1.5 py-0.5 rounded bg-gray-800/80 border border-gray-700/60 font-mono text-[11px] text-sky-400">### </span> 小見出し
-            <span class="px-1.5 py-0.5 rounded bg-gray-800/80 border border-gray-700/60 font-mono text-[11px] text-sky-400">- </span> 箇条書き
-            <span class="px-1.5 py-0.5 rounded bg-gray-800/80 border border-gray-700/60 font-mono text-[11px] text-sky-400">&gt; </span> 引用
-            <span class="px-1.5 py-0.5 rounded bg-gray-800/80 border border-gray-700/60 font-mono text-[11px] text-sky-400">```</span> コード枠
+            <span class="flex items-center gap-1"><code class="px-1 py-0.5 rounded bg-gray-800/80 border border-gray-700/60 font-mono text-[10px] text-sky-400"># </code> 大見出し</span>
+            <span class="flex items-center gap-1"><code class="px-1 py-0.5 rounded bg-gray-800/80 border border-gray-700/60 font-mono text-[10px] text-sky-400">## </code> 中見出し</span>
+            <span class="flex items-center gap-1"><code class="px-1 py-0.5 rounded bg-gray-800/80 border border-gray-700/60 font-mono text-[10px] text-sky-400">### </code> 小見出し</span>
+            <span class="flex items-center gap-1"><code class="px-1 py-0.5 rounded bg-gray-800/80 border border-gray-700/60 font-mono text-[10px] text-sky-400">- </code> リスト</span>
+            <span class="flex items-center gap-1"><code class="px-1 py-0.5 rounded bg-gray-800/80 border border-gray-700/60 font-mono text-[10px] text-sky-400">&gt; </code> 引用</span>
+            <span class="flex items-center gap-1"><code class="px-1 py-0.5 rounded bg-gray-800/80 border border-gray-700/60 font-mono text-[10px] text-sky-400">```</code> コード</span>
           </div>
-          <span class="text-gray-500 text-[11px]">文字入力・編集内容は自動で同期されます</span>
+          <span class="text-gray-500 text-[10px] hidden sm:inline">自動保存</span>
+        </div>
+
+        <!-- TipTap WYSIWYG Editor Canvas (Always active & editable) -->
+        <div id="tiptapEditorMount" class="p-6 sm:p-10 rounded-2xl border min-h-[580px] focus:outline-none shadow-sm mb-20" style="background-color: var(--bg-card); border-color: var(--border-color);">
         </div>
       </div>
 
@@ -1568,13 +1563,13 @@
         return;
       }
 
-      headings.forEach((item) => {
+      headings.forEach((item, idx) => {
         const indent = Math.max(0, (item.level - 1) * 10);
         const headingColorVar = `var(--h${Math.min(6, item.level)}-color)`;
         
         const link = document.createElement('a');
         link.href = `#${item.id}`;
-        link.className = 'toc-link flex items-center gap-2 py-1 px-2 rounded hover:bg-indigo-500/10 text-gray-400 transition group';
+        link.className = 'toc-link flex items-center gap-2 py-1 px-2 rounded hover:bg-indigo-500/10 text-gray-400 transition group cursor-pointer';
         link.style.paddingLeft = `${Math.max(6, indent)}px`;
         link.dataset.id = item.id;
         link.dataset.headingColor = headingColorVar;
@@ -1592,21 +1587,20 @@
 
         link.addEventListener('click', (e) => {
           e.preventDefault();
-          scrollToHeading(item.id);
+          scrollToHeading({ id: item.id, index: idx, text: item.text });
         });
         tocList.appendChild(link);
 
         const mLink = document.createElement('a');
         mLink.href = `#${item.id}`;
-        mLink.className = 'flex items-center gap-2.5 py-2 px-3 rounded-lg hover:bg-indigo-500/10 text-gray-300 transition truncate';
+        mLink.className = 'flex items-center gap-2.5 py-2 px-3 rounded-lg hover:bg-indigo-500/10 text-gray-300 transition truncate cursor-pointer';
         mLink.style.paddingLeft = `${Math.max(12, indent * 1.4)}px`;
 
         const mDot = document.createElement('span');
-        mDot.className = 'w-2.5 h-2.5 rounded-full flex-shrink-0';
+        mDot.className = 'w-2 h-2 rounded-full flex-shrink-0';
         mDot.style.backgroundColor = headingColorVar;
 
         const mText = document.createElement('span');
-        mText.className = 'truncate';
         mText.textContent = item.text;
 
         mLink.appendChild(mDot);
@@ -1614,24 +1608,48 @@
 
         mLink.addEventListener('click', (e) => {
           e.preventDefault();
-          document.getElementById('mobileTocModal').classList.add('hidden');
-          scrollToHeading(item.id);
+          scrollToHeading({ id: item.id, index: idx, text: item.text });
         });
         mobileTocList.appendChild(mLink);
       });
     }
 
-    function scrollToHeading(id) {
-      const el = document.getElementById(id);
-      if (el) {
-        let parent = el;
-        while (parent && parent.id !== 'tiptapEditorMount') {
-          if (parent.classList.contains('hidden')) {
-            parent.classList.remove('hidden');
-          }
-          parent = parent.parentElement;
+    function scrollToHeading(targetInfo) {
+      const mount = document.getElementById('tiptapEditorMount');
+      if (!mount) return;
+
+      let targetEl = null;
+
+      // 1. IDで検索
+      if (targetInfo.id) {
+        targetEl = document.getElementById(targetInfo.id);
+      }
+
+      // 2. 見つからなければ、TipTap内の見出し要素から検索 (インデックス または テキストマッチ)
+      if (!targetEl) {
+        const headingEls = Array.from(mount.querySelectorAll('h1, h2, h3, h4, h5, h6'));
+        if (typeof targetInfo.index === 'number' && headingEls[targetInfo.index]) {
+          targetEl = headingEls[targetInfo.index];
+        } else if (targetInfo.text) {
+          const cleanTarget = targetInfo.text.trim().toLowerCase();
+          targetEl = headingEls.find(h => {
+            const hText = h.textContent.trim().toLowerCase();
+            return hText.includes(cleanTarget) || cleanTarget.includes(hText);
+          });
         }
-        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+
+      if (targetEl) {
+        // 固定ヘッダー分のオフセットを考慮して滑らかにスクロール
+        const yOffset = -90;
+        const y = targetEl.getBoundingClientRect().top + window.pageYOffset + yOffset;
+        window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+
+        // 見出しを一瞬ハイライト
+        targetEl.classList.add('transition-colors', 'duration-300', 'bg-indigo-500/20', 'rounded-lg', 'px-2');
+        setTimeout(() => {
+          targetEl.classList.remove('bg-indigo-500/20');
+        }, 1400);
       }
     }
 
@@ -1872,7 +1890,12 @@
     const fontSizeBtn = document.getElementById('fontSizeBtn');
     fontSizeBtn.addEventListener('click', () => {
       currentFontSizeIdx = (currentFontSizeIdx + 1) % fontSizes.length;
-      document.getElementById('tiptapEditorMount').style.fontSize = fontSizes[currentFontSizeIdx];
+      const newSize = fontSizes[currentFontSizeIdx];
+      document.documentElement.style.setProperty('--editor-font-size', newSize);
+      const editorMount = document.getElementById('tiptapEditorMount');
+      if (editorMount) editorMount.style.fontSize = newSize;
+      const proseEl = document.querySelector('.ProseMirror');
+      if (proseEl) proseEl.style.fontSize = newSize;
     });
 
     const toggleZenBtn = document.getElementById('toggleZenBtn');
