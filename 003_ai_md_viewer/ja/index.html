@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>AI Markdown Reader - AI長文マークダウン専用ビューア</title>
-  <meta name="description" content="AIが生成した長いMarkdownファイルをドラッグ＆ドロップで美しくリッチに変換・閲覧できる専用Webアプリ">
+  <title>AI Markdown Editor - オンラインMarkdownエディタ & 閲覧ツール</title>
+  <meta name="description" content="AIが生成した長文Markdownをドラッグ＆ドロップで即座に直接編集・美しくプレビューできる、完全無料・登録不要のオンラインMarkdownエディタ。">
   <meta name="theme-color" content="#4f46e5">
 
   <!-- Instant Theme Loader (Zero FOUC & LocalStorage Persistence) -->
@@ -795,10 +795,10 @@
         </a>
         <div class="min-w-0">
           <div class="flex items-center gap-2">
-            <h1 class="font-bold text-base sm:text-lg tracking-tight truncate" id="docHeaderTitle">AI Markdown Reader</h1>
+            <h1 class="font-bold text-base sm:text-lg tracking-tight truncate" id="docHeaderTitle">AI Markdown Editor</h1>
             <span id="badgeStatus" class="hidden sm:inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">✨ エディタ</span>
           </div>
-          <p class="text-xs text-gray-400 truncate" id="docSubTitle">ファイルをポイッと投げるだけでサクサク読める</p>
+          <p class="text-xs text-gray-400 truncate" id="docSubTitle">ファイルをポイッと投げて即座に直接編集・閲覧</p>
         </div>
       </div>
 
@@ -1006,14 +1006,14 @@
       <div id="emptyState" class="py-12 sm:py-16">
         <div class="max-w-2xl mx-auto text-center">
           <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 text-xs font-semibold mb-6">
-            <i data-lucide="bot" class="w-4 h-4"></i> AI時代の長文Markdown読書コンパニオン
+            <i data-lucide="bot" class="w-4 h-4"></i> AI時代のオンラインMarkdownエディタ
           </div>
 
           <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight mb-4" style="color: var(--text-main);">
-            AIの長文MD、<br class="sm:hidden"><span class="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">ポイッと投げるだけ</span>で快読。
+            AIの長文MD、<br class="sm:hidden"><span class="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">ポイッと投げて即編集</span>。
           </h2>
           <p class="text-base mb-8 max-w-lg mx-auto" style="color: var(--text-muted);">
-            ChatGPT・Claude・Gemini・DeepSeekが生成した長〜い設計書やコード、Mermaid図、数式を美しく快適に読める形へ一瞬で変換します。
+            ChatGPT・Claude・Gemini・DeepSeekが生成した長文設計書やコード、Mermaid図をドラッグ＆ドロップで即展開。直感タイピングでそのまますぐ編集・保存・コピーできます。
           </p>
 
           <!-- Interactive Dropzone -->
@@ -1199,7 +1199,7 @@
 
   <!-- Main Application Logic -->
   <script>
-    const I18N = {"code": "ja", "name": "日本語", "flag": "🇯🇵", "native": "日本語", "region": "Japan", "title": "AI Markdown Reader - AI長文マークダウン専用ビューア", "desc": "AIが生成した長いMarkdownファイルをドラッグ＆ドロップで美しくリッチに変換・閲覧できる専用Webアプリ", "subTitle": "ファイルをポイッと投げるだけでサクサク読める", "badgeStatus": "閲覧専用", "searchPlaceholder": "文書内を検索... (Enterで次へ)", "openFile": "ファイルを開く", "dropOverlayTitle": "ここにMarkdownファイルをドロップ！", "dropOverlayDesc": "AIが出力した長文ドキュメントを即座にリッチ展開します✨", "heroTag": "AI時代の長文Markdown読書コンパニオン", "heroTitle1": "AIの長文MD、", "heroTitle2": "ポイッと投げるだけ", "heroTitle3": "で快読。", "heroDesc": "ChatGPT・Claude・Gemini・DeepSeekが生成した長〜い設計書やコード、Mermaid図、数式を美しく快適に読める形へ一瞬で変換します。", "dropZoneTitle": "Markdownファイルをここにドラッグ＆ドロップ", "dropZoneSub": "またはクリックしてファイルを選択", "sampleBtn": "サンプル設計書で試す", "pasteBtn": "クリップボードから貼り付け", "statChar": "文字数", "statRead": "読了目安", "statReadUnit": "約 {n} 分", "statHead": "見出し数", "statCode": "コードブロック", "statMmd": "Mermaid図", "tocTitle": "目次（TOC）", "tocProgress": "読了進捗", "tocEmpty": "見出しがありません", "addBtn": "追加", "zenExit": "集中モード終了 (Esc)", "unitChar": " 文字", "unitHeading": " 箇所", "unitCode": " ブロック", "unitMmd": " 図", "copied": "コピー完了!", "saved": "保存完了!", "readingText": "閲覧中: ", "alertSelectMd": "Markdownファイル（.md, .markdown, .txt）を選択してください。", "alertSampleFail": "サンプルファイルの読み込みに失敗しました", "alertSampleErr": "サンプル読み込みエラー: ", "alertClipEmpty": "クリップボードにテキストがありません。", "promptClip": "マークダウンテキストをここに貼り付けてください:", "sampleFile1": "01_次世代AIエージェント自律基盤仕様書.md", "sampleFile2": "02_Webフロントエンド実装設計書.md"};
+    const I18N = {"code": "ja", "name": "日本語", "flag": "🇯🇵", "native": "日本語", "region": "Japan", "title": "AI Markdown Editor - オンラインMarkdownエディタ & 閲覧ツール", "desc": "AIが生成した長文Markdownをドラッグ＆ドロップで即座に直接編集・美しくプレビューできる、完全無料・登録不要のオンラインMarkdownエディタ。", "subTitle": "ファイルをポイッと投げて即座に直接編集・閲覧", "badgeStatus": "✨ エディタ", "searchPlaceholder": "文書内を検索... (Enterで次へ)", "openFile": "ファイルを開く", "dropOverlayTitle": "ここにMarkdownファイルをドロップ！", "dropOverlayDesc": "AIが出力した長文ドキュメントを即座にリッチ展開します✨", "heroTag": "AI時代の長文Markdown読書コンパニオン", "heroTitle1": "AIの長文MD、", "heroTitle2": "ポイッと投げるだけ", "heroTitle3": "で快読。", "heroDesc": "ChatGPT・Claude・Gemini・DeepSeekが生成した長文設計書やコード、Mermaid図をドラッグ＆ドロップで即展開。直感タイピングでそのまますぐ編集・保存・コピーできます。", "dropZoneTitle": "Markdownファイルをここにドラッグ＆ドロップ", "dropZoneSub": "またはクリックしてファイルを選択", "sampleBtn": "サンプル設計書で試す", "pasteBtn": "クリップボードから貼り付け", "statChar": "文字数", "statRead": "読了目安", "statReadUnit": "約 {n} 分", "statHead": "見出し数", "statCode": "コードブロック", "statMmd": "Mermaid図", "tocTitle": "目次（TOC）", "tocProgress": "読了進捗", "tocEmpty": "見出しがありません", "addBtn": "追加", "zenExit": "集中モード終了 (Esc)", "unitChar": " 文字", "unitHeading": " 箇所", "unitCode": " ブロック", "unitMmd": " 図", "copied": "コピー完了!", "saved": "保存完了!", "readingText": "閲覧中: ", "alertSelectMd": "Markdownファイル（.md, .markdown, .txt）を選択してください。", "alertSampleFail": "サンプルファイルの読み込みに失敗しました", "alertSampleErr": "サンプル読み込みエラー: ", "alertClipEmpty": "クリップボードにテキストがありません。", "promptClip": "マークダウンテキストをここに貼り付けてください:", "sampleFile1": "01_次世代AIエージェント自律基盤仕様書.md", "sampleFile2": "02_Webフロントエンド実装設計書.md"};
 
     let documents = [];
     let activeDocId = null;
