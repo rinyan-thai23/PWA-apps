@@ -180,7 +180,7 @@
     /* 3. Zen Paper (Crystal Clear White / Perfect Light Contrast) */
     html.theme-zen-paper {
       --bg-main: #f8fafc;
-      --bg-header: rgba(255, 255, 255, 0.92);
+      --bg-header: #ffffff;
       --bg-card: #ffffff;
       --bg-card-alt: #f1f5f9;
       --bg-btn: #f1f5f9;
@@ -207,7 +207,7 @@
     /* 4. Warm Sepia (Book & Kindle Eye Comfort / Rich Amber Brown) */
     html.theme-sepia {
       --bg-main: #fbf5eb;
-      --bg-header: rgba(251, 245, 235, 0.92);
+      --bg-header: #fbf5eb;
       --bg-card: #f4ecdc;
       --bg-card-alt: #ebdcc9;
       --bg-btn: #ebdcc9;
@@ -702,6 +702,73 @@
       height: 0;
       pointer-events: none;
     }
+
+    /* Strong Global Theme Overrides for Light & Sepia Modes */
+    html.theme-zen-paper header,
+    html.theme-sepia header {
+      background-color: var(--bg-header) !important;
+      border-color: var(--border-color) !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+    }
+    html.theme-zen-paper header a,
+    html.theme-zen-paper header h1,
+    html.theme-sepia header a,
+    html.theme-sepia header h1 {
+      color: var(--text-main) !important;
+    }
+    html.theme-zen-paper header p,
+    html.theme-sepia header p {
+      color: var(--text-muted) !important;
+    }
+    html.theme-zen-paper header button,
+    html.theme-sepia header button {
+      color: var(--text-muted) !important;
+    }
+    html.theme-zen-paper header button:hover,
+    html.theme-sepia header button:hover {
+      color: var(--text-main) !important;
+      background-color: var(--bg-card-alt) !important;
+    }
+
+    /* Tab Bar Overrides */
+    html.theme-zen-paper #documentTabsBar,
+    html.theme-sepia #documentTabsBar {
+      background-color: var(--bg-card) !important;
+      border-color: var(--border-color) !important;
+    }
+    html.theme-zen-paper .doc-tab,
+    html.theme-sepia .doc-tab {
+      background-color: var(--bg-card-alt) !important;
+      color: var(--text-muted) !important;
+      border-color: var(--border-color) !important;
+    }
+    html.theme-zen-paper .doc-tab.active-tab,
+    html.theme-sepia .doc-tab.active-tab {
+      background-color: var(--bg-card) !important;
+      color: var(--text-main) !important;
+      border-color: var(--accent-color) !important;
+    }
+
+    /* TOC link color in Light Modes */
+    html.theme-zen-paper .toc-link,
+    html.theme-sepia .toc-link {
+      color: var(--text-muted) !important;
+    }
+    html.theme-zen-paper .toc-link:hover,
+    html.theme-sepia .toc-link:hover {
+      color: var(--text-main) !important;
+      background-color: var(--bg-card-alt) !important;
+    }
+
+    /* Format buttons hover */
+    .fmt-btn:hover {
+      background-color: var(--accent-color) !important;
+      color: #ffffff !important;
+    }
+    .fmt-btn:hover span {
+      color: #ffffff !important;
+    }
+
 </style>
 </head>
 <body class="min-h-screen flex flex-col font-sans transition-colors duration-200">
@@ -718,7 +785,7 @@
   </div>
 
   <!-- Header -->
-  <header class="sticky top-0 z-40 backdrop-blur-md bg-opacity-85 border-b transition-colors" style="background-color: rgba(var(--header-bg, 17, 24, 39), 0.85); border-color: var(--border-color);">
+  <header class="sticky top-0 z-40 backdrop-blur-md bg-opacity-85 border-b transition-colors" style="background-color: var(--bg-header); border-color: var(--border-color); color: var(--text-main);">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
       
       <!-- Brand & Title -->
@@ -906,7 +973,7 @@
 
         <!-- Tab Controls -->
         <div class="flex items-center gap-1.5 flex-shrink-0">
-          <label for="addDocFileInput" class="cursor-pointer px-2.5 py-1 rounded-lg bg-gray-800/80 hover:bg-gray-700 text-gray-300 text-xs font-medium border border-gray-700 transition flex items-center gap-1.5" title="Add Markdown File">
+          <label for="addDocFileInput" class="cursor-pointer px-2.5 py-1 rounded-lg text-xs font-medium border transition flex items-center gap-1.5" style="background-color: var(--bg-card-alt); border-color: var(--border-color); color: var(--text-main);" title="Add Markdown File">
             <i data-lucide="plus" class="w-3.5 h-3.5 text-indigo-400"></i>
             <span class="hidden sm:inline">追加</span>
           </label>
@@ -942,33 +1009,33 @@
             <i data-lucide="bot" class="w-4 h-4"></i> AI時代の長文Markdown読書コンパニオン
           </div>
 
-          <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight mb-4 text-white">
+          <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight mb-4" style="color: var(--text-main);">
             AIの長文MD、<br class="sm:hidden"><span class="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">ポイッと投げるだけ</span>で快読。
           </h2>
-          <p class="text-base text-gray-400 mb-8 max-w-lg mx-auto">
+          <p class="text-base mb-8 max-w-lg mx-auto" style="color: var(--text-muted);">
             ChatGPT・Claude・Gemini・DeepSeekが生成した長〜い設計書やコード、Mermaid図、数式を美しく快適に読める形へ一瞬で変換します。
           </p>
 
           <!-- Interactive Dropzone -->
-          <div id="dropZone" class="group relative rounded-3xl border-2 border-dashed border-gray-700 hover:border-indigo-500/60 p-8 sm:p-12 transition-all duration-300 bg-gray-900/40 hover:bg-gray-900/70 cursor-pointer shadow-lg">
+          <div id="dropZone" class="group relative rounded-3xl border-2 border-dashed p-8 sm:p-12 transition-all duration-300 cursor-pointer shadow-sm" style="background-color: var(--bg-card); border-color: var(--border-color);">
             <input type="file" id="dropZoneInput" accept=".md,.markdown,.txt" multiple class="hidden">
             
             <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 group-hover:scale-110 group-hover:bg-indigo-500/20 transition-all">
               <i data-lucide="file-text" class="w-8 h-8"></i>
             </div>
             
-            <h3 class="text-lg font-semibold text-white mb-1">
+            <h3 class="text-lg font-semibold mb-1" style="color: var(--text-main);">
               Markdownファイルをここにドラッグ＆ドロップ
             </h3>
-            <p class="text-sm text-gray-400 mb-4">
+            <p class="text-sm mb-4" style="color: var(--text-muted);">
               またはクリックしてファイルを選択
             </p>
 
             <div class="flex flex-wrap items-center justify-center gap-2 text-xs text-gray-500">
-              <span class="chip-badge px-2 py-1 rounded border"><code>Ctrl+V</code></span>
-              <span class="chip-badge px-2 py-1 rounded border">Mermaid</span>
-              <span class="chip-badge px-2 py-1 rounded border">KaTeX</span>
-              <span class="chip-badge px-2 py-1 rounded border">Multi-Tabs</span>
+              <span class="chip-badge px-2 py-1 rounded border" style="background-color: var(--bg-card-alt); border-color: var(--border-color); color: var(--text-muted);"><code>Ctrl+V</code></span>
+              <span class="chip-badge px-2 py-1 rounded border" style="background-color: var(--bg-card-alt); border-color: var(--border-color); color: var(--text-muted);">Mermaid</span>
+              <span class="chip-badge px-2 py-1 rounded border" style="background-color: var(--bg-card-alt); border-color: var(--border-color); color: var(--text-muted);">KaTeX</span>
+              <span class="chip-badge px-2 py-1 rounded border" style="background-color: var(--bg-card-alt); border-color: var(--border-color); color: var(--text-muted);">Multi-Tabs</span>
             </div>
           </div>
 
@@ -978,11 +1045,11 @@
               <i data-lucide="file-code" class="w-4 h-4"></i>
               サンプル設計書で試す
             </button>
-            <button id="pasteClipboardBtn" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gray-800 hover:bg-gray-700 active:bg-gray-900 text-white text-sm font-medium flex items-center justify-center gap-2 border border-gray-700 transition">
+            <button id="pasteClipboardBtn" class="w-full sm:w-auto px-5 py-2.5 rounded-xl text-sm font-medium flex items-center justify-center gap-2 border transition shadow-sm" style="background-color: var(--bg-card-alt); border-color: var(--border-color); color: var(--text-main);">
               <i data-lucide="clipboard" class="w-4 h-4 text-indigo-400"></i>
               クリップボードから貼り付け
             </button>
-            <button id="createNewDocBtn" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-gray-800/50 hover:bg-gray-800 text-gray-400 hover:text-white text-sm font-medium flex items-center justify-center gap-1.5 border border-gray-700/50 transition" title="空のドキュメントを作成して直接執筆">
+            <button id="createNewDocBtn" class="w-full sm:w-auto px-4 py-2.5 rounded-xl text-sm font-medium flex items-center justify-center gap-1.5 border transition shadow-sm" style="background-color: var(--bg-card-alt); border-color: var(--border-color); color: var(--text-main);" title="空のドキュメントを作成して直接執筆">
               <i data-lucide="plus" class="w-4 h-4"></i>
               新規作成
             </button>
@@ -1044,7 +1111,7 @@
           <i data-lucide="copy" class="w-4 h-4"></i>
           <span>テキストコピー</span>
         </button>
-        <button id="downloadMdBtn" class="w-full px-3 py-2 rounded-xl bg-gray-800/90 hover:bg-gray-700 active:bg-gray-800 text-gray-200 hover:text-white font-medium text-xs border border-gray-700/70 flex items-center justify-center gap-2 transition shadow-sm active:scale-98" title="編集後のMarkdownファイルをローカルに保存">
+        <button id="downloadMdBtn" class="w-full px-3 py-2 rounded-xl font-medium text-xs border flex items-center justify-center gap-2 transition shadow-sm active:scale-98" style="background-color: var(--bg-card-alt); border-color: var(--border-color); color: var(--text-main);" title="編集後のMarkdownファイルをローカルに保存">
           <i data-lucide="download" class="w-4 h-4 text-emerald-400"></i>
           <span>mdダウンロード</span>
         </button>
@@ -1059,27 +1126,27 @@
           <span class="text-[10px] text-gray-500">押して挿入</span>
         </div>
         <div class="grid grid-cols-2 gap-1.5 text-xs">
-          <button type="button" class="fmt-btn px-2 py-1.5 rounded-lg bg-gray-800/70 hover:bg-indigo-600 hover:text-white border border-gray-700/60 text-gray-300 flex items-center gap-1.5 transition text-[11px] font-medium group shadow-sm active:scale-95" data-format="h1" title="大見出しに変換 (# )">
+          <button type="button" class="fmt-btn px-2 py-1.5 rounded-lg border flex items-center gap-1.5 transition text-[11px] font-medium group shadow-sm active:scale-95" style="background-color: var(--bg-card-alt); border-color: var(--border-color); color: var(--text-main);" data-format="h1" title="大見出しに変換 (# )">
             <span class="font-mono text-sky-400 group-hover:text-white font-bold text-xs">#</span>
             <span>大見出し</span>
           </button>
-          <button type="button" class="fmt-btn px-2 py-1.5 rounded-lg bg-gray-800/70 hover:bg-indigo-600 hover:text-white border border-gray-700/60 text-gray-300 flex items-center gap-1.5 transition text-[11px] font-medium group shadow-sm active:scale-95" data-format="h2" title="中見出しに変換 (## )">
+          <button type="button" class="fmt-btn px-2 py-1.5 rounded-lg border flex items-center gap-1.5 transition text-[11px] font-medium group shadow-sm active:scale-95" style="background-color: var(--bg-card-alt); border-color: var(--border-color); color: var(--text-main);" data-format="h2" title="中見出しに変換 (## )">
             <span class="font-mono text-sky-400 group-hover:text-white font-bold text-xs">##</span>
             <span>中見出し</span>
           </button>
-          <button type="button" class="fmt-btn px-2 py-1.5 rounded-lg bg-gray-800/70 hover:bg-indigo-600 hover:text-white border border-gray-700/60 text-gray-300 flex items-center gap-1.5 transition text-[11px] font-medium group shadow-sm active:scale-95" data-format="h3" title="小見出しに変換 (### )">
+          <button type="button" class="fmt-btn px-2 py-1.5 rounded-lg border flex items-center gap-1.5 transition text-[11px] font-medium group shadow-sm active:scale-95" style="background-color: var(--bg-card-alt); border-color: var(--border-color); color: var(--text-main);" data-format="h3" title="小見出しに変換 (### )">
             <span class="font-mono text-sky-400 group-hover:text-white font-bold text-xs">###</span>
             <span>小見出し</span>
           </button>
-          <button type="button" class="fmt-btn px-2 py-1.5 rounded-lg bg-gray-800/70 hover:bg-indigo-600 hover:text-white border border-gray-700/60 text-gray-300 flex items-center gap-1.5 transition text-[11px] font-medium group shadow-sm active:scale-95" data-format="bulletList" title="箇条書きリスト化 (- )">
+          <button type="button" class="fmt-btn px-2 py-1.5 rounded-lg border flex items-center gap-1.5 transition text-[11px] font-medium group shadow-sm active:scale-95" style="background-color: var(--bg-card-alt); border-color: var(--border-color); color: var(--text-main);" data-format="bulletList" title="箇条書きリスト化 (- )">
             <span class="font-mono text-sky-400 group-hover:text-white font-bold text-xs">-</span>
             <span>リスト</span>
           </button>
-          <button type="button" class="fmt-btn px-2 py-1.5 rounded-lg bg-gray-800/70 hover:bg-indigo-600 hover:text-white border border-gray-700/60 text-gray-300 flex items-center gap-1.5 transition text-[11px] font-medium group shadow-sm active:scale-95" data-format="blockquote" title="引用ブロック化 (> )">
+          <button type="button" class="fmt-btn px-2 py-1.5 rounded-lg border flex items-center gap-1.5 transition text-[11px] font-medium group shadow-sm active:scale-95" style="background-color: var(--bg-card-alt); border-color: var(--border-color); color: var(--text-main);" data-format="blockquote" title="引用ブロック化 (> )">
             <span class="font-mono text-sky-400 group-hover:text-white font-bold text-xs">&gt;</span>
             <span>引用</span>
           </button>
-          <button type="button" class="fmt-btn px-2 py-1.5 rounded-lg bg-gray-800/70 hover:bg-indigo-600 hover:text-white border border-gray-700/60 text-gray-300 flex items-center gap-1.5 transition text-[11px] font-medium group shadow-sm active:scale-95" data-format="codeBlock" title="コードブロック化 (```)">
+          <button type="button" class="fmt-btn px-2 py-1.5 rounded-lg border flex items-center gap-1.5 transition text-[11px] font-medium group shadow-sm active:scale-95" style="background-color: var(--bg-card-alt); border-color: var(--border-color); color: var(--text-main);" data-format="codeBlock" title="コードブロック化 (```)">
             <span class="font-mono text-sky-400 group-hover:text-white font-bold text-xs">```</span>
             <span>コード</span>
           </button>
@@ -1095,12 +1162,12 @@
         </div>
 
         <!-- Progress Meter -->
-        <div class="mb-3 px-1 py-1.5 bg-gray-900/30 rounded-lg border border-gray-800/40">
+        <div class="mb-3 px-2 py-1.5 rounded-lg border" style="background-color: var(--bg-card-alt); border-color: var(--border-color);">
           <div class="flex justify-between items-center text-[10px] text-gray-400 mb-1">
             <span>読了進捗</span>
             <span id="tocProgressPercent" class="font-bold text-indigo-400">0%</span>
           </div>
-          <div class="w-full bg-gray-800 rounded-full h-1.5 overflow-hidden">
+          <div class="w-full rounded-full h-1.5 overflow-hidden" style="background-color: var(--border-color);">
             <div id="tocProgressBar" class="bg-gradient-to-r from-indigo-500 to-emerald-400 h-1.5 rounded-full transition-all duration-200" style="width: 0%"></div>
           </div>
         </div>
