@@ -940,18 +940,18 @@
           </div>
 
           <!-- Quick Try Buttons -->
-          <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <button id="createNewDocBtn" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white text-sm font-semibold flex items-center justify-center gap-2 shadow-md transition">
-              <i data-lucide="edit-3" class="w-4 h-4"></i>
-              ✍️ 新規作成 (Notion風エディタ)
-            </button>
-            <button id="loadSampleBtn" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gray-800 hover:bg-gray-700 active:bg-gray-900 text-white text-sm font-medium flex items-center justify-center gap-2 border border-gray-700 transition">
-              <i data-lucide="file-code" class="w-4 h-4 text-purple-400"></i>
+          <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <button id="loadSampleBtn" class="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white text-sm font-semibold flex items-center justify-center gap-2 shadow-md transition">
+              <i data-lucide="file-code" class="w-4 h-4"></i>
               サンプル設計書で試す
             </button>
-            <button id="pasteClipboardBtn" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gray-800/50 hover:bg-gray-800 text-gray-300 text-sm font-medium flex items-center justify-center gap-2 border border-gray-700/50 transition">
+            <button id="pasteClipboardBtn" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gray-800 hover:bg-gray-700 active:bg-gray-900 text-white text-sm font-medium flex items-center justify-center gap-2 border border-gray-700 transition">
               <i data-lucide="clipboard" class="w-4 h-4 text-indigo-400"></i>
               クリップボードから貼り付け
+            </button>
+            <button id="createNewDocBtn" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-gray-800/50 hover:bg-gray-800 text-gray-400 hover:text-white text-sm font-medium flex items-center justify-center gap-1.5 border border-gray-700/50 transition" title="空のドキュメントを作成して直接執筆">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+              新規作成
             </button>
           </div>
 
@@ -986,11 +986,18 @@
             </div>
           </div>
 
-          <div class="flex items-center gap-1.5 flex-shrink-0">
-            <button id="summaryEditBtn" class="px-2.5 py-1.5 rounded-lg text-indigo-300 hover:text-white bg-indigo-500/15 hover:bg-indigo-500/30 border border-indigo-500/30 text-xs font-semibold flex items-center gap-1 transition" title="このドキュメントを編集 (Ctrl+E)">
-              <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
-              <span>編集</span>
-            </button>
+          <div class="flex items-center gap-2 flex-shrink-0">
+            <!-- View / Edit Segment Controls -->
+            <div class="inline-flex items-center p-1 rounded-xl bg-gray-900/80 border border-gray-700/60 text-xs shadow-inner">
+              <button id="viewModeTabBtn" class="px-3 py-1.5 rounded-lg font-semibold bg-indigo-600 text-white flex items-center gap-1.5 transition shadow-sm" title="閲覧・読書モード">
+                <i data-lucide="eye" class="w-3.5 h-3.5"></i>
+                <span>閲覧</span>
+              </button>
+              <button id="editModeTabBtn" class="px-3 py-1.5 rounded-lg font-semibold text-gray-400 hover:text-white flex items-center gap-1.5 transition" title="Notion風インライン編集モード (Ctrl+E)">
+                <i data-lucide="edit-3" class="w-3.5 h-3.5 text-indigo-400"></i>
+                <span>編集 (Notion風)</span>
+              </button>
+            </div>
             <button id="printBtn" class="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition" title="Print / PDF">
               <i data-lucide="printer" class="w-4 h-4"></i>
             </button>
@@ -1000,8 +1007,12 @@
           </div>
         </div>
 
-        <article id="mainContent" class="md-content prose max-w-none pb-24">
+        <article id="mainContent" class="md-content prose max-w-none pb-12 cursor-text" title="ダブルクリックで直接Notion風編集モードに切り替わります">
         </article>
+        <div id="viewModeHintBar" class="pb-16 flex items-center justify-center text-xs text-gray-500 gap-1.5 transition">
+          <i data-lucide="info" class="w-3.5 h-3.5 text-indigo-400"></i>
+          <span>本文をダブルクリック、または上部の「編集」タブを押すと、このままNotionスタイルで直接編集できます</span>
+        </div>
 
         <!-- Notion-style TipTap Editor Area (Hidden by default) -->
         <div id="editorWrapper" class="hidden pb-24">
@@ -2091,6 +2102,7 @@
     let tiptapInstance = null;
     let isEditingMode = false;
     let turndownService = null;
+    let syncTimeout = null;
 
     function initTurndown() {
       if (typeof TurndownService !== 'undefined' && !turndownService) {
@@ -2118,10 +2130,26 @@
       return md.trim();
     }
 
+    function syncEditorStatsRealtime() {
+      if (!tiptapInstance || !activeDocId) return;
+      const doc = documents.find(d => d.id === activeDocId);
+      if (!doc) return;
+
+      const rawHtml = tiptapInstance.getHTML();
+      const currentMd = convertHtmlToMarkdown(rawHtml);
+      doc.rawMarkdown = currentMd;
+
+      // 統計リアルタイム更新
+      const plainText = tiptapInstance.getText();
+      const charCount = plainText.length;
+      const readingMinutes = Math.max(1, Math.ceil(charCount / 500));
+      document.getElementById('statCharCount').textContent = charCount.toLocaleString() + I18N.unitChar;
+      document.getElementById('statReadTime').textContent = I18N.statReadUnit.replace('{n}', readingMinutes);
+    }
+
     async function enterEditMode() {
       if (isEditingMode) return;
 
-      // もしドキュメントが何もない場合は新規作成
       if (!activeDocId || documents.length === 0) {
         createNewDocAndEdit();
         return;
@@ -2132,20 +2160,32 @@
 
       isEditingMode = true;
 
-      // UI表示切り替え
+      // UI表示切り替え（サマリーカードは常に表示したまま！）
       document.getElementById('mainContent').classList.add('hidden');
-      document.getElementById('aiSummaryCard').classList.add('hidden');
+      const hintBar = document.getElementById('viewModeHintBar');
+      if (hintBar) hintBar.classList.add('hidden');
       document.getElementById('editorWrapper').classList.remove('hidden');
 
+      // セグメントタブのスタイル更新
+      const viewTab = document.getElementById('viewModeTabBtn');
+      const editTab = document.getElementById('editModeTabBtn');
+      if (viewTab && editTab) {
+        viewTab.className = 'px-3 py-1.5 rounded-lg font-semibold text-gray-400 hover:text-white flex items-center gap-1.5 transition';
+        editTab.className = 'px-3 py-1.5 rounded-lg font-semibold bg-indigo-600 text-white flex items-center gap-1.5 transition shadow-sm';
+      }
+
       const badge = document.getElementById('badgeStatus');
-      badge.textContent = '✨ 編集モード (Notion風)';
-      badge.className = 'hidden sm:inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30';
+      if (badge) {
+        badge.textContent = '✨ 編集モード (Notion風)';
+        badge.className = 'hidden sm:inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30';
+      }
 
       const toggleBtn = document.getElementById('toggleEditBtn');
       if (toggleBtn) {
         toggleBtn.classList.add('bg-indigo-600', 'text-white');
         toggleBtn.classList.remove('bg-indigo-500/10', 'text-gray-300');
-        document.getElementById('editBtnText').textContent = '閲覧に戻る';
+        const editText = document.getElementById('editBtnText');
+        if (editText) editText.textContent = '閲覧に戻る';
       }
 
       // TipTapの初期化またはコンテンツ設定
@@ -2155,9 +2195,11 @@
       if (!tiptapInstance) {
         if (window.__initTipTapEditor) {
           tiptapInstance = window.__initTipTapEditor(mountEl, initialHtml);
+          attachEditorListeners();
         } else {
           window.addEventListener('tiptap-ready', () => {
             tiptapInstance = window.__initTipTapEditor(mountEl, initialHtml);
+            attachEditorListeners();
           }, { once: true });
         }
       } else {
@@ -2166,6 +2208,16 @@
       }
 
       lucide.createIcons();
+    }
+
+    function attachEditorListeners() {
+      if (!tiptapInstance) return;
+      tiptapInstance.on('update', () => {
+        clearTimeout(syncTimeout);
+        syncTimeout = setTimeout(() => {
+          syncEditorStatsRealtime();
+        }, 200);
+      });
     }
 
     async function saveAndExitEditMode() {
@@ -2183,7 +2235,6 @@
         const editorHtml = tiptapInstance.getHTML();
         const newMarkdown = convertHtmlToMarkdown(editorHtml);
 
-        // ドキュメントを新しいMarkdownで再コンパイル
         const updatedDoc = compileMarkdownToDoc(doc.title, newMarkdown);
         doc.rawMarkdown = updatedDoc.rawMarkdown;
         doc.preprocessedHtml = updatedDoc.preprocessedHtml;
@@ -2196,17 +2247,29 @@
       // UI復元
       document.getElementById('editorWrapper').classList.add('hidden');
       document.getElementById('mainContent').classList.remove('hidden');
-      document.getElementById('aiSummaryCard').classList.remove('hidden');
+      const hintBar = document.getElementById('viewModeHintBar');
+      if (hintBar) hintBar.classList.remove('hidden');
+
+      // セグメントタブのスタイル復元
+      const viewTab = document.getElementById('viewModeTabBtn');
+      const editTab = document.getElementById('editModeTabBtn');
+      if (viewTab && editTab) {
+        viewTab.className = 'px-3 py-1.5 rounded-lg font-semibold bg-indigo-600 text-white flex items-center gap-1.5 transition shadow-sm';
+        editTab.className = 'px-3 py-1.5 rounded-lg font-semibold text-gray-400 hover:text-white flex items-center gap-1.5 transition';
+      }
 
       const badge = document.getElementById('badgeStatus');
-      badge.textContent = '閲覧中';
-      badge.className = 'hidden sm:inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20';
+      if (badge) {
+        badge.textContent = '閲覧中';
+        badge.className = 'hidden sm:inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20';
+      }
 
       const toggleBtn = document.getElementById('toggleEditBtn');
       if (toggleBtn) {
         toggleBtn.classList.remove('bg-indigo-600', 'text-white');
         toggleBtn.classList.add('bg-indigo-500/10', 'text-gray-300');
-        document.getElementById('editBtnText').textContent = '編集';
+        const editText = document.getElementById('editBtnText');
+        if (editText) editText.textContent = '編集';
       }
 
       // ドキュメント再描画
@@ -2221,17 +2284,28 @@
 
       document.getElementById('editorWrapper').classList.add('hidden');
       document.getElementById('mainContent').classList.remove('hidden');
-      document.getElementById('aiSummaryCard').classList.remove('hidden');
+      const hintBar = document.getElementById('viewModeHintBar');
+      if (hintBar) hintBar.classList.remove('hidden');
+
+      const viewTab = document.getElementById('viewModeTabBtn');
+      const editTab = document.getElementById('editModeTabBtn');
+      if (viewTab && editTab) {
+        viewTab.className = 'px-3 py-1.5 rounded-lg font-semibold bg-indigo-600 text-white flex items-center gap-1.5 transition shadow-sm';
+        editTab.className = 'px-3 py-1.5 rounded-lg font-semibold text-gray-400 hover:text-white flex items-center gap-1.5 transition';
+      }
 
       const badge = document.getElementById('badgeStatus');
-      badge.textContent = '閲覧中';
-      badge.className = 'hidden sm:inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20';
+      if (badge) {
+        badge.textContent = '閲覧中';
+        badge.className = 'hidden sm:inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20';
+      }
 
       const toggleBtn = document.getElementById('toggleEditBtn');
       if (toggleBtn) {
         toggleBtn.classList.remove('bg-indigo-600', 'text-white');
         toggleBtn.classList.add('bg-indigo-500/10', 'text-gray-300');
-        document.getElementById('editBtnText').textContent = '編集';
+        const editText = document.getElementById('editBtnText');
+        if (editText) editText.textContent = '編集';
       }
     }
 
@@ -2272,9 +2346,26 @@
         });
       }
 
-      const summaryEditBtn = document.getElementById('summaryEditBtn');
-      if (summaryEditBtn) {
-        summaryEditBtn.addEventListener('click', enterEditMode);
+      const viewModeTabBtn = document.getElementById('viewModeTabBtn');
+      if (viewModeTabBtn) {
+        viewModeTabBtn.addEventListener('click', () => {
+          if (isEditingMode) saveAndExitEditMode();
+        });
+      }
+
+      const editModeTabBtn = document.getElementById('editModeTabBtn');
+      if (editModeTabBtn) {
+        editModeTabBtn.addEventListener('click', () => {
+          if (!isEditingMode) enterEditMode();
+        });
+      }
+
+      // 本文ダブルクリックで即座にNotion編集モード突入
+      const mainContentEl = document.getElementById('mainContent');
+      if (mainContentEl) {
+        mainContentEl.addEventListener('dblclick', () => {
+          if (!isEditingMode) enterEditMode();
+        });
       }
 
       const createNewDocBtn = document.getElementById('createNewDocBtn');
