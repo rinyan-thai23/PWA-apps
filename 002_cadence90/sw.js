@@ -1,9 +1,10 @@
-const CACHE_NAME = 'cadence90-v3';
+const CACHE_NAME = 'cadence90-v4';
 
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './manifest.json',
+  './silence.wav',
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/apple-touch-icon.png',
