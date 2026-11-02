@@ -412,7 +412,7 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid
     $('speedLine').hidden=!(indoor&&kmh);$('speedLine').textContent=kmh?`≒ 時速 ${kmh.toFixed(1)} km`:'';
     renderLog();
   }
-  function setValue(v){rebase();value=Math.round(v);render();}
+  function setValue(v){rebase();value=Math.round(v);render();if(playing)updateMediaSession();}
 
   function flash(right){
     const el=(right?$('pR'):$('pL')).querySelector('rect');
@@ -436,14 +436,53 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid
   function unlockScreen(){try{if(wl)wl.release();}catch(e){}wl=null;}
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&playing)lockScreen();});
 
+  // ---------- ロック画面リモコン (MediaSession) ----------
+  const silentAudio=document.createElement('audio');
+  silentAudio.setAttribute('loop','');
+  silentAudio.setAttribute('playsinline','');
+  silentAudio.src='data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP8A/w==';
+
+  function updateMediaSession(){
+    if(!('mediaSession' in navigator))return;
+    const feel=FEELS.find(f=>value<=f[0])?FEELS.find(f=>value<=f[0])[1]:'';
+    try{
+      navigator.mediaSession.metadata=new MediaMetadata({
+        title:`${value} RPM（${feel}）`,
+        artist:'ケイデンス90タイマー',
+        album:indoor?'室内トレーニング':'車道走行モード',
+        artwork:[
+          {src:'icons/icon-192.png',sizes:'192x192',type:'image/png'},
+          {src:'icons/icon-512.png',sizes:'512x512',type:'image/png'}
+        ]
+      });
+      navigator.mediaSession.playbackState=playing?'playing':'paused';
+    }catch(e){}
+  }
+
+  function initMediaSession(){
+    if(!('mediaSession' in navigator))return;
+    const handlers={
+      play:()=>{if(!playing)start();},
+      pause:()=>{if(playing)stop();},
+      previoustrack:()=>{setValue(value-5);},
+      nexttrack:()=>{setValue(value+5);},
+      seekbackward:()=>{setValue(value-5);},
+      seekforward:()=>{setValue(value+5);}
+    };
+    for(const[action,handler] of Object.entries(handlers)){
+      try{navigator.mediaSession.setActionHandler(action,handler);}catch(e){}
+    }
+  }
+
   function start(){
     if(!ctx)initAudio();ctx.resume();
     t0=ctx.currentTime+.05;ph0=0;nextPh=0;lastPh=0;queue.length=0;noteIdx=0;
     playing=true;timer=setInterval(schedule,25);schedule();draw();go.textContent='止める';lockScreen();
+    silentAudio.play().catch(()=>{});updateMediaSession();
   }
   function stop(){
     playing=false;clearInterval(timer);cancelAnimationFrame(raf);queue.length=0;go.textContent='音を鳴らす';
-    unlockScreen();if(run)endRun('');saveLog();
+    unlockScreen();silentAudio.pause();updateMediaSession();if(run)endRun('');saveLog();
   }
 
   // ---------- インターバル ----------
@@ -594,6 +633,7 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid
   if(!prog||!prog.segs||!prog.segs.length)prog={rep:1,segs:[{t:'1:00',rpm:90,msg:''},{t:'1:00',rpm:100,msg:''}]};
   renderSim();renderRows();renderMine();
   setMode(store.get('cad-mode')==='indoor');
+  initMediaSession();
 })();
 
 // PWA Service Worker 登録
