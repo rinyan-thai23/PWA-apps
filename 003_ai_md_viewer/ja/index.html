@@ -64,7 +64,7 @@
           }),
         ],
         content: initialContent || '<p></p>',
-        autofocus: 'end',
+        autofocus: false,
       });
     };
     window.__TipTapReady = true;
@@ -993,11 +993,18 @@
                 <i data-lucide="eye" class="w-3.5 h-3.5"></i>
                 <span>閲覧</span>
               </button>
-              <button id="editModeTabBtn" class="px-3 py-1.5 rounded-lg font-semibold text-gray-400 hover:text-white flex items-center gap-1.5 transition" title="Notion風インライン編集モード (Ctrl+E)">
+              <button id="editModeTabBtn" class="px-3 py-1.5 rounded-lg font-semibold text-gray-400 hover:text-white flex items-center gap-1.5 transition" title="インライン編集モード (Ctrl+E)">
                 <i data-lucide="edit-3" class="w-3.5 h-3.5 text-indigo-400"></i>
-                <span>編集 (Notion風)</span>
+                <span>編集</span>
               </button>
             </div>
+
+            <!-- Text Copy Button (Full Markdown to Clipboard) -->
+            <button id="copyFullDocBtn" class="px-3 py-1.5 rounded-lg text-gray-300 hover:text-white bg-gray-800/80 hover:bg-gray-700 border border-gray-700/60 text-xs font-medium flex items-center gap-1.5 transition shadow-sm" title="ドキュメント全文（Markdown）をクリップボードにコピー">
+              <i data-lucide="copy" class="w-3.5 h-3.5 text-indigo-400"></i>
+              <span>テキストコピー</span>
+            </button>
+
             <button id="printBtn" class="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition" title="Print / PDF">
               <i data-lucide="printer" class="w-4 h-4"></i>
             </button>
@@ -1007,11 +1014,11 @@
           </div>
         </div>
 
-        <article id="mainContent" class="md-content prose max-w-none pb-12 cursor-text" title="ダブルクリックで直接Notion風編集モードに切り替わります">
+        <article id="mainContent" class="md-content prose max-w-none pb-12 cursor-text" title="ダブルクリックで直接編集モードに切り替わります">
         </article>
         <div id="viewModeHintBar" class="pb-16 flex items-center justify-center text-xs text-gray-500 gap-1.5 transition">
           <i data-lucide="info" class="w-3.5 h-3.5 text-indigo-400"></i>
-          <span>本文をダブルクリック、または上部の「編集」タブを押すと、このままNotionスタイルで直接編集できます</span>
+          <span>本文をダブルクリック、または上部の「編集」タブを押すと、このまま直接編集できます</span>
         </div>
 
         <!-- Notion-style TipTap Editor Area (Hidden by default) -->
@@ -2097,7 +2104,7 @@
     });
   
     // ==========================================
-    // TipTap Notion-style Editor Integration
+    // TipTap Inline Editor Integration
     // ==========================================
     let tiptapInstance = null;
     let isEditingMode = false;
@@ -2147,7 +2154,7 @@
       document.getElementById('statReadTime').textContent = I18N.statReadUnit.replace('{n}', readingMinutes);
     }
 
-    async function enterEditMode() {
+    async function enterEditMode(clickEvent = null) {
       if (isEditingMode) return;
 
       if (!activeDocId || documents.length === 0) {
@@ -2157,6 +2164,15 @@
 
       const doc = documents.find(d => d.id === activeDocId);
       if (!doc) return;
+
+      // 現在のスクロール位置を確実に保持
+      const currentScrollY = window.scrollY;
+
+      // ダブルクリック時の座標を取得
+      let clickCoords = null;
+      if (clickEvent && typeof clickEvent.clientX === 'number' && typeof clickEvent.clientY === 'number') {
+        clickCoords = { left: clickEvent.clientX, top: clickEvent.clientY };
+      }
 
       isEditingMode = true;
 
@@ -2176,7 +2192,7 @@
 
       const badge = document.getElementById('badgeStatus');
       if (badge) {
-        badge.textContent = '✨ 編集モード (Notion風)';
+        badge.textContent = '✨ 編集モード';
         badge.className = 'hidden sm:inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30';
       }
 
@@ -2192,19 +2208,54 @@
       const mountEl = document.getElementById('tiptapEditorMount');
       const initialHtml = marked.parse(doc.rawMarkdown || '');
 
+      const applyEditorContentAndFocus = () => {
+        if (!tiptapInstance) return;
+
+        // まず現在のスクロール位置を復元（画面下へのジャンプを即座に抑止）
+        window.scrollTo({ top: currentScrollY, behavior: 'instant' });
+
+        // フォーカス設定：決して 'end'（末尾）に飛ばさない！
+        if (clickCoords && tiptapInstance.view) {
+          try {
+            // クリック座標に最も近いTipTapノードの位置を取得してキャレット配置
+            const posResult = tiptapInstance.view.posAtCoords(clickCoords);
+            if (posResult && typeof posResult.pos === 'number') {
+              tiptapInstance.commands.setTextSelection(posResult.pos);
+              tiptapInstance.view.focus();
+            } else if (tiptapInstance.view.dom) {
+              tiptapInstance.view.dom.focus({ preventScroll: true });
+            }
+          } catch (e) {
+            if (tiptapInstance.view.dom) {
+              tiptapInstance.view.dom.focus({ preventScroll: true });
+            }
+          }
+        } else {
+          // ボタンから入った場合：スクロールさせずに静かにフォーカス
+          if (tiptapInstance.view && tiptapInstance.view.dom) {
+            tiptapInstance.view.dom.focus({ preventScroll: true });
+          }
+        }
+
+        // フォーカス後にもスクロール位置を確実に再固定
+        window.scrollTo({ top: currentScrollY, behavior: 'instant' });
+      };
+
       if (!tiptapInstance) {
         if (window.__initTipTapEditor) {
           tiptapInstance = window.__initTipTapEditor(mountEl, initialHtml);
           attachEditorListeners();
+          applyEditorContentAndFocus();
         } else {
           window.addEventListener('tiptap-ready', () => {
             tiptapInstance = window.__initTipTapEditor(mountEl, initialHtml);
             attachEditorListeners();
+            applyEditorContentAndFocus();
           }, { once: true });
         }
       } else {
-        tiptapInstance.commands.setContent(initialHtml);
-        tiptapInstance.commands.focus('end');
+        tiptapInstance.commands.setContent(initialHtml, false);
+        applyEditorContentAndFocus();
       }
 
       lucide.createIcons();
@@ -2230,6 +2281,9 @@
 
       const doc = documents.find(d => d.id === activeDocId);
       if (!doc) return;
+
+      // 現在のスクロール位置を保持
+      const currentScrollY = window.scrollY;
 
       if (tiptapInstance) {
         const editorHtml = tiptapInstance.getHTML();
@@ -2274,6 +2328,7 @@
 
       // ドキュメント再描画
       await switchDocument(activeDocId);
+      window.scrollTo({ top: currentScrollY, behavior: 'instant' });
       launchConfetti();
       showToastNotification('ドキュメントを保存・更新しました！');
     }
@@ -2281,6 +2336,7 @@
     function cancelEditMode() {
       if (!isEditingMode) return;
       isEditingMode = false;
+      const currentScrollY = window.scrollY;
 
       document.getElementById('editorWrapper').classList.add('hidden');
       document.getElementById('mainContent').classList.remove('hidden');
@@ -2307,12 +2363,40 @@
         const editText = document.getElementById('editBtnText');
         if (editText) editText.textContent = '編集';
       }
+      window.scrollTo({ top: currentScrollY, behavior: 'instant' });
     }
 
     async function createNewDocAndEdit() {
       const defaultContent = '# 新規ドキュメント\n\nここをクリックして自由に文章を書き始めてください。\n\n## 見出しのタイピングテスト\n`## ` と入力してスペースを押すと自動でH2見出しになります。\n\n- `- ` で箇条書きリスト\n- `> ` で引用ブロック\n- ```` でコード枠\n';
       const doc = await addDocument('新規ドキュメント.md', defaultContent, true);
       await enterEditMode();
+    }
+
+    async function copyCurrentDocumentText() {
+      if (!activeDocId || documents.length === 0) return;
+      const doc = documents.find(d => d.id === activeDocId);
+      if (!doc) return;
+
+      let textToCopy = doc.rawMarkdown || '';
+      if (isEditingMode && tiptapInstance) {
+        textToCopy = convertHtmlToMarkdown(tiptapInstance.getHTML());
+      }
+
+      try {
+        await navigator.clipboard.writeText(textToCopy);
+        showToastNotification('ドキュメントのテキストをコピーしました！');
+      } catch (err) {
+        // Fallback for clipboard
+        const ta = document.createElement('textarea');
+        ta.value = textToCopy;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        showToastNotification('ドキュメントのテキストをコピーしました！');
+      }
     }
 
     function showToastNotification(message) {
@@ -2337,11 +2421,11 @@
 
       const toggleEditBtn = document.getElementById('toggleEditBtn');
       if (toggleEditBtn) {
-        toggleEditBtn.addEventListener('click', () => {
+        toggleEditBtn.addEventListener('click', (e) => {
           if (isEditingMode) {
             saveAndExitEditMode();
           } else {
-            enterEditMode();
+            enterEditMode(e);
           }
         });
       }
@@ -2355,17 +2439,23 @@
 
       const editModeTabBtn = document.getElementById('editModeTabBtn');
       if (editModeTabBtn) {
-        editModeTabBtn.addEventListener('click', () => {
-          if (!isEditingMode) enterEditMode();
+        editModeTabBtn.addEventListener('click', (e) => {
+          if (!isEditingMode) enterEditMode(e);
         });
       }
 
-      // 本文ダブルクリックで即座にNotion編集モード突入
+      // 本文ダブルクリックで即座にその位置で編集モード突入
       const mainContentEl = document.getElementById('mainContent');
       if (mainContentEl) {
-        mainContentEl.addEventListener('dblclick', () => {
-          if (!isEditingMode) enterEditMode();
+        mainContentEl.addEventListener('dblclick', (e) => {
+          if (!isEditingMode) enterEditMode(e);
         });
+      }
+
+      // テキストコピーボタン
+      const copyFullDocBtn = document.getElementById('copyFullDocBtn');
+      if (copyFullDocBtn) {
+        copyFullDocBtn.addEventListener('click', copyCurrentDocumentText);
       }
 
       const createNewDocBtn = document.getElementById('createNewDocBtn');
@@ -2385,17 +2475,7 @@
 
       const editorCopyMdBtn = document.getElementById('editorCopyMdBtn');
       if (editorCopyMdBtn) {
-        editorCopyMdBtn.addEventListener('click', async () => {
-          if (tiptapInstance) {
-            const md = convertHtmlToMarkdown(tiptapInstance.getHTML());
-            try {
-              await navigator.clipboard.writeText(md);
-              showToastNotification('Markdownをクリップボードにコピーしました！');
-            } catch (e) {
-              console.error(e);
-            }
-          }
-        });
+        editorCopyMdBtn.addEventListener('click', copyCurrentDocumentText);
       }
 
       // ショートカットキー (Ctrl+E で編集トグル, Ctrl+S で保存, Esc でキャンセル)
