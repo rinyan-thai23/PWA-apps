@@ -6,7 +6,7 @@
   <title>Cadence 90 Timer - Cycling Cadence Metronome & Indoor HUD</title>
   <meta name="description" content="Dedicated cadence 90 RPM metronome and indoor smart trainer HUD for road cyclists. Features earphone audio guidance, lock screen remote controls, and gear ratio speed calculator. Installable offline PWA.">
   <meta name="keywords" content="Cadence Metronome, Cycling Cadence 90, Road Bike Cadence, Indoor Trainer HUD, Smart Trainer PWA, MediaSession Cycling">
-  <meta name="theme-color" content="#1B2A3A">
+  <meta name="theme-color" content="#0b111e">
 
   <!-- PWA & Mobile Meta Tags -->
   <link rel="manifest" href="manifest.json">
@@ -99,25 +99,114 @@
 
   <style>
     :root {
-      --bg-main: #0b111e;
-      --bg-card: #151e2e;
-      --bg-card-alt: #1c273b;
-      --border-color: #24324a;
+      --bg-main: #080d1a;
+      --bg-card: rgba(18, 27, 44, 0.75);
+      --bg-card-hover: rgba(28, 41, 66, 0.85);
+      --border-color: rgba(255, 255, 255, 0.08);
       --primary-color: #f2b705;
       --accent-color: #38bdf8;
+      --accent-lime: #10b981;
     }
+
     body {
       background-color: var(--bg-main);
       color: #f1f5f9;
+      overflow-x: hidden;
+      position: relative;
     }
+
+    /* Ambient Cycling Light Flares in Background */
+    .ambient-glow {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .glow-blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(110px);
+      opacity: 0.22;
+      animation: pedalFloat 16s infinite alternate ease-in-out;
+    }
+
+    .glow-blob-amber {
+      width: 520px;
+      height: 520px;
+      background: radial-gradient(circle, #f2b705, #f97316);
+      top: -80px;
+      left: 10%;
+    }
+
+    .glow-blob-cyan {
+      width: 580px;
+      height: 580px;
+      background: radial-gradient(circle, #0284c7, #38bdf8);
+      top: 35%;
+      right: -100px;
+      animation-duration: 22s;
+    }
+
+    .glow-blob-emerald {
+      width: 480px;
+      height: 480px;
+      background: radial-gradient(circle, #059669, #10b981);
+      bottom: 5%;
+      left: -80px;
+      animation-duration: 18s;
+    }
+
+    .grid-pattern {
+      position: absolute;
+      inset: 0;
+      background-image: linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(circle at 50% 25%, black 40%, transparent 85%);
+      -webkit-mask-image: radial-gradient(circle at 50% 25%, black 40%, transparent 85%);
+    }
+
+    @keyframes pedalFloat {
+      0% { transform: translate(0, 0) scale(1) rotate(0deg); }
+      50% { transform: translate(35px, 25px) scale(1.08) rotate(10deg); }
+      100% { transform: translate(-25px, 45px) scale(0.95) rotate(-5deg); }
+    }
+
+    /* Floating Sparkle / Cadence Beats */
+    .cadence-beat-dot {
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+      animation: pulseCadence 1.33s infinite ease-out; /* ~90 bpm = 0.66s beat, full cycle 1.33s */
+    }
+
+    @keyframes pulseCadence {
+      0% { transform: scale(0.8); opacity: 0.8; }
+      50% { transform: scale(1.4); opacity: 0.2; }
+      100% { transform: scale(0.8); opacity: 0.8; }
+    }
+
+    .lang-card {
+      background-color: var(--bg-card);
+      border-color: var(--border-color);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
     .lang-card:hover {
       border-color: rgba(242, 183, 5, 0.6) !important;
+      background-color: var(--bg-card-hover);
+      box-shadow: 0 10px 25px -5px rgba(242, 183, 5, 0.15);
     }
+
     .lang-card.is-recommended {
       border-color: #f2b705 !important;
-      background: linear-gradient(135deg, #151e2e 0%, #282414 100%) !important;
-      box-shadow: 0 0 20px rgba(242, 183, 5, 0.2);
+      background: linear-gradient(135deg, rgba(21, 30, 46, 0.9) 0%, rgba(40, 36, 20, 0.9) 100%) !important;
+      box-shadow: 0 0 25px rgba(242, 183, 5, 0.25);
     }
+
     .flag-icon {
       display: inline-block;
       vertical-align: middle;
@@ -127,30 +216,83 @@
       border: 1px solid rgba(255, 255, 255, 0.2);
       flex-shrink: 0;
     }
+
     .flag-icon-md {
       width: 32px;
       height: 24px;
+    }
+
+    /* Hero Illustration Frame */
+    .hero-art-card {
+      background: linear-gradient(135deg, rgba(242, 183, 5, 0.3), rgba(56, 189, 248, 0.3), rgba(16, 185, 129, 0.3));
+      border-radius: 24px;
+      padding: 6px;
+      box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.7);
+      transition: transform 0.4s ease, box-shadow 0.4s ease;
+    }
+
+    .hero-art-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 25px 60px -10px rgba(242, 183, 5, 0.25);
+    }
+
+    .hero-art-inner {
+      border-radius: 20px;
+      overflow: hidden;
+      position: relative;
+      background: #0b111e;
+      aspect-ratio: 16 / 9;
+    }
+
+    .hero-art-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.5s ease;
+    }
+
+    .hero-art-card:hover .hero-art-img {
+      transform: scale(1.02);
+    }
+
+    /* App Icon Floating Badge */
+    .icon-badge-glow {
+      box-shadow: 0 8px 30px rgba(242, 183, 5, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.2);
     }
   </style>
 </head>
 <body class="min-h-screen flex flex-col font-sans">
 
+  <!-- Ambient Glowing Background Graphics -->
+  <div class="ambient-glow" aria-hidden="true">
+    <div class="glow-blob glow-blob-amber"></div>
+    <div class="glow-blob glow-blob-cyan"></div>
+    <div class="glow-blob glow-blob-emerald"></div>
+    <div class="grid-pattern"></div>
+
+    <!-- Decorative Rhythm Sparkles -->
+    <div class="cadence-beat-dot" style="top: 20%; left: 8%; width: 12px; height: 12px; background: #f2b705; box-shadow: 0 0 15px #f2b705;"></div>
+    <div class="cadence-beat-dot" style="top: 30%; right: 10%; width: 16px; height: 16px; background: #38bdf8; box-shadow: 0 0 20px #38bdf8; animation-delay: 0.66s;"></div>
+    <div class="cadence-beat-dot" style="top: 60%; left: 5%; width: 14px; height: 14px; background: #10b981; box-shadow: 0 0 16px #10b981; animation-delay: 0.33s;"></div>
+  </div>
+
   <!-- Header -->
-  <header class="border-b py-3 px-6 backdrop-blur-md sticky top-0 z-50" style="border-color: var(--border-color); background: rgba(11, 17, 30, 0.88);">
+  <header class="border-b py-3 px-6 backdrop-blur-md sticky top-0 z-50 relative" style="border-color: var(--border-color); background: rgba(8, 13, 26, 0.88);">
     <div class="max-w-5xl mx-auto flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <img src="icons/icon-192.png" alt="Cadence 90 Icon" class="w-9 h-9 rounded-xl shadow-md">
+      <a href="./" class="flex items-center gap-3 text-white no-underline">
+        <img src="icons/icon-192.png" alt="Cadence 90 Icon" class="w-10 h-10 rounded-2xl shadow-md border border-white/10 icon-badge-glow">
         <div>
-          <h1 class="font-bold text-base text-white tracking-tight flex items-center gap-2">
+          <h1 class="font-extrabold text-base text-white tracking-tight flex items-center gap-2">
             Cadence 90 Timer
-            <span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">v2.0</span>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30">90 RPM HUD</span>
           </h1>
-          <p class="text-[11px] text-slate-400">Cycling Cadence Metronome · Global Language Hub</p>
+          <p class="text-[11px] text-slate-400">Road Cycling Metronome · Global Language Hub</p>
         </div>
-      </div>
-      <div class="flex items-center gap-2">
+      </a>
+      <div class="flex items-center gap-2.5">
         <!-- PWA Status Badge -->
-        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shadow-sm">
           <i data-lucide="smartphone" class="w-3.5 h-3.5"></i>
           PWA Supported
         </span>
@@ -158,43 +300,99 @@
     </div>
   </header>
 
-  <main class="flex-1 max-w-5xl w-full mx-auto px-6 py-8 sm:py-12 flex flex-col items-center">
+  <main class="flex-1 max-w-5xl w-full mx-auto px-6 py-8 sm:py-12 flex flex-col items-center relative z-10">
 
-    <!-- Hero Title -->
-    <div class="text-center max-w-2xl mx-auto mb-8">
-      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-semibold mb-4">
-        <i data-lucide="activity" class="w-3.5 h-3.5"></i> Road Cycling & Indoor Smart Trainer
+    <!-- Hero Header Area -->
+    <div class="text-center max-w-3xl mx-auto mb-8">
+      
+      <!-- Big App Icon & Playful Banner -->
+      <div class="flex items-center justify-center gap-3 mb-5">
+        <div class="relative">
+          <img src="icons/icon-192.png" alt="Cadence 90 Timer App Icon" class="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl shadow-2xl border border-white/20 icon-badge-glow transition-transform hover:scale-105 duration-300">
+          <span class="absolute -bottom-2 -right-2 bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-full shadow-md">
+            90 RPM
+          </span>
+        </div>
       </div>
-      <h2 class="text-2xl sm:text-4xl font-extrabold text-white tracking-tight mb-3">
-        Select Your Language
+
+      <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold mb-4 shadow-sm">
+        <i data-lucide="activity" class="w-4 h-4 text-amber-400"></i> Road Cycling & Indoor Smart Trainer
+      </div>
+
+      <h2 class="text-3xl sm:text-5xl font-black text-white tracking-tight mb-4 leading-tight">
+        Pedal in Flow. <span class="bg-gradient-to-r from-amber-400 via-sky-300 to-emerald-400 bg-clip-text text-transparent">Hit 90 RPM by Ear.</span>
       </h2>
-      <p class="text-sm sm:text-base text-slate-400 max-w-lg mx-auto">
-        Learn ideal pedal cadence by ear. Features earphone audio guidance, lock screen remote controls, and fullscreen indoor HUD.
+
+      <p class="text-sm sm:text-base text-slate-300 max-w-xl mx-auto leading-relaxed">
+        The ultimate rhythm metronome for endurance cyclists and indoor turbo trainers. 
+        Features lock-screen earbud controls, dynamic zone HUD, and virtual gear calculator.
       </p>
     </div>
 
+    <!-- Generated Fun Illustration Hero Banner -->
+    <div class="w-full max-w-3xl mb-10 hero-art-card">
+      <div class="hero-art-inner">
+        <img src="assets/hero-cadence.jpg" alt="Playful 3D cycling illustration with neon cadence rings and audio metronome beats" class="hero-art-img" loading="eager">
+        <div class="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 bg-slate-950/80 backdrop-blur-md border border-white/15 px-3 py-1.5 rounded-full text-[11px] font-bold text-amber-300 flex items-center gap-1.5 shadow-lg">
+          <i data-lucide="headphones" class="w-3.5 h-3.5 text-amber-400"></i>
+          <span>Audio Rhythm & Fullscreen HUD</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Highlights Chips -->
+    <div class="flex flex-wrap items-center justify-center gap-2.5 mb-10 max-w-3xl">
+      <span class="px-3.5 py-1 rounded-full text-xs font-semibold bg-slate-900/80 border border-slate-700/60 text-slate-300 flex items-center gap-1.5 shadow-sm">
+        <i data-lucide="zap" class="w-3.5 h-3.5 text-amber-400"></i>
+        BPM 90 Acoustic Cadence
+      </span>
+      <span class="px-3.5 py-1 rounded-full text-xs font-semibold bg-slate-900/80 border border-slate-700/60 text-slate-300 flex items-center gap-1.5 shadow-sm">
+        <i data-lucide="sliders" class="w-3.5 h-3.5 text-sky-400"></i>
+        Lock Screen Remote
+      </span>
+      <span class="px-3.5 py-1 rounded-full text-xs font-semibold bg-slate-900/80 border border-slate-700/60 text-slate-300 flex items-center gap-1.5 shadow-sm">
+        <i data-lucide="gauge" class="w-3.5 h-3.5 text-emerald-400"></i>
+        Virtual Speed Calculator
+      </span>
+      <span class="px-3.5 py-1 rounded-full text-xs font-semibold bg-slate-900/80 border border-slate-700/60 text-slate-300 flex items-center gap-1.5 shadow-sm">
+        <i data-lucide="globe" class="w-3.5 h-3.5 text-indigo-400"></i>
+        7 Global Languages
+      </span>
+    </div>
+
+    <!-- Language Selector Header -->
+    <div class="w-full max-w-4xl text-left mb-4">
+      <div class="flex items-center justify-between">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <i data-lucide="globe-2" class="w-4 h-4 text-amber-400"></i>
+          Choose Your Language Edition
+        </h3>
+        <span class="text-xs text-slate-400">Select to launch app</span>
+      </div>
+    </div>
+
     <!-- Detected Language Quick Action Banner -->
-    <div id="detectedBanner" class="hidden w-full max-w-2xl mb-6 p-3 rounded-xl border bg-gradient-to-r from-amber-950/40 via-slate-900 to-amber-950/40 border-amber-500/40 flex items-center justify-between gap-4">
-      <div class="flex items-center gap-2.5">
-        <span class="flex h-2 w-2 relative">
+    <div id="detectedBanner" class="hidden w-full max-w-4xl mb-6 p-3.5 rounded-2xl border bg-gradient-to-r from-amber-950/40 via-slate-900 to-sky-950/40 border-amber-500/40 flex items-center justify-between gap-4 shadow-lg">
+      <div class="flex items-center gap-3">
+        <span class="flex h-2.5 w-2.5 relative">
           <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-          <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+          <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
         </span>
-        <span class="text-xs text-slate-300">
-          Detected browser preference: <strong id="detectedLangName" class="text-amber-300">English</strong>
+        <span class="text-xs sm:text-sm text-slate-200">
+          Detected browser preference: <strong id="detectedLangName" class="text-amber-300 font-bold">English</strong>
         </span>
       </div>
-      <a id="detectedLaunchBtn" href="./en/" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-amber-500 hover:bg-amber-400 text-slate-950 transition flex items-center gap-1.5 shadow-sm flex-shrink-0">
+      <a id="detectedLaunchBtn" href="./en/" class="px-4 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-slate-950 transition flex items-center gap-1.5 shadow-md flex-shrink-0">
         <span>Launch App</span>
         <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
       </a>
     </div>
 
     <!-- Language Selector Cards Grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full max-w-4xl mb-12">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 w-full max-w-4xl mb-14">
       
       <!-- Japanese (ja) -->
-      <a href="./ja/" data-lang="ja" class="lang-card group relative p-4 rounded-xl border transition-all duration-200 hover:scale-[1.02] hover:shadow-lg flex items-center justify-between gap-3" style="background-color: var(--bg-card); border-color: var(--border-color);">
+      <a href="./ja/" data-lang="ja" class="lang-card group relative p-4 rounded-2xl border transition-all duration-200 hover:scale-[1.02] hover:shadow-xl flex items-center justify-between gap-3">
         <div class="flex items-center gap-3.5 min-w-0">
           <svg viewBox="0 0 32 24" class="flag-icon flag-icon-md" xmlns="http://www.w3.org/2000/svg" aria-label="Japan">
             <rect width="32" height="24" fill="#ffffff"/>
@@ -202,7 +400,7 @@
           </svg>
           <div class="min-w-0">
             <div class="flex items-center gap-1.5">
-              <h3 class="font-bold text-base text-white group-hover:text-amber-400 transition-colors truncate">日本語</h3>
+              <h4 class="font-bold text-base text-white group-hover:text-amber-400 transition-colors truncate">日本語</h4>
               <span class="rec-badge hidden px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">Auto</span>
             </div>
             <p class="text-xs text-slate-400 truncate">ケイデンス90タイマー · 日本語版</p>
@@ -212,7 +410,7 @@
       </a>
 
       <!-- English (en) -->
-      <a href="./en/" data-lang="en" class="lang-card group relative p-4 rounded-xl border transition-all duration-200 hover:scale-[1.02] hover:shadow-lg flex items-center justify-between gap-3" style="background-color: var(--bg-card); border-color: var(--border-color);">
+      <a href="./en/" data-lang="en" class="lang-card group relative p-4 rounded-2xl border transition-all duration-200 hover:scale-[1.02] hover:shadow-xl flex items-center justify-between gap-3">
         <div class="flex items-center gap-3.5 min-w-0">
           <svg viewBox="0 0 32 24" class="flag-icon flag-icon-md" xmlns="http://www.w3.org/2000/svg" aria-label="English / USA">
             <rect width="32" height="24" fill="#b22234"/>
@@ -231,7 +429,7 @@
           </svg>
           <div class="min-w-0">
             <div class="flex items-center gap-1.5">
-              <h3 class="font-bold text-base text-white group-hover:text-amber-400 transition-colors truncate">English</h3>
+              <h4 class="font-bold text-base text-white group-hover:text-amber-400 transition-colors truncate">English</h4>
               <span class="rec-badge hidden px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">Auto</span>
             </div>
             <p class="text-xs text-slate-400 truncate">Cadence 90 Timer · Global / US</p>
@@ -240,64 +438,8 @@
         <i data-lucide="chevron-right" class="w-5 h-5 text-slate-500 group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all flex-shrink-0"></i>
       </a>
 
-            <!-- Chinese (zh) -->
-      <a href="./zh/" data-lang="zh" class="lang-card group relative p-4 rounded-xl border transition-all duration-200 hover:scale-[1.02] hover:shadow-lg flex items-center justify-between gap-3" style="background-color: var(--bg-card); border-color: var(--border-color);">
-        <div class="flex items-center gap-3.5 min-w-0">
-          <svg viewBox="0 0 32 24" class="flag-icon flag-icon-md" xmlns="http://www.w3.org/2000/svg" aria-label="China">
-            <rect width="32" height="24" fill="#de2910"/>
-            <polygon points="5.5,2.2 6.6,5.2 9.7,5.2 7.2,7 8.2,10 5.5,8.2 2.8,10 3.8,7 1.3,5.2 4.4,5.2" fill="#ffde00"/>
-          </svg>
-          <div class="min-w-0">
-            <div class="flex items-center gap-1.5">
-              <h3 class="font-bold text-base text-white group-hover:text-amber-400 transition-colors truncate">简体中文</h3>
-              <span class="rec-badge hidden px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">Auto</span>
-            </div>
-            <p class="text-xs text-slate-400 truncate">踏频90计时器 · 简体中文</p>
-          </div>
-        </div>
-        <i data-lucide="chevron-right" class="w-5 h-5 text-slate-500 group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all flex-shrink-0"></i>
-      </a>
-
-            <!-- Spanish (es) -->
-      <a href="./es/" data-lang="es" class="lang-card group relative p-4 rounded-xl border transition-all duration-200 hover:scale-[1.02] hover:shadow-lg flex items-center justify-between gap-3" style="background-color: var(--bg-card); border-color: var(--border-color);">
-        <div class="flex items-center gap-3.5 min-w-0">
-          <svg viewBox="0 0 32 24" class="flag-icon flag-icon-md" xmlns="http://www.w3.org/2000/svg" aria-label="Spain">
-            <rect width="32" height="24" fill="#aa151b"/>
-            <rect y="6" width="32" height="12" fill="#f1bf00"/>
-            <rect x="6" y="9.5" width="3.5" height="4.5" rx="1" fill="#aa151b"/>
-          </svg>
-          <div class="min-w-0">
-            <div class="flex items-center gap-1.5">
-              <h3 class="font-bold text-base text-white group-hover:text-amber-400 transition-colors truncate">Español</h3>
-              <span class="rec-badge hidden px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">Auto</span>
-            </div>
-            <p class="text-xs text-slate-400 truncate">Temporizador Cadencia 90 · Español</p>
-          </div>
-        </div>
-        <i data-lucide="chevron-right" class="w-5 h-5 text-slate-500 group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all flex-shrink-0"></i>
-      </a>
-
-            <!-- German (de) -->
-      <a href="./de/" data-lang="de" class="lang-card group relative p-4 rounded-xl border transition-all duration-200 hover:scale-[1.02] hover:shadow-lg flex items-center justify-between gap-3" style="background-color: var(--bg-card); border-color: var(--border-color);">
-        <div class="flex items-center gap-3.5 min-w-0">
-          <svg viewBox="0 0 32 24" class="flag-icon flag-icon-md" xmlns="http://www.w3.org/2000/svg" aria-label="Germany">
-            <rect width="32" height="8" fill="#111827"/>
-            <rect y="8" width="32" height="8" fill="#dd0000"/>
-            <rect y="16" width="32" height="8" fill="#ffce00"/>
-          </svg>
-          <div class="min-w-0">
-            <div class="flex items-center gap-1.5">
-              <h3 class="font-bold text-base text-white group-hover:text-amber-400 transition-colors truncate">Deutsch</h3>
-              <span class="rec-badge hidden px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">Auto</span>
-            </div>
-            <p class="text-xs text-slate-400 truncate">Trittfrequenz 90 · Deutsch</p>
-          </div>
-        </div>
-        <i data-lucide="chevron-right" class="w-5 h-5 text-slate-500 group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all flex-shrink-0"></i>
-      </a>
-
-            <!-- French (fr) -->
-      <a href="./fr/" data-lang="fr" class="lang-card group relative p-4 rounded-xl border transition-all duration-200 hover:scale-[1.02] hover:shadow-lg flex items-center justify-between gap-3" style="background-color: var(--bg-card); border-color: var(--border-color);">
+      <!-- French (fr) -->
+      <a href="./fr/" data-lang="fr" class="lang-card group relative p-4 rounded-2xl border transition-all duration-200 hover:scale-[1.02] hover:shadow-xl flex items-center justify-between gap-3">
         <div class="flex items-center gap-3.5 min-w-0">
           <svg viewBox="0 0 32 24" class="flag-icon flag-icon-md" xmlns="http://www.w3.org/2000/svg" aria-label="France">
             <rect width="11" height="24" fill="#002395"/>
@@ -306,7 +448,7 @@
           </svg>
           <div class="min-w-0">
             <div class="flex items-center gap-1.5">
-              <h3 class="font-bold text-base text-white group-hover:text-amber-400 transition-colors truncate">Français</h3>
+              <h4 class="font-bold text-base text-white group-hover:text-amber-400 transition-colors truncate">Français</h4>
               <span class="rec-badge hidden px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">Auto</span>
             </div>
             <p class="text-xs text-slate-400 truncate">Cadence 90 · Français</p>
@@ -315,8 +457,64 @@
         <i data-lucide="chevron-right" class="w-5 h-5 text-slate-500 group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all flex-shrink-0"></i>
       </a>
 
+      <!-- German (de) -->
+      <a href="./de/" data-lang="de" class="lang-card group relative p-4 rounded-2xl border transition-all duration-200 hover:scale-[1.02] hover:shadow-xl flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3.5 min-w-0">
+          <svg viewBox="0 0 32 24" class="flag-icon flag-icon-md" xmlns="http://www.w3.org/2000/svg" aria-label="Germany">
+            <rect width="32" height="8" fill="#111827"/>
+            <rect y="8" width="32" height="8" fill="#dd0000"/>
+            <rect y="16" width="32" height="8" fill="#ffce00"/>
+          </svg>
+          <div class="min-w-0">
+            <div class="flex items-center gap-1.5">
+              <h4 class="font-bold text-base text-white group-hover:text-amber-400 transition-colors truncate">Deutsch</h4>
+              <span class="rec-badge hidden px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">Auto</span>
+            </div>
+            <p class="text-xs text-slate-400 truncate">Trittfrequenz 90 · Deutsch</p>
+          </div>
+        </div>
+        <i data-lucide="chevron-right" class="w-5 h-5 text-slate-500 group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all flex-shrink-0"></i>
+      </a>
+
+      <!-- Spanish (es) -->
+      <a href="./es/" data-lang="es" class="lang-card group relative p-4 rounded-2xl border transition-all duration-200 hover:scale-[1.02] hover:shadow-xl flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3.5 min-w-0">
+          <svg viewBox="0 0 32 24" class="flag-icon flag-icon-md" xmlns="http://www.w3.org/2000/svg" aria-label="Spain">
+            <rect width="32" height="24" fill="#aa151b"/>
+            <rect y="6" width="32" height="12" fill="#f1bf00"/>
+            <rect x="6" y="9.5" width="3.5" height="4.5" rx="1" fill="#aa151b"/>
+          </svg>
+          <div class="min-w-0">
+            <div class="flex items-center gap-1.5">
+              <h4 class="font-bold text-base text-white group-hover:text-amber-400 transition-colors truncate">Español</h4>
+              <span class="rec-badge hidden px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">Auto</span>
+            </div>
+            <p class="text-xs text-slate-400 truncate">Temporizador Cadencia 90 · Español</p>
+          </div>
+        </div>
+        <i data-lucide="chevron-right" class="w-5 h-5 text-slate-500 group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all flex-shrink-0"></i>
+      </a>
+
+      <!-- Chinese (zh) -->
+      <a href="./zh/" data-lang="zh" class="lang-card group relative p-4 rounded-2xl border transition-all duration-200 hover:scale-[1.02] hover:shadow-xl flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3.5 min-w-0">
+          <svg viewBox="0 0 32 24" class="flag-icon flag-icon-md" xmlns="http://www.w3.org/2000/svg" aria-label="China">
+            <rect width="32" height="24" fill="#de2910"/>
+            <polygon points="5.5,2.2 6.6,5.2 9.7,5.2 7.2,7 8.2,10 5.5,8.2 2.8,10 3.8,7 1.3,5.2 4.4,5.2" fill="#ffde00"/>
+          </svg>
+          <div class="min-w-0">
+            <div class="flex items-center gap-1.5">
+              <h4 class="font-bold text-base text-white group-hover:text-amber-400 transition-colors truncate">简体中文</h4>
+              <span class="rec-badge hidden px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">Auto</span>
+            </div>
+            <p class="text-xs text-slate-400 truncate">踏频90计时器 · 简体中文</p>
+          </div>
+        </div>
+        <i data-lucide="chevron-right" class="w-5 h-5 text-slate-500 group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all flex-shrink-0"></i>
+      </a>
+
       <!-- Thai (th) -->
-      <a href="./th/" data-lang="th" class="lang-card group relative p-4 rounded-xl border transition-all duration-200 hover:scale-[1.02] hover:shadow-lg flex items-center justify-between gap-3" style="background-color: var(--bg-card); border-color: var(--border-color);">
+      <a href="./th/" data-lang="th" class="lang-card group relative p-4 rounded-2xl border transition-all duration-200 hover:scale-[1.02] hover:shadow-xl flex items-center justify-between gap-3">
         <div class="flex items-center gap-3.5 min-w-0">
           <svg viewBox="0 0 32 24" class="flag-icon flag-icon-md" xmlns="http://www.w3.org/2000/svg" aria-label="Thailand">
             <rect width="32" height="24" fill="#a51931"/>
@@ -325,7 +523,7 @@
           </svg>
           <div class="min-w-0">
             <div class="flex items-center gap-1.5">
-              <h3 class="font-bold text-base text-white group-hover:text-amber-400 transition-colors truncate">ไทย</h3>
+              <h4 class="font-bold text-base text-white group-hover:text-amber-400 transition-colors truncate">ไทย</h4>
               <span class="rec-badge hidden px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">Auto</span>
             </div>
             <p class="text-xs text-slate-400 truncate">ตัวจับจังหวะรอบขา 90 · ภาษาไทย</p>
@@ -337,68 +535,72 @@
     </div>
 
     <!-- App Highlights & Features Grid -->
-    <div class="w-full max-w-4xl border-t pt-10 mb-12" style="border-color: var(--border-color);">
-      <h3 class="text-lg font-bold text-white mb-6 flex items-center gap-2">
-        <i data-lucide="sparkles" class="w-5 h-5 text-amber-400"></i>
-        Key Features for Road & Indoor Cyclists
-      </h3>
+    <div class="w-full max-w-4xl border-t pt-12 mb-14" style="border-color: var(--border-color);">
+      <div class="mb-8 text-left">
+        <span class="text-xs font-bold uppercase tracking-wider text-amber-400 mb-1 block">Workout Advantages</span>
+        <h3 class="text-xl font-extrabold text-white flex items-center gap-2">
+          <i data-lucide="sparkles" class="w-5 h-5 text-amber-400"></i>
+          Engineered for Road & Indoor Cyclists
+        </h3>
+      </div>
+
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         
-        <div class="p-4 rounded-xl border bg-slate-900/60" style="border-color: var(--border-color);">
-          <div class="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center mb-3">
-            <i data-lucide="headphones" class="w-4 h-4"></i>
+        <div class="p-5 rounded-2xl border bg-slate-900/60 backdrop-blur-sm hover:border-slate-600 transition" style="border-color: var(--border-color);">
+          <div class="w-10 h-10 rounded-xl bg-amber-500/15 text-amber-400 flex items-center justify-center mb-3.5 shadow-sm">
+            <i data-lucide="headphones" class="w-5 h-5"></i>
           </div>
-          <h4 class="font-bold text-sm text-white mb-1">Rhythm Audio by Ear</h4>
+          <h4 class="font-bold text-sm text-white mb-1.5">Rhythm Audio by Ear</h4>
           <p class="text-xs text-slate-400 leading-relaxed">
             Internalize cadence rhythms through your earphones without looking at a screen. Includes 8 distinct synthesizer tones and stereo pedal cues.
           </p>
         </div>
 
-        <div class="p-4 rounded-xl border bg-slate-900/60" style="border-color: var(--border-color);">
-          <div class="w-8 h-8 rounded-lg bg-sky-500/10 text-sky-400 flex items-center justify-center mb-3">
-            <i data-lucide="sliders" class="w-4 h-4"></i>
+        <div class="p-5 rounded-2xl border bg-slate-900/60 backdrop-blur-sm hover:border-slate-600 transition" style="border-color: var(--border-color);">
+          <div class="w-10 h-10 rounded-xl bg-sky-500/15 text-sky-400 flex items-center justify-center mb-3.5 shadow-sm">
+            <i data-lucide="sliders" class="w-5 h-5"></i>
           </div>
-          <h4 class="font-bold text-sm text-white mb-1">Lock Screen Remote</h4>
+          <h4 class="font-bold text-sm text-white mb-1.5">Lock Screen Remote</h4>
           <p class="text-xs text-slate-400 leading-relaxed">
             Full MediaSession API support. Adjust cadence by ±5 RPM and pause/resume directly from your mobile lock screen or Bluetooth earbud buttons.
           </p>
         </div>
 
-        <div class="p-4 rounded-xl border bg-slate-900/60" style="border-color: var(--border-color);">
-          <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center mb-3">
-            <i data-lucide="monitor" class="w-4 h-4"></i>
+        <div class="p-5 rounded-2xl border bg-slate-900/60 backdrop-blur-sm hover:border-slate-600 transition" style="border-color: var(--border-color);">
+          <div class="w-10 h-10 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center mb-3.5 shadow-sm">
+            <i data-lucide="monitor" class="w-5 h-5"></i>
           </div>
-          <h4 class="font-bold text-sm text-white mb-1">Fullscreen Indoor HUD</h4>
+          <h4 class="font-bold text-sm text-white mb-1.5">Fullscreen Indoor HUD</h4>
           <p class="text-xs text-slate-400 leading-relaxed">
             Designed for tablets or external monitors during roller / turbo trainer workouts. Features dynamic 4-color cadence zones and keyboard hotkeys.
           </p>
         </div>
 
-        <div class="p-4 rounded-xl border bg-slate-900/60" style="border-color: var(--border-color);">
-          <div class="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center mb-3">
-            <i data-lucide="gauge" class="w-4 h-4"></i>
+        <div class="p-5 rounded-2xl border bg-slate-900/60 backdrop-blur-sm hover:border-slate-600 transition" style="border-color: var(--border-color);">
+          <div class="w-10 h-10 rounded-xl bg-indigo-500/15 text-indigo-400 flex items-center justify-center mb-3.5 shadow-sm">
+            <i data-lucide="gauge" class="w-5 h-5"></i>
           </div>
-          <h4 class="font-bold text-sm text-white mb-1">Gear Ratio & Speed</h4>
+          <h4 class="font-bold text-sm text-white mb-1.5">Gear Ratio & Speed</h4>
           <p class="text-xs text-slate-400 leading-relaxed">
             Calculate virtual speed based on chainring (50T/34T), rear cassette sprocket (11-34T), and tire circumference. Shift gears virtually in real-time.
           </p>
         </div>
 
-        <div class="p-4 rounded-xl border bg-slate-900/60" style="border-color: var(--border-color);">
-          <div class="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-400 flex items-center justify-center mb-3">
-            <i data-lucide="timer" class="w-4 h-4"></i>
+        <div class="p-5 rounded-2xl border bg-slate-900/60 backdrop-blur-sm hover:border-slate-600 transition" style="border-color: var(--border-color);">
+          <div class="w-10 h-10 rounded-xl bg-rose-500/15 text-rose-400 flex items-center justify-center mb-3.5 shadow-sm">
+            <i data-lucide="timer" class="w-5 h-5"></i>
           </div>
-          <h4 class="font-bold text-sm text-white mb-1">Interval Simulator</h4>
+          <h4 class="font-bold text-sm text-white mb-1.5">Interval Simulator</h4>
           <p class="text-xs text-slate-400 leading-relaxed">
             Custom structured interval routines with automatic rhythm transitions, 3-second countdown audio beeps, and synthetic speech voice cues.
           </p>
         </div>
 
-        <div class="p-4 rounded-xl border bg-slate-900/60" style="border-color: var(--border-color);">
-          <div class="w-8 h-8 rounded-lg bg-teal-500/10 text-teal-400 flex items-center justify-center mb-3">
+        <div class="p-5 rounded-2xl border bg-slate-900/60 backdrop-blur-sm hover:border-slate-600 transition" style="border-color: var(--border-color);">
+          <div class="w-10 h-10 rounded-xl bg-teal-500/15 text-teal-400 flex items-center justify-center mb-3.5 shadow-sm">
             <i data-lucide="wifi-off" class="w-4 h-4"></i>
           </div>
-          <h4 class="font-bold text-sm text-white mb-1">100% Offline PWA</h4>
+          <h4 class="font-bold text-sm text-white mb-1.5">100% Offline PWA</h4>
           <p class="text-xs text-slate-400 leading-relaxed">
             Zero cloud servers, zero battery-draining telemetry. Installable directly to your home screen on iOS and Android with full offline capability.
           </p>
@@ -415,21 +617,21 @@
       </h3>
       <div class="space-y-4">
         
-        <div class="p-4 rounded-xl border bg-slate-900/40" style="border-color: var(--border-color);">
+        <div class="p-5 rounded-2xl border bg-slate-900/40" style="border-color: var(--border-color);">
           <h4 class="font-bold text-sm text-white mb-2">How do I keep the metronome playing when I lock my phone?</h4>
           <p class="text-xs text-slate-400 leading-relaxed">
             Simply tap the <strong>START</strong> button and lock your screen. Cadence 90 runs a silent background audio loop coupled with the MediaSession API, allowing Web Audio to play continuously through your earphones in your jersey pocket.
           </p>
         </div>
 
-        <div class="p-4 rounded-xl border bg-slate-900/40" style="border-color: var(--border-color);">
+        <div class="p-5 rounded-2xl border bg-slate-900/40" style="border-color: var(--border-color);">
           <h4 class="font-bold text-sm text-white mb-2">Why train for a 90 RPM cadence?</h4>
           <p class="text-xs text-slate-400 leading-relaxed">
             90 RPM is the global benchmark for efficient endurance cycling. Lower cadences (&lt;70 RPM) place heavy isometric stress on knee joints and slow-twitch muscle fibers, causing premature fatigue. A higher, fluid cadence (85–95 RPM) utilizes your aerobic cardiovascular engine for sustainable speed.
           </p>
         </div>
 
-        <div class="p-4 rounded-xl border bg-slate-900/40" style="border-color: var(--border-color);">
+        <div class="p-5 rounded-2xl border bg-slate-900/40" style="border-color: var(--border-color);">
           <h4 class="font-bold text-sm text-white mb-2">How do I install the app on my phone?</h4>
           <p class="text-xs text-slate-400 leading-relaxed">
             On iPhone Safari, tap the <strong>Share</strong> button and select <strong>"Add to Home Screen"</strong>. On Android Chrome, tap the three dots menu and choose <strong>"Install app"</strong> or "Add to Home Screen".
@@ -442,12 +644,12 @@
   </main>
 
   <!-- Footer -->
-  <footer class="border-t py-6 text-center text-xs text-slate-500 mt-auto" style="border-color: var(--border-color); background: rgba(11, 17, 30, 0.9);">
+  <footer class="border-t py-6 text-center text-xs text-slate-500 mt-auto relative z-10" style="border-color: var(--border-color); background: rgba(8, 13, 26, 0.9);">
     <div class="max-w-5xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
       <div class="flex items-center gap-2">
         <span>Cadence 90 Timer · Open Source PWA</span>
       </div>
-      <div class="flex items-center gap-4">
+      <div class="flex items-center gap-4 flex-wrap justify-center">
         <a href="./ja/" class="hover:text-amber-400 transition-colors">日本語</a>
         <span>·</span>
         <a href="./en/" class="hover:text-amber-400 transition-colors">English</a>
@@ -462,7 +664,7 @@
         <span>·</span>
         <a href="./th/" class="hover:text-amber-400 transition-colors">ไทย</a>
         <span>·</span>
-        <a href="../" class="hover:text-amber-400 transition-colors">All Apps Hub</a>
+        <a href="../index2.html" class="hover:text-amber-400 transition-colors">Showcase Portal</a>
       </div>
     </div>
   </footer>
