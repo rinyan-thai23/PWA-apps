@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cadence90-v13';
+const CACHE_NAME = 'cadence90-v14';
 
 const ASSETS_TO_CACHE = [
   './',
@@ -15,6 +15,8 @@ const ASSETS_TO_CACHE = [
   './es/index.html',
   './de/',
   './de/index.html',
+  './fr/',
+  './fr/index.html',
   './manifest.json',
   './silence.wav',
   './icons/icon-192.png',

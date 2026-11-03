@@ -70,7 +70,8 @@ PWA-apps/
 │   ├── th/                        # 🇹🇭 タイ語版アプリ本体 (index.html)
 │   ├── zh/                        # 🇨🇳 中国語版アプリ本体 (index.html)
 │   ├── es/                        # 🇪🇸 スペイン語版アプリ本体 (index.html)
-│   └── de/                        # 🇩🇪 ドイツ語版アプリ本体 (index.html)
+│   ├── de/                        # 🇩🇪 ドイツ語版アプリ本体 (index.html)
+│   └── fr/                        # 🇫🇷 フランス語版アプリ本体 (index.html)
 └── 003_ai_md_viewer/              # 003: AI Markdown Reader (長文MD専用Webビューア / 7言語対応 / 純粋Webツール)
     ├── index.html                 # 英語Language Hub (PWA非該当明記)
     ├── icons/                     # アプリアイコン群
