@@ -39,7 +39,6 @@
 ├── sw.js                      # Service Worker（オフラインキャッシュ制御）
 ├── silence.wav                # バックグラウンド再生・ロック画面リモコン用無音WAV
 ├── README.md                  # 仕様・ドキュメント（本ファイル）
-├── test.html                  # デプロイ確認用テストページ
 ├── icons/                     # アプリアイコン群
 │   ├── icon-192.png           # PWA用 192x192 アイコン
 │   ├── icon-512.png           # PWA用 512x512 アイコン
