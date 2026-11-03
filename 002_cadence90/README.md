@@ -51,6 +51,8 @@
 │   └── index.html             # Cadence 90 Timer（英語版）
 ├── th/                        # 🇹🇭 タイ語版アプリ本体
 │   └── index.html             # Cadence 90 Timer（タイ語版）
-└── zh/                        # 🇨🇳 中国語版アプリ本体
-    └── index.html             # Cadence 90 Timer（中国語版）
+├── zh/                        # 🇨🇳 中国語版アプリ本体
+│   └── index.html             # Cadence 90 Timer（中国語版）
+└── es/                        # 🇪🇸 スペイン語版アプリ本体
+    └── index.html             # Cadence 90 Timer（スペイン語版）
 ```

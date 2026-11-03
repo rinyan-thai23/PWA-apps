@@ -29,6 +29,7 @@
   <link rel="alternate" hreflang="en" href="./en/" />
   <link rel="alternate" hreflang="th" href="./th/" />
   <link rel="alternate" hreflang="zh" href="./zh/" />
+  <link rel="alternate" hreflang="es" href="./es/" />
   <link rel="alternate" hreflang="x-default" href="./en/" />
 
   <!-- Schema.org JSON-LD for SEO & AI Crawlers -->
@@ -255,6 +256,25 @@
         <i data-lucide="chevron-right" class="w-5 h-5 text-slate-500 group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all flex-shrink-0"></i>
       </a>
 
+            <!-- Spanish (es) -->
+      <a href="./es/" data-lang="es" class="lang-card group relative p-4 rounded-xl border transition-all duration-200 hover:scale-[1.02] hover:shadow-lg flex items-center justify-between gap-3" style="background-color: var(--bg-card); border-color: var(--border-color);">
+        <div class="flex items-center gap-3.5 min-w-0">
+          <svg viewBox="0 0 32 24" class="flag-icon flag-icon-md" xmlns="http://www.w3.org/2000/svg" aria-label="Spain">
+            <rect width="32" height="24" fill="#aa151b"/>
+            <rect y="6" width="32" height="12" fill="#f1bf00"/>
+            <rect x="6" y="9.5" width="3.5" height="4.5" rx="1" fill="#aa151b"/>
+          </svg>
+          <div class="min-w-0">
+            <div class="flex items-center gap-1.5">
+              <h3 class="font-bold text-base text-white group-hover:text-amber-400 transition-colors truncate">Español</h3>
+              <span class="rec-badge hidden px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">Auto</span>
+            </div>
+            <p class="text-xs text-slate-400 truncate">Temporizador Cadencia 90 · Español</p>
+          </div>
+        </div>
+        <i data-lucide="chevron-right" class="w-5 h-5 text-slate-500 group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all flex-shrink-0"></i>
+      </a>
+
       <!-- Thai (th) -->
       <a href="./th/" data-lang="th" class="lang-card group relative p-4 rounded-xl border transition-all duration-200 hover:scale-[1.02] hover:shadow-lg flex items-center justify-between gap-3" style="background-color: var(--bg-card); border-color: var(--border-color);">
         <div class="flex items-center gap-3.5 min-w-0">
@@ -392,6 +412,8 @@
         <span>·</span>
         <a href="./en/" class="hover:text-amber-400 transition-colors">English</a>
         <span>·</span>
+        <a href="./es/" class="hover:text-amber-400 transition-colors">Español</a>
+        <span>·</span>
         <a href="./zh/" class="hover:text-amber-400 transition-colors">简体中文</a>
         <span>·</span>
         <a href="./th/" class="hover:text-amber-400 transition-colors">ไทย</a>
@@ -414,6 +436,9 @@
       if (userLang.startsWith('ja')) {
         matched = 'ja';
         langName = '日本語 (Japanese)';
+      } else if (userLang.startsWith('es')) {
+        matched = 'es';
+        langName = 'Español (Spanish)';
       } else if (userLang.startsWith('zh')) {
         matched = 'zh';
         langName = '简体中文 (Chinese)';
