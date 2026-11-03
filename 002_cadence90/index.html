@@ -27,6 +27,7 @@
   <!-- Hreflang Canonical Links -->
   <link rel="alternate" hreflang="ja" href="./ja/" />
   <link rel="alternate" hreflang="en" href="./en/" />
+  <link rel="alternate" hreflang="th" href="./th/" />
   <link rel="alternate" hreflang="x-default" href="./en/" />
 
   <!-- Schema.org JSON-LD for SEO & AI Crawlers -->
@@ -186,7 +187,7 @@
     </div>
 
     <!-- Language Selector Cards Grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-2xl mb-12">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full max-w-4xl mb-12">
       
       <!-- Japanese (ja) -->
       <a href="./ja/" data-lang="ja" class="lang-card group relative p-4 rounded-xl border transition-all duration-200 hover:scale-[1.02] hover:shadow-lg flex items-center justify-between gap-3" style="background-color: var(--bg-card); border-color: var(--border-color);">
@@ -230,6 +231,25 @@
               <span class="rec-badge hidden px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">Auto</span>
             </div>
             <p class="text-xs text-slate-400 truncate">Cadence 90 Timer · Global / US</p>
+          </div>
+        </div>
+        <i data-lucide="chevron-right" class="w-5 h-5 text-slate-500 group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all flex-shrink-0"></i>
+      </a>
+
+      <!-- Thai (th) -->
+      <a href="./th/" data-lang="th" class="lang-card group relative p-4 rounded-xl border transition-all duration-200 hover:scale-[1.02] hover:shadow-lg flex items-center justify-between gap-3" style="background-color: var(--bg-card); border-color: var(--border-color);">
+        <div class="flex items-center gap-3.5 min-w-0">
+          <svg viewBox="0 0 32 24" class="flag-icon flag-icon-md" xmlns="http://www.w3.org/2000/svg" aria-label="Thailand">
+            <rect width="32" height="24" fill="#a51931"/>
+            <rect y="4" width="32" height="16" fill="#f4f5f8"/>
+            <rect y="8" width="32" height="8" fill="#2d2a4a"/>
+          </svg>
+          <div class="min-w-0">
+            <div class="flex items-center gap-1.5">
+              <h3 class="font-bold text-base text-white group-hover:text-amber-400 transition-colors truncate">ไทย</h3>
+              <span class="rec-badge hidden px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">Auto</span>
+            </div>
+            <p class="text-xs text-slate-400 truncate">ตัวจับจังหวะรอบขา 90 · ภาษาไทย</p>
           </div>
         </div>
         <i data-lucide="chevron-right" class="w-5 h-5 text-slate-500 group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all flex-shrink-0"></i>
@@ -353,6 +373,8 @@
         <span>·</span>
         <a href="./en/" class="hover:text-amber-400 transition-colors">English</a>
         <span>·</span>
+        <a href="./th/" class="hover:text-amber-400 transition-colors">ไทย</a>
+        <span>·</span>
         <a href="../" class="hover:text-amber-400 transition-colors">All Apps Hub</a>
       </div>
     </div>
@@ -371,6 +393,9 @@
       if (userLang.startsWith('ja')) {
         matched = 'ja';
         langName = '日本語 (Japanese)';
+      } else if (userLang.startsWith('th')) {
+        matched = 'th';
+        langName = 'ไทย (Thai)';
       }
 
       // Highlight Recommended Card
@@ -381,14 +406,14 @@
         if (badge) badge.classList.remove('hidden');
       }
 
-      // Show Detected Quick Banner if Japanese
-      if (matched === 'ja') {
+      // Show Detected Quick Banner if not English
+      if (matched !== 'en') {
         const banner = document.getElementById('detectedBanner');
         const nameEl = document.getElementById('detectedLangName');
         const launchBtn = document.getElementById('detectedLaunchBtn');
         if (banner && nameEl && launchBtn) {
           nameEl.textContent = langName;
-          launchBtn.href = `./ja/`;
+          launchBtn.href = `./${matched}/`;
           banner.classList.remove('hidden');
         }
       }
