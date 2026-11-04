@@ -3,15 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Voice Memo Transcriber (Whisper) - Language Hub & PWA</title>
-  <meta name="description" content="Ultra-fast voice memo and speech-to-text transcription powered by Groq Whisper API (whisper-large-v3-turbo). Installable PWA with local memo management and AI summarization. Available in 7 languages.">
-  <meta name="keywords" content="Whisper Speech to Text, Groq Whisper, Voice Memo, Audio Transcription, PWA Voice Recorder, AI Memo">
-  <meta name="theme-color" content="#ef4444">
+  <title>Voice Memo Transcriber (Whisper) - AI Speech-to-Text & Instant Summaries</title>
+  <meta name="description" content="Ultra-fast voice memo and speech-to-text transcription powered by Groq Whisper API (whisper-large-v3-turbo). Installable PWA with local memo management and instant AI summarization. Available in 7 languages.">
+  <meta name="keywords" content="Whisper Speech to Text, Groq Whisper, Voice Memo, Audio Transcription, PWA Voice Recorder, AI Memo, whisper-large-v3-turbo">
+  <meta name="theme-color" content="#09090b">
 
   <!-- PWA & Mobile Meta Tags -->
   <link rel="manifest" href="manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Whisper Memo">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
   <link rel="shortcut icon" href="icons/favicon.ico">
@@ -19,7 +20,7 @@
   <!-- Open Graph -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="Voice Memo Transcriber (Whisper) - Fast AI Speech-to-Text">
-  <meta property="og:description" content="Blazing fast speech transcription powered by Groq Whisper. Installable PWA with local storage privacy. Available in 7 languages.">
+  <meta property="og:description" content="Blazing fast speech transcription powered by Groq Whisper. Installable PWA with local storage privacy and instant AI summaries. Available in 7 languages.">
   <meta property="og:url" content="./">
   <meta property="og:site_name" content="Voice Memo Transcriber">
 
@@ -44,7 +45,7 @@
         "url": "./",
         "applicationCategory": "UtilitiesApplication",
         "operatingSystem": "All (iOS, Android, Windows, macOS, Linux)",
-        "description": "An installable Progressive Web App (PWA) providing instantaneous speech-to-text transcription via Groq Whisper API with on-device memo management. Available in 7 languages.",
+        "description": "An installable Progressive Web App (PWA) providing instantaneous speech-to-text transcription via Groq Whisper API with on-device memo management and AI summarization. Available in 7 languages.",
         "offers": {
           "@type": "Offer",
           "price": "0",
@@ -55,7 +56,7 @@
           "Installable Progressive Web App (PWA) for mobile & desktop",
           "Real-time animated audio waveform visualizer",
           "Local memo storage with 1-click copy, share, and audio export",
-          "AI summarization feature",
+          "Instant AI summarization powered by Groq Llama models",
           "Direct client-to-Groq API connection for maximum privacy"
         ]
       },
@@ -91,24 +92,113 @@
   <style>
     :root {
       --bg-main: #09090b;
-      --bg-card: #18181b;
-      --bg-card-alt: #202024;
-      --border-color: #27272a;
+      --bg-card: rgba(24, 24, 27, 0.75);
+      --bg-card-hover: rgba(39, 39, 42, 0.85);
+      --border-color: rgba(255, 255, 255, 0.08);
       --primary-color: #ef4444;
-      --accent-color: #3b82f6;
+      --accent-coral: #fb7185;
+      --accent-amber: #f59e0b;
     }
+
     body {
       background-color: var(--bg-main);
       color: #f4f4f5;
+      overflow-x: hidden;
+      position: relative;
     }
+
+    /* Ambient Audio Light Flares in Background */
+    .ambient-glow {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .glow-blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(120px);
+      opacity: 0.22;
+      animation: soundFloat 18s infinite alternate ease-in-out;
+    }
+
+    .glow-blob-red {
+      width: 520px;
+      height: 520px;
+      background: radial-gradient(circle, #ef4444, #b91c1c);
+      top: -60px;
+      left: 12%;
+    }
+
+    .glow-blob-coral {
+      width: 560px;
+      height: 560px;
+      background: radial-gradient(circle, #f43f5e, #fb7185);
+      top: 35%;
+      right: -100px;
+      animation-duration: 22s;
+    }
+
+    .glow-blob-amber {
+      width: 480px;
+      height: 480px;
+      background: radial-gradient(circle, #f59e0b, #d97706);
+      bottom: 5%;
+      left: -80px;
+      animation-duration: 20s;
+    }
+
+    .grid-pattern {
+      position: absolute;
+      inset: 0;
+      background-image: linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(circle at 50% 25%, black 40%, transparent 85%);
+      -webkit-mask-image: radial-gradient(circle at 50% 25%, black 40%, transparent 85%);
+    }
+
+    @keyframes soundFloat {
+      0% { transform: translate(0, 0) scale(1) rotate(0deg); }
+      50% { transform: translate(30px, 20px) scale(1.08) rotate(8deg); }
+      100% { transform: translate(-20px, 40px) scale(0.95) rotate(-6deg); }
+    }
+
+    /* Floating Audio Beats */
+    .audio-pulse-dot {
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+      animation: pulseAudio 1.5s infinite ease-out;
+    }
+
+    @keyframes pulseAudio {
+      0% { transform: scale(0.8); opacity: 0.8; }
+      50% { transform: scale(1.4); opacity: 0.2; }
+      100% { transform: scale(0.8); opacity: 0.8; }
+    }
+
+    .lang-card {
+      background-color: var(--bg-card);
+      border-color: var(--border-color);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
     .lang-card:hover {
       border-color: rgba(239, 68, 68, 0.6) !important;
+      background-color: var(--bg-card-hover);
+      box-shadow: 0 10px 25px -5px rgba(239, 68, 68, 0.2);
     }
+
     .lang-card.is-recommended {
       border-color: #ef4444 !important;
-      background: linear-gradient(135deg, #18181b 0%, #2a1215 100%) !important;
-      box-shadow: 0 0 20px rgba(239, 68, 68, 0.25);
+      background: linear-gradient(135deg, rgba(28, 25, 25, 0.95) 0%, rgba(55, 18, 22, 0.9) 100%) !important;
+      box-shadow: 0 0 25px rgba(239, 68, 68, 0.25);
     }
+
     .flag-icon {
       display: inline-block;
       vertical-align: middle;
@@ -118,27 +208,83 @@
       border: 1px solid rgba(255, 255, 255, 0.2);
       flex-shrink: 0;
     }
+
     .flag-icon-md {
       width: 32px;
       height: 24px;
+    }
+
+    /* Hero Illustration Frame */
+    .hero-art-card {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.35), rgba(251, 113, 133, 0.3), rgba(245, 158, 11, 0.3));
+      border-radius: 24px;
+      padding: 6px;
+      box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.7);
+      transition: transform 0.4s ease, box-shadow 0.4s ease;
+    }
+
+    .hero-art-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 25px 60px -10px rgba(239, 68, 68, 0.3);
+    }
+
+    .hero-art-inner {
+      border-radius: 20px;
+      overflow: hidden;
+      position: relative;
+      background: #09090b;
+      aspect-ratio: 16 / 9;
+    }
+
+    .hero-art-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.5s ease;
+    }
+
+    .hero-art-card:hover .hero-art-img {
+      transform: scale(1.02);
+    }
+
+    /* App Icon Floating Badge */
+    .icon-badge-glow {
+      box-shadow: 0 8px 30px rgba(239, 68, 68, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.2);
     }
   </style>
 </head>
 <body class="min-h-screen flex flex-col font-sans">
 
+  <!-- Ambient Glowing Background Graphics -->
+  <div class="ambient-glow" aria-hidden="true">
+    <div class="glow-blob glow-blob-red"></div>
+    <div class="glow-blob glow-blob-coral"></div>
+    <div class="glow-blob glow-blob-amber"></div>
+    <div class="grid-pattern"></div>
+
+    <!-- Decorative Audio Beats -->
+    <div class="audio-pulse-dot" style="top: 22%; left: 8%; width: 12px; height: 12px; background: #ef4444; box-shadow: 0 0 15px #ef4444;"></div>
+    <div class="audio-pulse-dot" style="top: 32%; right: 10%; width: 16px; height: 16px; background: #fb7185; box-shadow: 0 0 20px #fb7185; animation-delay: 0.75s;"></div>
+    <div class="audio-pulse-dot" style="top: 62%; left: 6%; width: 14px; height: 14px; background: #f59e0b; box-shadow: 0 0 16px #f59e0b; animation-delay: 0.4s;"></div>
+  </div>
+
   <!-- Header -->
-  <header class="border-b py-3 px-6 backdrop-blur-md sticky top-0 z-50" style="border-color: var(--border-color); background: rgba(9, 9, 11, 0.85);">
+  <header class="border-b py-3 px-6 backdrop-blur-md sticky top-0 z-50 relative" style="border-color: var(--border-color); background: rgba(9, 9, 11, 0.88);">
     <div class="max-w-5xl mx-auto flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <img src="icons/icon-192.png" alt="App Icon" class="w-9 h-9 rounded-xl shadow-md">
+      <a href="./" class="flex items-center gap-3 text-white no-underline">
+        <img src="icons/icon-192.png" alt="Voice Memo Transcriber Icon" class="w-10 h-10 rounded-2xl shadow-md border border-white/10 icon-badge-glow">
         <div>
-          <h1 class="font-bold text-base text-white tracking-tight">Voice Memo Transcriber</h1>
-          <p class="text-[11px] text-gray-400">Groq Whisper · Global Language Hub</p>
+          <h1 class="font-extrabold text-base text-white tracking-tight flex items-center gap-2">
+            Voice Memo Transcriber
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-500/15 text-red-400 border border-red-500/30">Whisper Turbo</span>
+          </h1>
+          <p class="text-[11px] text-zinc-400">Groq Whisper API · Global Language Hub</p>
         </div>
-      </div>
-      <div class="flex items-center gap-2">
+      </a>
+      <div class="flex items-center gap-2.5">
         <!-- PWA Status Badge -->
-        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shadow-sm">
           <i data-lucide="smartphone" class="w-3.5 h-3.5"></i>
           PWA Supported
         </span>
@@ -146,217 +292,271 @@
     </div>
   </header>
 
-  <main class="flex-1 max-w-5xl w-full mx-auto px-6 py-8 sm:py-12 flex flex-col items-center">
+  <main class="flex-1 max-w-5xl w-full mx-auto px-6 py-8 sm:py-12 flex flex-col items-center relative z-10">
 
-    <!-- Hero Title -->
-    <div class="text-center max-w-2xl mx-auto mb-8">
-      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-semibold mb-4">
-        <i data-lucide="mic" class="w-3.5 h-3.5"></i> Powered by Groq whisper-large-v3-turbo
+    <!-- Hero Header Area -->
+    <div class="text-center max-w-3xl mx-auto mb-8">
+      
+      <!-- Big App Icon & Playful Banner -->
+      <div class="flex items-center justify-center gap-3 mb-5">
+        <div class="relative">
+          <img src="icons/icon-192.png" alt="Voice Memo Transcriber App Icon" class="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl shadow-2xl border border-white/20 icon-badge-glow transition-transform hover:scale-105 duration-300">
+          <span class="absolute -bottom-2 -right-2 bg-gradient-to-r from-red-500 to-rose-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-md">
+            Groq AI
+          </span>
+        </div>
       </div>
-      <h2 class="text-2xl sm:text-4xl font-extrabold text-white tracking-tight mb-3">
-        Select Your Language
+
+      <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-bold mb-4 shadow-sm">
+        <i data-lucide="mic" class="w-4 h-4 text-red-400"></i> Powered by Groq whisper-large-v3-turbo
+      </div>
+
+      <h2 class="text-3xl sm:text-5xl font-black text-white tracking-tight mb-4 leading-tight">
+        Speak Your Mind. <span class="bg-gradient-to-r from-red-400 via-rose-300 to-amber-300 bg-clip-text text-transparent">Transcribe in a Blink.</span>
       </h2>
-      <p class="text-sm sm:text-base text-gray-400 max-w-lg mx-auto">
-        Instant speech-to-text voice recorder. Installable on your mobile home screen or accessible in your browser.
+
+      <p class="text-sm sm:text-base text-zinc-300 max-w-xl mx-auto leading-relaxed">
+        High-precision multilingual speech-to-text voice recorder. 
+        Instant transcription, one-tap AI summarization, audio waveforms, and 100% on-device memo privacy.
       </p>
     </div>
 
+    <!-- Generated Fun Illustration Hero Banner -->
+    <div class="w-full max-w-3xl mb-10 hero-art-card">
+      <div class="hero-art-inner">
+        <img src="assets/hero-whisper.jpg" alt="Playful 3D microphone illustration with floating audio waveforms and glowing AI summary notes" class="hero-art-img" loading="eager">
+        <div class="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 bg-zinc-950/80 backdrop-blur-md border border-white/15 px-3 py-1.5 rounded-full text-[11px] font-bold text-red-300 flex items-center gap-1.5 shadow-lg">
+          <i data-lucide="zap" class="w-3.5 h-3.5 text-red-400"></i>
+          <span>Whisper Turbo + AI Summary</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Highlights Chips -->
+    <div class="flex flex-wrap items-center justify-center gap-2.5 mb-10 max-w-3xl">
+      <span class="px-3.5 py-1 rounded-full text-xs font-semibold bg-zinc-900/80 border border-zinc-700/60 text-zinc-300 flex items-center gap-1.5 shadow-sm">
+        <i data-lucide="mic" class="w-3.5 h-3.5 text-red-400"></i>
+        Instant Voice Memo
+      </span>
+      <span class="px-3.5 py-1 rounded-full text-xs font-semibold bg-zinc-900/80 border border-zinc-700/60 text-zinc-300 flex items-center gap-1.5 shadow-sm">
+        <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-400"></i>
+        One-Tap AI Summaries
+      </span>
+      <span class="px-3.5 py-1 rounded-full text-xs font-semibold bg-zinc-900/80 border border-zinc-700/60 text-zinc-300 flex items-center gap-1.5 shadow-sm">
+        <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>
+        100% On-Device Privacy
+      </span>
+      <span class="px-3.5 py-1 rounded-full text-xs font-semibold bg-zinc-900/80 border border-zinc-700/60 text-zinc-300 flex items-center gap-1.5 shadow-sm">
+        <i data-lucide="smartphone" class="w-3.5 h-3.5 text-rose-400"></i>
+        Installable PWA
+      </span>
+    </div>
+
     <!-- Detected Language Quick Action Banner -->
-    <div id="detectedBanner" class="hidden w-full max-w-4xl mb-6 p-3 rounded-xl border bg-gradient-to-r from-red-950/40 via-zinc-900 to-red-950/40 border-red-500/40 flex items-center justify-between gap-4">
+    <div id="detectedBanner" class="hidden w-full max-w-4xl mb-6 p-3 rounded-2xl border bg-gradient-to-r from-red-950/40 via-zinc-900 to-red-950/40 border-red-500/40 flex items-center justify-between gap-4 shadow-lg backdrop-blur-md">
       <div class="flex items-center gap-2.5">
-        <span class="flex h-2 w-2 relative">
+        <span class="flex h-2.5 w-2.5 relative">
           <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-          <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+          <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
         </span>
-        <span class="text-xs text-gray-300">
-          Detected browser preference: <strong id="detectedLangName" class="text-red-300">English</strong>
+        <span class="text-xs text-zinc-300">
+          Detected browser preference: <strong id="detectedLangName" class="text-red-300 font-bold">English</strong>
         </span>
       </div>
-      <a id="detectedLaunchBtn" href="./en/" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-red-600 hover:bg-red-500 text-white transition flex items-center gap-1.5 shadow-sm flex-shrink-0">
+      <a id="detectedLaunchBtn" href="./en/" class="px-4 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white transition flex items-center gap-1.5 shadow-md flex-shrink-0">
         <span>Launch App</span>
         <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
       </a>
     </div>
 
     <!-- Compact Language Selector Grid (7 Languages) -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 w-full max-w-4xl mb-8">
-      
-      <!-- Japanese (ja) -->
-      <a href="./ja/" data-lang="ja" class="lang-card group relative p-3 rounded-xl border transition-all duration-200 hover:scale-[1.02] hover:shadow-lg flex items-center justify-between gap-3" style="background-color: var(--bg-card); border-color: var(--border-color);">
-        <div class="flex items-center gap-3 min-w-0">
-          <svg viewBox="0 0 32 24" class="flag-icon flag-icon-md" xmlns="http://www.w3.org/2000/svg" aria-label="Japan">
-            <rect width="32" height="24" fill="#ffffff"/>
-            <circle cx="16" cy="12" r="6.2" fill="#bc002d"/>
-          </svg>
-          <div class="min-w-0">
-            <div class="flex items-center gap-1.5">
-              <h3 class="font-bold text-sm text-white group-hover:text-red-400 transition-colors truncate">日本語</h3>
-              <span class="rec-badge hidden px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-red-500/20 text-red-400 border border-red-500/30">Auto</span>
-            </div>
-            <p class="text-[11px] text-gray-400 truncate">Japanese · 日本</p>
-          </div>
-        </div>
-        <i data-lucide="chevron-right" class="w-4 h-4 text-gray-500 group-hover:text-red-400 group-hover:translate-x-0.5 transition-all flex-shrink-0"></i>
-      </a>
+    <div class="w-full max-w-4xl mb-12">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-sm font-bold text-zinc-300 uppercase tracking-wider flex items-center gap-2">
+          <i data-lucide="globe" class="w-4 h-4 text-red-400"></i> Choose Language & Launch
+        </h3>
+        <span class="text-xs text-zinc-500">Available in 7 languages</span>
+      </div>
 
-      <!-- English (en) -->
-      <a href="./en/" data-lang="en" class="lang-card group relative p-3 rounded-xl border transition-all duration-200 hover:scale-[1.02] hover:shadow-lg flex items-center justify-between gap-3" style="background-color: var(--bg-card); border-color: var(--border-color);">
-        <div class="flex items-center gap-3 min-w-0">
-          <svg viewBox="0 0 32 24" class="flag-icon flag-icon-md" xmlns="http://www.w3.org/2000/svg" aria-label="English / USA">
-            <rect width="32" height="24" fill="#b22234"/>
-            <path d="M0 1.85h32v1.85H0zm0 3.69h32v1.85H0zm0 3.69h32v1.85H0zm0 3.69h32v1.85H0zm0 3.69h32v1.85H0zm0 3.69h32v1.85H0z" fill="#ffffff"/>
-            <rect width="14" height="13" fill="#3c3b6e"/>
-            <circle cx="2.8" cy="2.6" r="0.8" fill="#ffffff"/>
-            <circle cx="7" cy="2.6" r="0.8" fill="#ffffff"/>
-            <circle cx="11.2" cy="2.6" r="0.8" fill="#ffffff"/>
-            <circle cx="4.9" cy="5.2" r="0.8" fill="#ffffff"/>
-            <circle cx="9.1" cy="5.2" r="0.8" fill="#ffffff"/>
-            <circle cx="2.8" cy="7.8" r="0.8" fill="#ffffff"/>
-            <circle cx="7" cy="7.8" r="0.8" fill="#ffffff"/>
-            <circle cx="11.2" cy="7.8" r="0.8" fill="#ffffff"/>
-            <circle cx="4.9" cy="10.4" r="0.8" fill="#ffffff"/>
-            <circle cx="9.1" cy="10.4" r="0.8" fill="#ffffff"/>
-          </svg>
-          <div class="min-w-0">
-            <div class="flex items-center gap-1.5">
-              <h3 class="font-bold text-sm text-white group-hover:text-red-400 transition-colors truncate">English</h3>
-              <span class="rec-badge hidden px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-red-500/20 text-red-400 border border-red-500/30">Auto</span>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+        
+        <!-- Japanese (ja) -->
+        <a href="./ja/" data-lang="ja" class="lang-card group relative p-3 rounded-xl border transition-all duration-200 hover:scale-[1.02] hover:shadow-lg flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3 min-w-0">
+            <svg viewBox="0 0 32 24" class="flag-icon flag-icon-md" xmlns="http://www.w3.org/2000/svg" aria-label="Japan">
+              <rect width="32" height="24" fill="#ffffff"/>
+              <circle cx="16" cy="12" r="6.2" fill="#bc002d"/>
+            </svg>
+            <div class="min-w-0">
+              <div class="flex items-center gap-1.5">
+                <h4 class="font-bold text-sm text-white group-hover:text-red-400 transition-colors truncate">日本語</h4>
+                <span class="rec-badge hidden px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-red-500/20 text-red-400 border border-red-500/30">Auto</span>
+              </div>
+              <p class="text-[11px] text-zinc-400 truncate">Japanese · 日本</p>
             </div>
-            <p class="text-[11px] text-gray-400 truncate">English · Global / US</p>
           </div>
-        </div>
-        <i data-lucide="chevron-right" class="w-4 h-4 text-gray-500 group-hover:text-red-400 group-hover:translate-x-0.5 transition-all flex-shrink-0"></i>
-      </a>
+          <i data-lucide="chevron-right" class="w-4 h-4 text-zinc-500 group-hover:text-red-400 group-hover:translate-x-0.5 transition-all flex-shrink-0"></i>
+        </a>
 
-      <!-- Thai (th) -->
-      <a href="./th/" data-lang="th" class="lang-card group relative p-3 rounded-xl border transition-all duration-200 hover:scale-[1.02] hover:shadow-lg flex items-center justify-between gap-3" style="background-color: var(--bg-card); border-color: var(--border-color);">
-        <div class="flex items-center gap-3 min-w-0">
-          <svg viewBox="0 0 32 24" class="flag-icon flag-icon-md" xmlns="http://www.w3.org/2000/svg" aria-label="Thailand">
-            <rect width="32" height="24" fill="#a51931"/>
-            <rect y="4" width="32" height="16" fill="#f4f5f8"/>
-            <rect y="8" width="32" height="8" fill="#2d2a4a"/>
-          </svg>
-          <div class="min-w-0">
-            <div class="flex items-center gap-1.5">
-              <h3 class="font-bold text-sm text-white group-hover:text-red-400 transition-colors truncate">ไทย</h3>
-              <span class="rec-badge hidden px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-red-500/20 text-red-400 border border-red-500/30">Auto</span>
+        <!-- English (en) -->
+        <a href="./en/" data-lang="en" class="lang-card group relative p-3 rounded-xl border transition-all duration-200 hover:scale-[1.02] hover:shadow-lg flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3 min-w-0">
+            <svg viewBox="0 0 32 24" class="flag-icon flag-icon-md" xmlns="http://www.w3.org/2000/svg" aria-label="English / USA">
+              <rect width="32" height="24" fill="#b22234"/>
+              <path d="M0 1.85h32v1.85H0zm0 3.69h32v1.85H0zm0 3.69h32v1.85H0zm0 3.69h32v1.85H0zm0 3.69h32v1.85H0zm0 3.69h32v1.85H0z" fill="#ffffff"/>
+              <rect width="14" height="13" fill="#3c3b6e"/>
+              <circle cx="2.8" cy="2.6" r="0.8" fill="#ffffff"/>
+              <circle cx="7" cy="2.6" r="0.8" fill="#ffffff"/>
+              <circle cx="11.2" cy="2.6" r="0.8" fill="#ffffff"/>
+              <circle cx="4.9" cy="5.2" r="0.8" fill="#ffffff"/>
+              <circle cx="9.1" cy="5.2" r="0.8" fill="#ffffff"/>
+              <circle cx="2.8" cy="7.8" r="0.8" fill="#ffffff"/>
+              <circle cx="7" cy="7.8" r="0.8" fill="#ffffff"/>
+              <circle cx="11.2" cy="7.8" r="0.8" fill="#ffffff"/>
+              <circle cx="4.9" cy="10.4" r="0.8" fill="#ffffff"/>
+              <circle cx="9.1" cy="10.4" r="0.8" fill="#ffffff"/>
+            </svg>
+            <div class="min-w-0">
+              <div class="flex items-center gap-1.5">
+                <h4 class="font-bold text-sm text-white group-hover:text-red-400 transition-colors truncate">English</h4>
+                <span class="rec-badge hidden px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-red-500/20 text-red-400 border border-red-500/30">Auto</span>
+              </div>
+              <p class="text-[11px] text-zinc-400 truncate">English · Global / US</p>
             </div>
-            <p class="text-[11px] text-gray-400 truncate">Thai · ประเทศไทย</p>
           </div>
-        </div>
-        <i data-lucide="chevron-right" class="w-4 h-4 text-gray-500 group-hover:text-red-400 group-hover:translate-x-0.5 transition-all flex-shrink-0"></i>
-      </a>
+          <i data-lucide="chevron-right" class="w-4 h-4 text-zinc-500 group-hover:text-red-400 group-hover:translate-x-0.5 transition-all flex-shrink-0"></i>
+        </a>
 
-      <!-- Chinese (zh) -->
-      <a href="./zh/" data-lang="zh" class="lang-card group relative p-3 rounded-xl border transition-all duration-200 hover:scale-[1.02] hover:shadow-lg flex items-center justify-between gap-3" style="background-color: var(--bg-card); border-color: var(--border-color);">
-        <div class="flex items-center gap-3 min-w-0">
-          <svg viewBox="0 0 32 24" class="flag-icon flag-icon-md" xmlns="http://www.w3.org/2000/svg" aria-label="China">
-            <rect width="32" height="24" fill="#de2910"/>
-            <polygon points="5.5,2.2 6.6,5.2 9.7,5.2 7.2,7 8.2,10 5.5,8.2 2.8,10 3.8,7 1.3,5.2 4.4,5.2" fill="#ffde00"/>
-          </svg>
-          <div class="min-w-0">
-            <div class="flex items-center gap-1.5">
-              <h3 class="font-bold text-sm text-white group-hover:text-red-400 transition-colors truncate">简体中文</h3>
-              <span class="rec-badge hidden px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-red-500/20 text-red-400 border border-red-500/30">Auto</span>
+        <!-- Thai (th) -->
+        <a href="./th/" data-lang="th" class="lang-card group relative p-3 rounded-xl border transition-all duration-200 hover:scale-[1.02] hover:shadow-lg flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3 min-w-0">
+            <svg viewBox="0 0 32 24" class="flag-icon flag-icon-md" xmlns="http://www.w3.org/2000/svg" aria-label="Thailand">
+              <rect width="32" height="24" fill="#a51931"/>
+              <rect y="4" width="32" height="16" fill="#f4f5f8"/>
+              <rect y="8" width="32" height="8" fill="#2d2a4a"/>
+            </svg>
+            <div class="min-w-0">
+              <div class="flex items-center gap-1.5">
+                <h4 class="font-bold text-sm text-white group-hover:text-red-400 transition-colors truncate">ไทย</h4>
+                <span class="rec-badge hidden px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-red-500/20 text-red-400 border border-red-500/30">Auto</span>
+              </div>
+              <p class="text-[11px] text-zinc-400 truncate">Thai · ประเทศไทย</p>
             </div>
-            <p class="text-[11px] text-gray-400 truncate">Chinese · 中国 / Global</p>
           </div>
-        </div>
-        <i data-lucide="chevron-right" class="w-4 h-4 text-gray-500 group-hover:text-red-400 group-hover:translate-x-0.5 transition-all flex-shrink-0"></i>
-      </a>
+          <i data-lucide="chevron-right" class="w-4 h-4 text-zinc-500 group-hover:text-red-400 group-hover:translate-x-0.5 transition-all flex-shrink-0"></i>
+        </a>
 
-      <!-- Spanish (es) -->
-      <a href="./es/" data-lang="es" class="lang-card group relative p-3 rounded-xl border transition-all duration-200 hover:scale-[1.02] hover:shadow-lg flex items-center justify-between gap-3" style="background-color: var(--bg-card); border-color: var(--border-color);">
-        <div class="flex items-center gap-3 min-w-0">
-          <svg viewBox="0 0 32 24" class="flag-icon flag-icon-md" xmlns="http://www.w3.org/2000/svg" aria-label="Spain">
-            <rect width="32" height="24" fill="#aa151b"/>
-            <rect y="6" width="32" height="12" fill="#f1bf00"/>
-            <rect x="6" y="9.5" width="3.5" height="4.5" rx="1" fill="#aa151b"/>
-          </svg>
-          <div class="min-w-0">
-            <div class="flex items-center gap-1.5">
-              <h3 class="font-bold text-sm text-white group-hover:text-red-400 transition-colors truncate">Español</h3>
-              <span class="rec-badge hidden px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-red-500/20 text-red-400 border border-red-500/30">Auto</span>
+        <!-- Chinese (zh) -->
+        <a href="./zh/" data-lang="zh" class="lang-card group relative p-3 rounded-xl border transition-all duration-200 hover:scale-[1.02] hover:shadow-lg flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3 min-w-0">
+            <svg viewBox="0 0 32 24" class="flag-icon flag-icon-md" xmlns="http://www.w3.org/2000/svg" aria-label="China">
+              <rect width="32" height="24" fill="#de2910"/>
+              <polygon points="5.5,2.2 6.6,5.2 9.7,5.2 7.2,7 8.2,10 5.5,8.2 2.8,10 3.8,7 1.3,5.2 4.4,5.2" fill="#ffde00"/>
+            </svg>
+            <div class="min-w-0">
+              <div class="flex items-center gap-1.5">
+                <h4 class="font-bold text-sm text-white group-hover:text-red-400 transition-colors truncate">简体中文</h4>
+                <span class="rec-badge hidden px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-red-500/20 text-red-400 border border-red-500/30">Auto</span>
+              </div>
+              <p class="text-[11px] text-zinc-400 truncate">Chinese · 中国 / Global</p>
             </div>
-            <p class="text-[11px] text-gray-400 truncate">Spanish · España / LATAM</p>
           </div>
-        </div>
-        <i data-lucide="chevron-right" class="w-4 h-4 text-gray-500 group-hover:text-red-400 group-hover:translate-x-0.5 transition-all flex-shrink-0"></i>
-      </a>
+          <i data-lucide="chevron-right" class="w-4 h-4 text-zinc-500 group-hover:text-red-400 group-hover:translate-x-0.5 transition-all flex-shrink-0"></i>
+        </a>
 
-      <!-- German (de) -->
-      <a href="./de/" data-lang="de" class="lang-card group relative p-3 rounded-xl border transition-all duration-200 hover:scale-[1.02] hover:shadow-lg flex items-center justify-between gap-3" style="background-color: var(--bg-card); border-color: var(--border-color);">
-        <div class="flex items-center gap-3 min-w-0">
-          <svg viewBox="0 0 32 24" class="flag-icon flag-icon-md" xmlns="http://www.w3.org/2000/svg" aria-label="Germany">
-            <rect width="32" height="8" fill="#111827"/>
-            <rect y="8" width="32" height="8" fill="#dd0000"/>
-            <rect y="16" width="32" height="8" fill="#ffce00"/>
-          </svg>
-          <div class="min-w-0">
-            <div class="flex items-center gap-1.5">
-              <h3 class="font-bold text-sm text-white group-hover:text-red-400 transition-colors truncate">Deutsch</h3>
-              <span class="rec-badge hidden px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-red-500/20 text-red-400 border border-red-500/30">Auto</span>
+        <!-- Spanish (es) -->
+        <a href="./es/" data-lang="es" class="lang-card group relative p-3 rounded-xl border transition-all duration-200 hover:scale-[1.02] hover:shadow-lg flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3 min-w-0">
+            <svg viewBox="0 0 32 24" class="flag-icon flag-icon-md" xmlns="http://www.w3.org/2000/svg" aria-label="Spain">
+              <rect width="32" height="24" fill="#aa151b"/>
+              <rect y="6" width="32" height="12" fill="#f1bf00"/>
+              <rect x="6" y="9.5" width="3.5" height="4.5" rx="1" fill="#aa151b"/>
+            </svg>
+            <div class="min-w-0">
+              <div class="flex items-center gap-1.5">
+                <h4 class="font-bold text-sm text-white group-hover:text-red-400 transition-colors truncate">Español</h4>
+                <span class="rec-badge hidden px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-red-500/20 text-red-400 border border-red-500/30">Auto</span>
+              </div>
+              <p class="text-[11px] text-zinc-400 truncate">Spanish · España / LATAM</p>
             </div>
-            <p class="text-[11px] text-gray-400 truncate">German · Deutschland / DACH</p>
           </div>
-        </div>
-        <i data-lucide="chevron-right" class="w-4 h-4 text-gray-500 group-hover:text-red-400 group-hover:translate-x-0.5 transition-all flex-shrink-0"></i>
-      </a>
+          <i data-lucide="chevron-right" class="w-4 h-4 text-zinc-500 group-hover:text-red-400 group-hover:translate-x-0.5 transition-all flex-shrink-0"></i>
+        </a>
 
-      <!-- French (fr) -->
-      <a href="./fr/" data-lang="fr" class="lang-card group relative p-3 rounded-xl border transition-all duration-200 hover:scale-[1.02] hover:shadow-lg flex items-center justify-between gap-3" style="background-color: var(--bg-card); border-color: var(--border-color);">
-        <div class="flex items-center gap-3 min-w-0">
-          <svg viewBox="0 0 32 24" class="flag-icon flag-icon-md" xmlns="http://www.w3.org/2000/svg" aria-label="France">
-            <rect width="11" height="24" fill="#002395"/>
-            <rect x="11" width="10" height="24" fill="#ffffff"/>
-            <rect x="21" width="11" height="24" fill="#ed2939"/>
-          </svg>
-          <div class="min-w-0">
-            <div class="flex items-center gap-1.5">
-              <h3 class="font-bold text-sm text-white group-hover:text-red-400 transition-colors truncate">Français</h3>
-              <span class="rec-badge hidden px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-red-500/20 text-red-400 border border-red-500/30">Auto</span>
+        <!-- German (de) -->
+        <a href="./de/" data-lang="de" class="lang-card group relative p-3 rounded-xl border transition-all duration-200 hover:scale-[1.02] hover:shadow-lg flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3 min-w-0">
+            <svg viewBox="0 0 32 24" class="flag-icon flag-icon-md" xmlns="http://www.w3.org/2000/svg" aria-label="Germany">
+              <rect width="32" height="8" fill="#111827"/>
+              <rect y="8" width="32" height="8" fill="#dd0000"/>
+              <rect y="16" width="32" height="8" fill="#ffce00"/>
+            </svg>
+            <div class="min-w-0">
+              <div class="flex items-center gap-1.5">
+                <h4 class="font-bold text-sm text-white group-hover:text-red-400 transition-colors truncate">Deutsch</h4>
+                <span class="rec-badge hidden px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-red-500/20 text-red-400 border border-red-500/30">Auto</span>
+              </div>
+              <p class="text-[11px] text-zinc-400 truncate">German · Deutschland / DACH</p>
             </div>
-            <p class="text-[11px] text-gray-400 truncate">French · France / Global</p>
           </div>
-        </div>
-        <i data-lucide="chevron-right" class="w-4 h-4 text-gray-500 group-hover:text-red-400 group-hover:translate-x-0.5 transition-all flex-shrink-0"></i>
-      </a>
+          <i data-lucide="chevron-right" class="w-4 h-4 text-zinc-500 group-hover:text-red-400 group-hover:translate-x-0.5 transition-all flex-shrink-0"></i>
+        </a>
 
+        <!-- French (fr) -->
+        <a href="./fr/" data-lang="fr" class="lang-card group relative p-3 rounded-xl border transition-all duration-200 hover:scale-[1.02] hover:shadow-lg flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3 min-w-0">
+            <svg viewBox="0 0 32 24" class="flag-icon flag-icon-md" xmlns="http://www.w3.org/2000/svg" aria-label="France">
+              <rect width="11" height="24" fill="#002395"/>
+              <rect x="11" width="10" height="24" fill="#ffffff"/>
+              <rect x="21" width="11" height="24" fill="#ed2939"/>
+            </svg>
+            <div class="min-w-0">
+              <div class="flex items-center gap-1.5">
+                <h4 class="font-bold text-sm text-white group-hover:text-red-400 transition-colors truncate">Français</h4>
+                <span class="rec-badge hidden px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-red-500/20 text-red-400 border border-red-500/30">Auto</span>
+              </div>
+              <p class="text-[11px] text-zinc-400 truncate">French · France / Global</p>
+            </div>
+          </div>
+          <i data-lucide="chevron-right" class="w-4 h-4 text-zinc-500 group-hover:text-red-400 group-hover:translate-x-0.5 transition-all flex-shrink-0"></i>
+        </a>
+
+      </div>
     </div>
 
     <!-- Groq API Key Free Tier Highlight Card -->
-    <div class="w-full max-w-4xl mb-12 p-5 rounded-2xl border bg-gradient-to-br from-red-950/30 via-zinc-900 to-zinc-900 border-red-500/30 shadow-lg">
-      <div class="flex items-center justify-between gap-4 mb-3 flex-wrap">
+    <div class="w-full max-w-4xl mb-12 p-6 rounded-2xl border bg-gradient-to-br from-red-950/30 via-zinc-900 to-zinc-900 border-red-500/30 shadow-xl backdrop-blur-md">
+      <div class="flex items-center justify-between gap-4 mb-4 flex-wrap">
         <div class="flex items-center gap-2">
-          <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-red-500/20 text-red-400 border border-red-500/30 uppercase tracking-wider">
+          <span class="px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-red-500/20 text-red-400 border border-red-500/30 uppercase tracking-wider">
             Free API Key Required
           </span>
-          <span class="text-xs text-gray-400">No Credit Card Needed</span>
+          <span class="text-xs text-zinc-400">Zero Subscription Fees · No Credit Card Needed</span>
         </div>
-        <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer" class="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-red-600 hover:bg-red-500 text-white transition flex items-center gap-1.5 shadow-md flex-shrink-0">
+        <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer" class="px-4 py-1.5 rounded-xl text-xs font-bold bg-red-600 hover:bg-red-500 text-white transition flex items-center gap-1.5 shadow-md flex-shrink-0">
           <span>Get Free Key at console.groq.com</span>
           <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
         </a>
       </div>
-      <h3 class="text-base font-bold text-white mb-1.5">
+      <h3 class="text-base sm:text-lg font-bold text-white mb-2">
         Generous Daily Free Tier on Groq
       </h3>
-      <p class="text-xs text-gray-300 leading-relaxed mb-3">
-        Groq provides an extraordinarily generous free usage allowance with zero subscription fees:
+      <p class="text-xs sm:text-sm text-zinc-300 leading-relaxed mb-4">
+        Groq provides an extraordinarily generous free usage allowance with ultra-low latency LPU hardware acceleration:
       </p>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs text-gray-300">
-        <div class="p-2.5 rounded-lg bg-black/40 border border-zinc-800 flex items-start gap-2">
-          <span class="text-red-400 font-bold">🎙️</span>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-zinc-300">
+        <div class="p-3.5 rounded-xl bg-black/40 border border-zinc-800/80 flex items-start gap-3">
+          <span class="text-xl">🎙️</span>
           <div>
-            <strong class="text-white block font-medium">Whisper Transcription</strong>
-            <span class="text-[11px] text-gray-400">Up to <strong>~2,000 requests/day</strong> (approx. 2 to 4 hours of audio daily).</span>
+            <strong class="text-white block font-semibold text-sm mb-0.5">Whisper Transcription</strong>
+            <span class="text-[11px] text-zinc-400 leading-relaxed">Up to <strong class="text-zinc-200">~2,000 requests/day</strong> (approx. 2 to 4 hours of audio speech-to-text daily).</span>
           </div>
         </div>
-        <div class="p-2.5 rounded-lg bg-black/40 border border-zinc-800 flex items-start gap-2">
-          <span class="text-red-400 font-bold">✨</span>
+        <div class="p-3.5 rounded-xl bg-black/40 border border-zinc-800/80 flex items-start gap-3">
+          <span class="text-xl">✨</span>
           <div>
-            <strong class="text-white block font-medium">AI Summarization</strong>
-            <span class="text-[11px] text-gray-400">Up to <strong>1,000+ summaries/day</strong> powered by Llama 3 models.</span>
+            <strong class="text-white block font-semibold text-sm mb-0.5">Instant AI Summaries</strong>
+            <span class="text-[11px] text-zinc-400 leading-relaxed">Up to <strong class="text-zinc-200">1,000+ summaries/day</strong> powered by high-speed Llama 3 models on Groq.</span>
           </div>
         </div>
       </div>
@@ -368,54 +568,54 @@
     <section class="w-full max-w-4xl border-t pt-12 pb-8" style="border-color: var(--border-color);">
       
       <div class="text-center max-w-xl mx-auto mb-10">
-        <h3 class="text-xl font-bold text-white mb-2">
+        <h3 class="text-xl sm:text-2xl font-bold text-white mb-2">
           High-Speed Speech Recognition in Your Pocket
         </h3>
-        <p class="text-xs sm:text-sm text-gray-400 leading-relaxed">
-          Record ideas, meetings, and voice memos on the go. Powered by Groq's LPU inference engine, transcribing minutes of audio in seconds.
+        <p class="text-xs sm:text-sm text-zinc-400 leading-relaxed">
+          Record ideas, meetings, lectures, and voice memos on the go. Powered by Groq's LPU inference engine, transcribing minutes of audio in seconds.
         </p>
       </div>
 
       <!-- Feature Grid (4 Cards) -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
         
-        <div class="p-4 rounded-xl border" style="background-color: var(--bg-card); border-color: var(--border-color);">
-          <div class="w-8 h-8 rounded-lg bg-red-500/10 text-red-400 flex items-center justify-center mb-2.5">
-            <i data-lucide="zap" class="w-4 h-4"></i>
+        <div class="p-5 rounded-2xl border" style="background-color: var(--bg-card); border-color: var(--border-color);">
+          <div class="w-9 h-9 rounded-xl bg-red-500/10 text-red-400 flex items-center justify-center mb-3">
+            <i data-lucide="zap" class="w-5 h-5"></i>
           </div>
-          <h4 class="font-bold text-white text-sm mb-1">Ultra-Fast Whisper API</h4>
-          <p class="text-xs text-gray-400 leading-relaxed">
-            Uses <code class="text-red-300">whisper-large-v3-turbo</code> on Groq for near-instant transcription with high accuracy across multilingual audio.
+          <h4 class="font-bold text-white text-base mb-1.5">Ultra-Fast Whisper API</h4>
+          <p class="text-xs text-zinc-400 leading-relaxed">
+            Uses <code class="text-red-300 font-mono">whisper-large-v3-turbo</code> on Groq for near-instant transcription with industry-leading multilingual accuracy.
           </p>
         </div>
 
-        <div class="p-4 rounded-xl border" style="background-color: var(--bg-card); border-color: var(--border-color);">
-          <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center mb-2.5">
-            <i data-lucide="smartphone" class="w-4 h-4"></i>
+        <div class="p-5 rounded-2xl border" style="background-color: var(--bg-card); border-color: var(--border-color);">
+          <div class="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center mb-3">
+            <i data-lucide="smartphone" class="w-5 h-5"></i>
           </div>
-          <h4 class="font-bold text-white text-sm mb-1">Installable PWA App</h4>
-          <p class="text-xs text-gray-400 leading-relaxed">
-            Add directly to your iPhone or Android home screen. Launches standalone without browser address bars for a native app feel.
+          <h4 class="font-bold text-white text-base mb-1.5">Installable PWA App</h4>
+          <p class="text-xs text-zinc-400 leading-relaxed">
+            Add directly to your iPhone or Android home screen with 1 tap. Launches in fullscreen without address bars for a smooth native app feel.
           </p>
         </div>
 
-        <div class="p-4 rounded-xl border" style="background-color: var(--bg-card); border-color: var(--border-color);">
-          <div class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center mb-2.5">
-            <i data-lucide="sparkles" class="w-4 h-4"></i>
+        <div class="p-5 rounded-2xl border" style="background-color: var(--bg-card); border-color: var(--border-color);">
+          <div class="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center mb-3">
+            <i data-lucide="sparkles" class="w-5 h-5"></i>
           </div>
-          <h4 class="font-bold text-white text-sm mb-1">AI Summarization</h4>
-          <p class="text-xs text-gray-400 leading-relaxed">
-            Generate bullet-point summaries and key takeaway points from transcribed memos with one tap.
+          <h4 class="font-bold text-white text-base mb-1.5">Instant AI Summarization</h4>
+          <p class="text-xs text-zinc-400 leading-relaxed">
+            Generate bullet-point summaries and key takeaway points from transcribed memos with one tap using fast Groq LLM inference.
           </p>
         </div>
 
-        <div class="p-4 rounded-xl border" style="background-color: var(--bg-card); border-color: var(--border-color);">
-          <div class="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center mb-2.5">
-            <i data-lucide="shield-check" class="w-4 h-4"></i>
+        <div class="p-5 rounded-2xl border" style="background-color: var(--bg-card); border-color: var(--border-color);">
+          <div class="w-9 h-9 rounded-xl bg-rose-500/10 text-rose-400 flex items-center justify-center mb-3">
+            <i data-lucide="shield-check" class="w-5 h-5"></i>
           </div>
-          <h4 class="font-bold text-white text-sm mb-1">Local Storage Privacy</h4>
-          <p class="text-xs text-gray-400 leading-relaxed">
-            All memos and audio blobs are stored locally on your device. Audio requests communicate directly with Groq with zero intermediary storage.
+          <h4 class="font-bold text-white text-base mb-1.5">Local Storage Privacy</h4>
+          <p class="text-xs text-zinc-400 leading-relaxed">
+            All memos and audio blobs are stored locally in your browser's IndexedDB. Direct client-to-Groq API calls ensure zero intermediary logging.
           </p>
         </div>
 
@@ -423,23 +623,23 @@
 
       <!-- FAQ Accordion -->
       <div class="space-y-3 text-xs sm:text-sm max-w-2xl mx-auto">
-        <div class="p-3.5 rounded-xl border" style="background-color: var(--bg-card); border-color: var(--border-color);">
-          <h5 class="font-semibold text-white mb-1 flex items-center gap-2">
+        <div class="p-4 rounded-xl border" style="background-color: var(--bg-card); border-color: var(--border-color);">
+          <h5 class="font-semibold text-white mb-1.5 flex items-center gap-2">
             <i data-lucide="help-circle" class="w-4 h-4 text-red-400 flex-shrink-0"></i>
             How do I get a Groq API key?
           </h5>
-          <p class="text-gray-400 pl-6 leading-relaxed">
-            You can generate a free API key at <a href="https://console.groq.com/keys" target="_blank" rel="noopener" class="text-red-400 underline">console.groq.com</a>. Paste it once into the settings, and it stays safely saved in your browser.
+          <p class="text-zinc-400 pl-6 leading-relaxed">
+            You can create a free API key in seconds at <a href="https://console.groq.com/keys" target="_blank" rel="noopener" class="text-red-400 underline hover:text-red-300">console.groq.com</a>. Paste it once into the settings, and it stays safely saved in your device's browser storage.
           </p>
         </div>
 
-        <div class="p-3.5 rounded-xl border" style="background-color: var(--bg-card); border-color: var(--border-color);">
-          <h5 class="font-semibold text-white mb-1 flex items-center gap-2">
+        <div class="p-4 rounded-xl border" style="background-color: var(--bg-card); border-color: var(--border-color);">
+          <h5 class="font-semibold text-white mb-1.5 flex items-center gap-2">
             <i data-lucide="help-circle" class="w-4 h-4 text-red-400 flex-shrink-0"></i>
-            Can I export my voice recordings?
+            Can I export or share my recordings?
           </h5>
-          <p class="text-gray-400 pl-6 leading-relaxed">
-            Yes. Each memo allows 1-click text copying, text sharing, and downloading the raw recorded audio file.
+          <p class="text-zinc-400 pl-6 leading-relaxed">
+            Yes. Each transcribed memo allows 1-click text copying, native OS sharing, and downloading the raw audio recording file.
           </p>
         </div>
       </div>
@@ -447,8 +647,9 @@
     </section>
 
     <!-- Footer -->
-    <footer class="w-full max-w-4xl border-t py-6 text-center text-xs text-gray-500" style="border-color: var(--border-color);">
-      <p>Voice Memo Transcriber — Fast, Private Speech-to-Text PWA.</p>
+    <footer class="w-full max-w-4xl border-t py-8 text-center text-xs text-zinc-500" style="border-color: var(--border-color);">
+      <p class="mb-2">Voice Memo Transcriber — Fast, Private Speech-to-Text PWA.</p>
+      <p class="text-[11px] text-zinc-600">Powered by Groq whisper-large-v3-turbo · Multi-language support</p>
     </footer>
 
   </main>

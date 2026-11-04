@@ -718,6 +718,110 @@
 
   
     .hidden-dropdown { display: none !important; }
+  
+    /* Screen Wake Lock & Background Warning Badges */
+    .wakelock-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 10px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      color: #34d399;
+    }
+
+    .screen-warning-box {
+      margin-top: 14px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      color: #fbbf24;
+      font-size: 0.76rem;
+      line-height: 1.5;
+      text-align: left;
+    }
+
+    .screen-warning-box strong {
+      color: #fef3c7;
+    }
+
+    /* Audio Preview Player Box */
+    .audio-preview-card {
+      margin-top: 18px;
+      padding: 14px 16px;
+      border-radius: 12px;
+      background: rgba(24, 24, 27, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      display: none;
+      text-align: left;
+      width: 100%;
+    }
+
+    .audio-preview-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #f4f4f5;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .audio-preview-meta {
+      font-size: 0.72rem;
+      color: #a1a1aa;
+      font-weight: normal;
+    }
+
+    .audio-preview-card audio {
+      width: 100%;
+      height: 38px;
+      border-radius: 8px;
+      outline: none;
+      margin-top: 4px;
+    }
+
+    .audio-download-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      background: #27272a;
+      border: 1px solid #3f3f46;
+      color: #e4e4e7;
+      text-decoration: none;
+      font-size: 0.72rem;
+      font-weight: 600;
+      margin-top: 8px;
+      transition: background 0.15s;
+    }
+
+    .audio-download-link:hover {
+      background: #3f3f46;
+      color: #fff;
+    }
+
+    .memo-audio-meta {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.72rem;
+      color: #f87171;
+      background: rgba(239, 68, 68, 0.12);
+      padding: 2px 7px;
+      border-radius: 6px;
+      border: 1px solid rgba(239, 68, 68, 0.25);
+    }
+
   </style>
 
     <link rel="alternate" hreflang="ja" href="./" />
@@ -861,7 +965,39 @@
 
       <div id="recordLabel" class="record-label">タップして録音開始</div>
       <div id="status" class="status-text">Groq APIキーを入力して録音を開始してください</div>
+      
+      <!-- Wake Lock Indicator -->
+      <div id="wakeLockBadge" class="wakelock-badge" style="display: none;">
+        <span>📱</span> 画面スリープ防止中（Wake Lock 有効）
+      </div>
+
+      <!-- Screen OFF Warning Box -->
+      <div class="screen-warning-box">
+        <strong>⚠️ スマホでの長時間の録音について</strong><br>
+        画面をOFF（スリープ）にすると、スマホOS（iOS / Android）の仕様により<strong>マイク入力が自動停止</strong>してしまいます。長時間の録音中も<strong>画面を点灯したまま</strong>にしてください（自動消灯防止機能が動作します）。
+      </div>
+
+      <!-- Background interruption alert -->
+      <div id="bgWarningAlert" class="screen-warning-box" style="display: none; background: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.4); color: #fca5a5;">
+        <strong>⚠️ 画面消灯または別画面への切り替えを検知しました</strong><br>
+        録音中に画面がOFFになったため、消灯中の音声が途切れている可能性があります。直下の「録音音声プレイヤー」で録音時間をご確認ください。
+      </div>
+
+      <!-- Audio Preview & Download Box -->
+      <div id="audioPreviewCard" class="audio-preview-card">
+        <div class="audio-preview-header">
+          <span>🎧 直近の録音音声（確認用）</span>
+          <span id="audioPreviewMeta" class="audio-preview-meta">00:00 (0 MB)</span>
+        </div>
+        <audio id="previewAudioPlayer" controls></audio>
+        <div>
+          <a id="downloadAudioBtn" class="audio-download-link" href="#" download="recording.webm">
+            <span>⬇ 音声ファイルをダウンロード</span>
+          </a>
+        </div>
+      </div>
     </div>
+  </div>
   </div>
 
   <!-- Transcription History -->
@@ -1017,6 +1153,11 @@
 
         mediaRecorder = new MediaRecorder(audioStream, mimeType ? { mimeType } : undefined);
         audioChunks = [];
+        hasBackgroundWarning = false;
+
+        // Hide old background alert
+        const bgAlert = document.getElementById("bgWarningAlert");
+        if (bgAlert) bgAlert.style.display = "none";
 
         mediaRecorder.ondataavailable = e => {
           if (e.data && e.data.size > 0) audioChunks.push(e.data);
@@ -1025,16 +1166,36 @@
         mediaRecorder.onstop = async () => {
           const blobType = mediaRecorder.mimeType || 'audio/webm';
           const audioBlob = new Blob(audioChunks, { type: blobType });
-          await sendToGroq(audioBlob);
+          lastAudioBlob = audioBlob;
+
+          // Calculate formatted size & duration
+          const sizeMB = (audioBlob.size / (1024 * 1024)).toFixed(2);
+          const mins = String(Math.floor(recordingSeconds / 60)).padStart(2, '0');
+          const secs = String(recordingSeconds % 60).padStart(2, '0');
+          const durationStr = `${mins}:${secs}`;
+
+          // Setup Audio Preview Player
+          setupAudioPreview(audioBlob, durationStr, sizeMB);
+
+          // If background switch was detected, show alert
+          if (hasBackgroundWarning) {
+            if (bgAlert) bgAlert.style.display = "block";
+          }
+
+          await sendToGroq(audioBlob, durationStr, sizeMB, hasBackgroundWarning);
         };
 
-        mediaRecorder.start();
+        // timeslice: 1000ms ensures periodic data collection and prevents buffer loss on long recordings
+        mediaRecorder.start(1000);
         isRecording = true;
+
+        // Request Screen Wake Lock to keep phone screen awake
+        await requestWakeLock();
 
         // Start recording animation & timer
         document.getElementById("recordTriggerArea").classList.add("is-recording");
         document.getElementById("recordLabel").innerHTML = '🔴 録音中 <span id="recTimer" style="font-variant-numeric: tabular-nums;">00:00</span> （タップで停止）';
-        document.getElementById("status").innerText = "録音中... もう一度中央アイコンをタップすると停止します";
+        document.getElementById("status").innerText = "録音中... 画面を消さずにこのままお話しください";
 
         recordingSeconds = 0;
         updateTimerDisplay();
@@ -1060,13 +1221,42 @@
       }
       isRecording = false;
 
+      // Release Wake Lock
+      releaseWakeLock();
+
       // Stop recording animation & timer
       document.getElementById("recordTriggerArea").classList.remove("is-recording");
-      document.getElementById("recordLabel").innerText = "Tap to Start Recording";
+      document.getElementById("recordLabel").innerText = "タップして録音開始";
       clearInterval(timerInterval);
 
-      document.getElementById("status").innerText = "⏳ Groq Whisperで超高速文字起こし中...";
+      document.getElementById("status").innerText = "⏳ Groq Whisperで文字起こし中...";
       document.getElementById("mainRecordBtn").disabled = true;
+    }
+
+    function setupAudioPreview(blob, durationStr, sizeMB) {
+      const card = document.getElementById("audioPreviewCard");
+      const player = document.getElementById("previewAudioPlayer");
+      const meta = document.getElementById("audioPreviewMeta");
+      const dlBtn = document.getElementById("downloadAudioBtn");
+
+      if (!card || !player || !blob) return;
+
+      if (lastAudioUrl) {
+        URL.revokeObjectURL(lastAudioUrl);
+      }
+      lastAudioUrl = URL.createObjectURL(blob);
+      player.src = lastAudioUrl;
+
+      if (meta) {
+        meta.innerText = `⏱️ ${durationStr} (${sizeMB} MB)`;
+      }
+      if (dlBtn) {
+        const ext = blob.type.includes('mp4') ? 'mp4' : 'webm';
+        dlBtn.href = lastAudioUrl;
+        dlBtn.download = `memo_${Date.now()}.${ext}`;
+      }
+
+      card.style.display = "block";
     }
 
     function updateTimerDisplay() {
@@ -1307,7 +1497,7 @@
     }
 
     // Send audio to Groq Whisper API
-    async function sendToGroq(audioBlob) {
+    async function sendToGroq(audioBlob, durationStr, sizeMB, hadBgInterruption) {
       const apiKey = document.getElementById("apiKey").value.trim();
       const status = document.getElementById("status");
       const mainBtn = document.getElementById("mainRecordBtn");
@@ -1317,6 +1507,8 @@
       formData.append("file", audioBlob, `recording.${fileExtension}`);
       formData.append("model", "whisper-large-v3-turbo");
       formData.append("language", "ja");
+      // Add prompt to encourage continuous transcription & natural punctuation
+      formData.append("prompt", "日本語の会議や音声メモの書き起こしです。句読点を適切に付与してください。");
 
       try {
         const response = await fetch("https://api.groq.com/openai/v1/audio/transcriptions", {
@@ -1327,10 +1519,14 @@
 
         const data = await response.json();
         if (data.text && data.text.trim().length > 0) {
-          saveToHistory(data.text.trim());
-          status.innerText = "✅ 文字起こしが完了しました！";
+          saveToHistory(data.text.trim(), durationStr, sizeMB, hadBgInterruption);
+          if (hadBgInterruption) {
+            status.innerHTML = "⚠️ 文字起こし完了（※録音中に画面消灯が検知されました）";
+          } else {
+            status.innerText = "✅ 文字起こしが完了しました！";
+          }
         } else {
-          status.innerText = "❌ Error: " + (data.error ? data.error.message : "Audio could not be recognized");
+          status.innerText = "❌ Error: " + (data.error ? data.error.message : "音声が認識できませんでした");
         }
       } catch (err) {
         console.error(err);
@@ -1351,11 +1547,14 @@
       localStorage.setItem("transcription_history", JSON.stringify(list));
     }
 
-    function saveToHistory(text) {
+    function saveToHistory(text, durationStr, sizeMB, hadBgInterruption) {
       const list = getHistory();
       const newItem = {
         id: Date.now().toString(),
         text: text,
+        duration: durationStr || null,
+        sizeMB: sizeMB || null,
+        warning: hadBgInterruption ? "画面消灯による中断の可能性あり" : null,
         createdAt: new Date().toLocaleString("ja-JP", {
           month: "numeric",
           day: "numeric",
@@ -1434,6 +1633,8 @@
           <div class="memo-card" id="memo-card-${item.id}">
             <div class="memo-meta">
               <span class="memo-date">🕒 ${item.createdAt}</span>
+              ${item.duration ? `<span class="memo-audio-meta">⏱️ ${item.duration} (${item.sizeMB}MB)</span>` : ''}
+              ${item.warning ? `<span class="memo-audio-meta" style="color:#fbbf24;background:rgba(245,158,11,0.15);border-color:rgba(245,158,11,0.4);">⚠️ 画面OFF検知</span>` : ''}
             </div>
             <div id="memo-body-${item.id}" class="memo-body ${isLongText ? 'collapsed' : ''}">${escaped}</div>
             

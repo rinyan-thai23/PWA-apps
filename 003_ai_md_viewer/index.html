@@ -6,7 +6,7 @@
   <title>AI Markdown Reader - Instant Rich Viewer for Long AI-Generated Docs</title>
   <meta name="description" content="Dedicated, privacy-first web viewer for long AI-generated Markdown documents. Drag and drop multiple files to instantly render Mermaid diagrams, KaTeX math formulas, code highlights, and interactive table of contents. Completely silent, 100% client-side, and offline capable.">
   <meta name="keywords" content="Markdown Viewer, AI Markdown Reader, ChatGPT Markdown, Claude Specs, Gemini Docs, DeepSeek, Mermaid Viewer, KaTeX Math, Multi-file Markdown, Client-side PWA">
-  <meta name="theme-color" content="#4f46e5">
+  <meta name="theme-color" content="#080d1a">
 
   <!-- Open Graph / Social SEO -->
   <meta property="og:type" content="website">
@@ -18,7 +18,7 @@
   <meta name="twitter:title" content="AI Markdown Reader - Long AI Docs Reader">
   <meta name="twitter:description" content="Instant rich reading companion for ChatGPT, Claude, Gemini, and DeepSeek long Markdown exports.">
 
-  <!-- Hreflang Canonical Links -->
+  <!-- Hreflang Canonical Links (7 Languages) -->
   <link rel="alternate" hreflang="ja" href="./ja/" />
   <link rel="alternate" hreflang="en" href="./en/" />
   <link rel="alternate" hreflang="th" href="./th/" />
@@ -28,8 +28,9 @@
   <link rel="alternate" hreflang="fr" href="./fr/" />
   <link rel="alternate" hreflang="x-default" href="./en/" />
 
-  <!-- PWA Manifest & Icons -->
-  <link rel="icon" type="image/png" href="icons/icon-192.png">
+  <!-- App Icons -->
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 
   <!-- Schema.org Structured Data for SEO & AI Crawlers -->
@@ -98,26 +99,114 @@
 
   <style>
     :root {
-      --bg-main: #0b0f19;
-      --bg-card: #111827;
-      --bg-card-alt: #1a2234;
-      --text-main: #e2e8f0;
-      --text-muted: #94a3b8;
-      --border-color: #1e293b;
-      --accent-color: #6366f1;
+      --bg-main: #080d1a;
+      --bg-card: rgba(17, 24, 39, 0.75);
+      --bg-card-hover: rgba(30, 41, 59, 0.85);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --primary-color: #8b5cf6;
+      --accent-indigo: #6366f1;
+      --accent-cyan: #06b6d4;
     }
+
     body {
       background-color: var(--bg-main);
-      color: var(--text-main);
+      color: #f1f5f9;
+      overflow-x: hidden;
+      position: relative;
     }
+
+    /* Ambient Holographic Light Flares in Background */
+    .ambient-glow {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .glow-blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(120px);
+      opacity: 0.22;
+      animation: docFloat 18s infinite alternate ease-in-out;
+    }
+
+    .glow-blob-violet {
+      width: 520px;
+      height: 520px;
+      background: radial-gradient(circle, #8b5cf6, #6d28d9);
+      top: -60px;
+      left: 10%;
+    }
+
+    .glow-blob-indigo {
+      width: 580px;
+      height: 580px;
+      background: radial-gradient(circle, #4f46e5, #4338ca);
+      top: 35%;
+      right: -100px;
+      animation-duration: 22s;
+    }
+
+    .glow-blob-cyan {
+      width: 480px;
+      height: 480px;
+      background: radial-gradient(circle, #06b6d4, #0891b2);
+      bottom: 5%;
+      left: -80px;
+      animation-duration: 19s;
+    }
+
+    .grid-pattern {
+      position: absolute;
+      inset: 0;
+      background-image: linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(circle at 50% 25%, black 40%, transparent 85%);
+      -webkit-mask-image: radial-gradient(circle at 50% 25%, black 40%, transparent 85%);
+    }
+
+    @keyframes docFloat {
+      0% { transform: translate(0, 0) scale(1) rotate(0deg); }
+      50% { transform: translate(32px, 22px) scale(1.08) rotate(8deg); }
+      100% { transform: translate(-24px, 40px) scale(0.95) rotate(-6deg); }
+    }
+
+    /* Floating Holographic Sparkle */
+    .doc-sparkle-dot {
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+      animation: pulseSparkle 1.6s infinite ease-out;
+    }
+
+    @keyframes pulseSparkle {
+      0% { transform: scale(0.8); opacity: 0.8; }
+      50% { transform: scale(1.4); opacity: 0.2; }
+      100% { transform: scale(0.8); opacity: 0.8; }
+    }
+
+    .lang-card {
+      background-color: var(--bg-card);
+      border-color: var(--border-color);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
     .lang-card:hover {
-      border-color: rgba(99, 102, 241, 0.6) !important;
+      border-color: rgba(139, 92, 246, 0.6) !important;
+      background-color: var(--bg-card-hover);
+      box-shadow: 0 10px 25px -5px rgba(139, 92, 246, 0.2);
     }
+
     .lang-card.is-recommended {
-      border-color: #6366f1 !important;
-      background: linear-gradient(135deg, #111827 0%, #1e1b4b 100%) !important;
-      box-shadow: 0 0 20px rgba(99, 102, 241, 0.25);
+      border-color: #8b5cf6 !important;
+      background: linear-gradient(135deg, rgba(24, 27, 44, 0.95) 0%, rgba(45, 24, 77, 0.9) 100%) !important;
+      box-shadow: 0 0 25px rgba(139, 92, 246, 0.25);
     }
+
     .flag-icon {
       display: inline-block;
       vertical-align: middle;
@@ -127,233 +216,370 @@
       border: 1px solid rgba(255, 255, 255, 0.2);
       flex-shrink: 0;
     }
+
     .flag-icon-md {
       width: 32px;
       height: 24px;
+    }
+
+    /* Hero Illustration Frame */
+    .hero-art-card {
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.35), rgba(99, 102, 241, 0.3), rgba(6, 182, 212, 0.3));
+      border-radius: 24px;
+      padding: 6px;
+      box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.7);
+      transition: transform 0.4s ease, box-shadow 0.4s ease;
+    }
+
+    .hero-art-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 25px 60px -10px rgba(139, 92, 246, 0.3);
+    }
+
+    .hero-art-inner {
+      border-radius: 20px;
+      overflow: hidden;
+      position: relative;
+      background: #080d1a;
+      aspect-ratio: 16 / 9;
+    }
+
+    .hero-art-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.5s ease;
+    }
+
+    .hero-art-card:hover .hero-art-img {
+      transform: scale(1.02);
+    }
+
+    /* App Icon Floating Badge */
+    .icon-badge-glow {
+      box-shadow: 0 8px 30px rgba(139, 92, 246, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.2);
     }
   </style>
 </head>
 <body class="min-h-screen flex flex-col font-sans">
 
-  <!-- Top Navigation Header -->
-  <header class="border-b py-3 px-6 backdrop-blur-md sticky top-0 z-50" style="border-color: var(--border-color); background: rgba(11, 15, 25, 0.85);">
+  <!-- Ambient Glowing Background Graphics -->
+  <div class="ambient-glow" aria-hidden="true">
+    <div class="glow-blob glow-blob-violet"></div>
+    <div class="glow-blob glow-blob-indigo"></div>
+    <div class="glow-blob glow-blob-cyan"></div>
+    <div class="grid-pattern"></div>
+
+    <!-- Decorative Holographic Sparkles -->
+    <div class="doc-sparkle-dot" style="top: 20%; left: 8%; width: 12px; height: 12px; background: #8b5cf6; box-shadow: 0 0 15px #8b5cf6;"></div>
+    <div class="doc-sparkle-dot" style="top: 30%; right: 10%; width: 16px; height: 16px; background: #06b6d4; box-shadow: 0 0 20px #06b6d4; animation-delay: 0.8s;"></div>
+    <div class="doc-sparkle-dot" style="top: 60%; left: 6%; width: 14px; height: 14px; background: #6366f1; box-shadow: 0 0 16px #6366f1; animation-delay: 0.4s;"></div>
+  </div>
+
+  <!-- Header -->
+  <header class="border-b py-3 px-6 backdrop-blur-md sticky top-0 z-50 relative" style="border-color: var(--border-color); background: rgba(8, 13, 26, 0.88);">
     <div class="max-w-6xl mx-auto flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-md">
-          <i data-lucide="sparkles" class="w-5 h-5"></i>
-        </div>
+      <a href="./" class="flex items-center gap-3 text-white no-underline">
+        <img src="icons/icon-192.png" alt="AI Markdown Reader Icon" class="w-10 h-10 rounded-2xl shadow-md border border-white/10 icon-badge-glow">
         <div>
-          <h1 class="font-bold text-base text-white tracking-tight">AI Markdown Reader</h1>
-          <p class="text-[11px] text-gray-400">Global Hub & Architecture Overview</p>
+          <h1 class="font-extrabold text-base text-white tracking-tight flex items-center gap-2">
+            AI Markdown Reader
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-violet-500/15 text-violet-300 border border-violet-500/30">Mermaid & KaTeX</span>
+          </h1>
+          <p class="text-[11px] text-slate-400">Zero-Setup Rich Docs Viewer · Global Language Hub</p>
         </div>
-      </div>
-      <div class="flex items-center gap-3">
-        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-          7 Languages Available
+      </a>
+      <div class="flex items-center gap-2.5">
+        <!-- Privacy Badge -->
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shadow-sm">
+          <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+          100% Client-Side
         </span>
       </div>
     </div>
   </header>
 
-  <main class="flex-1 max-w-6xl w-full mx-auto px-6 py-8 sm:py-12 flex flex-col items-center">
-    
-    <!-- Hero Title -->
+  <main class="flex-1 max-w-6xl w-full mx-auto px-6 py-8 sm:py-12 flex flex-col items-center relative z-10">
+
+    <!-- Hero Header Area -->
     <div class="text-center max-w-3xl mx-auto mb-8">
-      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 text-xs font-semibold mb-4">
-        <i data-lucide="globe" class="w-3.5 h-3.5"></i> Multilingual Web Portal
+      
+      <!-- Big App Icon & Playful Banner -->
+      <div class="flex items-center justify-center gap-3 mb-5">
+        <div class="relative">
+          <img src="icons/icon-192.png" alt="AI Markdown Reader App Icon" class="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl shadow-2xl border border-white/20 icon-badge-glow transition-transform hover:scale-105 duration-300">
+          <span class="absolute -bottom-2 -right-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-md">
+            AI Docs
+          </span>
+        </div>
       </div>
-      <h2 class="text-2xl sm:text-4xl font-extrabold text-white tracking-tight mb-3">
-        Select Your Language
+
+      <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-violet-500/10 border border-violet-500/30 text-violet-300 text-xs font-bold mb-4 shadow-sm">
+        <i data-lucide="sparkles" class="w-4 h-4 text-violet-400"></i> Engineered for ChatGPT, Claude, Gemini & DeepSeek
+      </div>
+
+      <h2 class="text-3xl sm:text-5xl font-black text-white tracking-tight mb-4 leading-tight">
+        Read Long AI Docs. <span class="bg-gradient-to-r from-violet-400 via-indigo-300 to-cyan-300 bg-clip-text text-transparent">With Diagrams & Flow.</span>
       </h2>
-      <p class="text-sm sm:text-base text-gray-400 max-w-xl mx-auto">
-        Choose your preferred language to launch the dedicated, instant online Markdown viewer.
+
+      <p class="text-sm sm:text-base text-slate-300 max-w-xl mx-auto leading-relaxed">
+        The instant, zero-install rich reader for massive AI-generated Markdown documents. 
+        Mermaid diagrams, KaTeX math formulas, multi-file tabs, and 100% offline client-side privacy.
       </p>
     </div>
 
-    <!-- Detected Language Quick Action Banner (Shown when browser language matches) -->
-    <div id="detectedBanner" class="hidden w-full max-w-4xl mb-6 p-3 rounded-xl border bg-gradient-to-r from-indigo-950/40 via-purple-950/30 to-indigo-950/40 border-indigo-500/40 flex items-center justify-between gap-4">
+    <!-- Generated Fun Illustration Hero Banner -->
+    <div class="w-full max-w-3xl mb-10 hero-art-card">
+      <div class="hero-art-inner">
+        <img src="assets/hero-markdown.jpg" alt="Playful 3D illustration with glowing holographic Markdown sheets, Mermaid diagrams, and cute AI reader companion" class="hero-art-img" loading="eager">
+        <div class="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 bg-slate-950/80 backdrop-blur-md border border-white/15 px-3 py-1.5 rounded-full text-[11px] font-bold text-violet-300 flex items-center gap-1.5 shadow-lg">
+          <i data-lucide="layers" class="w-3.5 h-3.5 text-violet-400"></i>
+          <span>Mermaid + KaTeX + Zero Install</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Highlights Chips -->
+    <div class="flex flex-wrap items-center justify-center gap-2.5 mb-10 max-w-3xl">
+      <span class="px-3.5 py-1 rounded-full text-xs font-semibold bg-slate-900/80 border border-slate-700/60 text-slate-300 flex items-center gap-1.5 shadow-sm">
+        <i data-lucide="files" class="w-3.5 h-3.5 text-violet-400"></i>
+        Multi-File Tab Workspace
+      </span>
+      <span class="px-3.5 py-1 rounded-full text-xs font-semibold bg-slate-900/80 border border-slate-700/60 text-slate-300 flex items-center gap-1.5 shadow-sm">
+        <i data-lucide="git-branch" class="w-3.5 h-3.5 text-pink-400"></i>
+        Mermaid Diagrams
+      </span>
+      <span class="px-3.5 py-1 rounded-full text-xs font-semibold bg-slate-900/80 border border-slate-700/60 text-slate-300 flex items-center gap-1.5 shadow-sm">
+        <i data-lucide="binary" class="w-3.5 h-3.5 text-cyan-400"></i>
+        KaTeX Math Typesetting
+      </span>
+      <span class="px-3.5 py-1 rounded-full text-xs font-semibold bg-slate-900/80 border border-slate-700/60 text-slate-300 flex items-center gap-1.5 shadow-sm">
+        <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>
+        100% Client-Side Privacy
+      </span>
+    </div>
+
+    <!-- Detected Language Quick Action Banner -->
+    <div id="detectedBanner" class="hidden w-full max-w-4xl mb-6 p-3 rounded-2xl border bg-gradient-to-r from-violet-950/40 via-slate-900 to-indigo-950/40 border-violet-500/40 flex items-center justify-between gap-4 shadow-lg backdrop-blur-md">
       <div class="flex items-center gap-2.5">
-        <span class="flex h-2 w-2 relative">
-          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-          <span class="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
+        <span class="flex h-2.5 w-2.5 relative">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-violet-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-violet-500"></span>
         </span>
-        <span class="text-xs text-gray-300">
-          Detected browser preference: <strong id="detectedLangName" class="text-indigo-300">English</strong>
+        <span class="text-xs text-slate-300">
+          Detected browser preference: <strong id="detectedLangName" class="text-violet-300 font-bold">English</strong>
         </span>
       </div>
-      <a id="detectedLaunchBtn" href="./en/" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition flex items-center gap-1.5 shadow-sm flex-shrink-0">
+      <a id="detectedLaunchBtn" href="./en/" class="px-4 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white transition flex items-center gap-1.5 shadow-md flex-shrink-0">
         <span>Launch App</span>
         <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
       </a>
     </div>
 
-    <!-- Compact Language Selector Grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 w-full max-w-5xl mb-16">
-      
-      <!-- Japanese (ja) -->
-      <a href="./ja/" data-lang="ja" class="lang-card group relative p-3 rounded-xl border transition-all duration-200 hover:scale-[1.02] hover:shadow-lg flex items-center justify-between gap-3" style="background-color: var(--bg-card); border-color: var(--border-color);">
-        <div class="flex items-center gap-3 min-w-0">
-          <svg viewBox="0 0 32 24" class="flag-icon flag-icon-md" xmlns="http://www.w3.org/2000/svg" aria-label="Japan">
-            <rect width="32" height="24" fill="#ffffff"/>
-            <circle cx="16" cy="12" r="6.2" fill="#bc002d"/>
-          </svg>
-          <div class="min-w-0">
-            <div class="flex items-center gap-1.5">
-              <h3 class="font-bold text-sm text-white group-hover:text-indigo-400 transition-colors truncate">日本語</h3>
-              <span class="rec-badge hidden px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">Auto</span>
-            </div>
-            <p class="text-[11px] text-gray-400 truncate">Japanese · 日本</p>
-          </div>
-        </div>
-        <i data-lucide="chevron-right" class="w-4 h-4 text-gray-500 group-hover:text-indigo-400 group-hover:translate-x-0.5 transition-all flex-shrink-0"></i>
-      </a>
+    <!-- Compact Language Selector Grid (7 Languages) -->
+    <div class="w-full max-w-5xl mb-14">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
+          <i data-lucide="globe" class="w-4 h-4 text-violet-400"></i> Choose Language & Launch
+        </h3>
+        <span class="text-xs text-slate-500">Available in 7 languages</span>
+      </div>
 
-      <!-- English (en) -->
-      <a href="./en/" data-lang="en" class="lang-card group relative p-3 rounded-xl border transition-all duration-200 hover:scale-[1.02] hover:shadow-lg flex items-center justify-between gap-3" style="background-color: var(--bg-card); border-color: var(--border-color);">
-        <div class="flex items-center gap-3 min-w-0">
-          <svg viewBox="0 0 32 24" class="flag-icon flag-icon-md" xmlns="http://www.w3.org/2000/svg" aria-label="English / USA">
-            <rect width="32" height="24" fill="#b22234"/>
-            <path d="M0 1.85h32v1.85H0zm0 3.69h32v1.85H0zm0 3.69h32v1.85H0zm0 3.69h32v1.85H0zm0 3.69h32v1.85H0zm0 3.69h32v1.85H0z" fill="#ffffff"/>
-            <rect width="14" height="13" fill="#3c3b6e"/>
-            <circle cx="2.8" cy="2.6" r="0.8" fill="#ffffff"/>
-            <circle cx="7" cy="2.6" r="0.8" fill="#ffffff"/>
-            <circle cx="11.2" cy="2.6" r="0.8" fill="#ffffff"/>
-            <circle cx="4.9" cy="5.2" r="0.8" fill="#ffffff"/>
-            <circle cx="9.1" cy="5.2" r="0.8" fill="#ffffff"/>
-            <circle cx="2.8" cy="7.8" r="0.8" fill="#ffffff"/>
-            <circle cx="7" cy="7.8" r="0.8" fill="#ffffff"/>
-            <circle cx="11.2" cy="7.8" r="0.8" fill="#ffffff"/>
-            <circle cx="4.9" cy="10.4" r="0.8" fill="#ffffff"/>
-            <circle cx="9.1" cy="10.4" r="0.8" fill="#ffffff"/>
-          </svg>
-          <div class="min-w-0">
-            <div class="flex items-center gap-1.5">
-              <h3 class="font-bold text-sm text-white group-hover:text-indigo-400 transition-colors truncate">English</h3>
-              <span class="rec-badge hidden px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">Auto</span>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+        
+        <!-- Japanese (ja) -->
+        <a href="./ja/" data-lang="ja" class="lang-card group relative p-3 rounded-xl border transition-all duration-200 hover:scale-[1.02] hover:shadow-lg flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3 min-w-0">
+            <svg viewBox="0 0 32 24" class="flag-icon flag-icon-md" xmlns="http://www.w3.org/2000/svg" aria-label="Japan">
+              <rect width="32" height="24" fill="#ffffff"/>
+              <circle cx="16" cy="12" r="6.2" fill="#bc002d"/>
+            </svg>
+            <div class="min-w-0">
+              <div class="flex items-center gap-1.5">
+                <h4 class="font-bold text-sm text-white group-hover:text-violet-400 transition-colors truncate">日本語</h4>
+                <span class="rec-badge hidden px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-violet-500/20 text-violet-400 border border-violet-500/30">Auto</span>
+              </div>
+              <p class="text-[11px] text-slate-400 truncate">Japanese · 日本</p>
             </div>
-            <p class="text-[11px] text-gray-400 truncate">English · Global / US</p>
           </div>
-        </div>
-        <i data-lucide="chevron-right" class="w-4 h-4 text-gray-500 group-hover:text-indigo-400 group-hover:translate-x-0.5 transition-all flex-shrink-0"></i>
-      </a>
+          <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500 group-hover:text-violet-400 group-hover:translate-x-0.5 transition-all flex-shrink-0"></i>
+        </a>
 
-      <!-- Thai (th) -->
-      <a href="./th/" data-lang="th" class="lang-card group relative p-3 rounded-xl border transition-all duration-200 hover:scale-[1.02] hover:shadow-lg flex items-center justify-between gap-3" style="background-color: var(--bg-card); border-color: var(--border-color);">
-        <div class="flex items-center gap-3 min-w-0">
-          <svg viewBox="0 0 32 24" class="flag-icon flag-icon-md" xmlns="http://www.w3.org/2000/svg" aria-label="Thailand">
-            <rect width="32" height="24" fill="#a51931"/>
-            <rect y="4" width="32" height="16" fill="#f4f5f8"/>
-            <rect y="8" width="32" height="8" fill="#2d2a4a"/>
-          </svg>
-          <div class="min-w-0">
-            <div class="flex items-center gap-1.5">
-              <h3 class="font-bold text-sm text-white group-hover:text-indigo-400 transition-colors truncate">ไทย</h3>
-              <span class="rec-badge hidden px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">Auto</span>
+        <!-- English (en) -->
+        <a href="./en/" data-lang="en" class="lang-card group relative p-3 rounded-xl border transition-all duration-200 hover:scale-[1.02] hover:shadow-lg flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3 min-w-0">
+            <svg viewBox="0 0 32 24" class="flag-icon flag-icon-md" xmlns="http://www.w3.org/2000/svg" aria-label="English / USA">
+              <rect width="32" height="24" fill="#b22234"/>
+              <path d="M0 1.85h32v1.85H0zm0 3.69h32v1.85H0zm0 3.69h32v1.85H0zm0 3.69h32v1.85H0zm0 3.69h32v1.85H0zm0 3.69h32v1.85H0z" fill="#ffffff"/>
+              <rect width="14" height="13" fill="#3c3b6e"/>
+              <circle cx="2.8" cy="2.6" r="0.8" fill="#ffffff"/>
+              <circle cx="7" cy="2.6" r="0.8" fill="#ffffff"/>
+              <circle cx="11.2" cy="2.6" r="0.8" fill="#ffffff"/>
+              <circle cx="4.9" cy="5.2" r="0.8" fill="#ffffff"/>
+              <circle cx="9.1" cy="5.2" r="0.8" fill="#ffffff"/>
+              <circle cx="2.8" cy="7.8" r="0.8" fill="#ffffff"/>
+              <circle cx="7" cy="7.8" r="0.8" fill="#ffffff"/>
+              <circle cx="11.2" cy="7.8" r="0.8" fill="#ffffff"/>
+              <circle cx="4.9" cy="10.4" r="0.8" fill="#ffffff"/>
+              <circle cx="9.1" cy="10.4" r="0.8" fill="#ffffff"/>
+            </svg>
+            <div class="min-w-0">
+              <div class="flex items-center gap-1.5">
+                <h4 class="font-bold text-sm text-white group-hover:text-violet-400 transition-colors truncate">English</h4>
+                <span class="rec-badge hidden px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-violet-500/20 text-violet-400 border border-violet-500/30">Auto</span>
+              </div>
+              <p class="text-[11px] text-slate-400 truncate">English · Global / US</p>
             </div>
-            <p class="text-[11px] text-gray-400 truncate">Thai · ประเทศไทย</p>
           </div>
-        </div>
-        <i data-lucide="chevron-right" class="w-4 h-4 text-gray-500 group-hover:text-indigo-400 group-hover:translate-x-0.5 transition-all flex-shrink-0"></i>
-      </a>
+          <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500 group-hover:text-violet-400 group-hover:translate-x-0.5 transition-all flex-shrink-0"></i>
+        </a>
 
-      <!-- Chinese (zh) -->
-      <a href="./zh/" data-lang="zh" class="lang-card group relative p-3 rounded-xl border transition-all duration-200 hover:scale-[1.02] hover:shadow-lg flex items-center justify-between gap-3" style="background-color: var(--bg-card); border-color: var(--border-color);">
-        <div class="flex items-center gap-3 min-w-0">
-          <svg viewBox="0 0 32 24" class="flag-icon flag-icon-md" xmlns="http://www.w3.org/2000/svg" aria-label="China">
-            <rect width="32" height="24" fill="#de2910"/>
-            <polygon points="5.5,2.2 6.6,5.2 9.7,5.2 7.2,7 8.2,10 5.5,8.2 2.8,10 3.8,7 1.3,5.2 4.4,5.2" fill="#ffde00"/>
-            <circle cx="11.5" cy="3.5" r="0.9" fill="#ffde00"/>
-            <circle cx="13.5" cy="5.5" r="0.9" fill="#ffde00"/>
-            <circle cx="13.5" cy="8.5" r="0.9" fill="#ffde00"/>
-            <circle cx="11.5" cy="10.5" r="0.9" fill="#ffde00"/>
-          </svg>
-          <div class="min-w-0">
-            <div class="flex items-center gap-1.5">
-              <h3 class="font-bold text-sm text-white group-hover:text-indigo-400 transition-colors truncate">简体中文</h3>
-              <span class="rec-badge hidden px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">Auto</span>
+        <!-- Thai (th) -->
+        <a href="./th/" data-lang="th" class="lang-card group relative p-3 rounded-xl border transition-all duration-200 hover:scale-[1.02] hover:shadow-lg flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3 min-w-0">
+            <svg viewBox="0 0 32 24" class="flag-icon flag-icon-md" xmlns="http://www.w3.org/2000/svg" aria-label="Thailand">
+              <rect width="32" height="24" fill="#a51931"/>
+              <rect y="4" width="32" height="16" fill="#f4f5f8"/>
+              <rect y="8" width="32" height="8" fill="#2d2a4a"/>
+            </svg>
+            <div class="min-w-0">
+              <div class="flex items-center gap-1.5">
+                <h4 class="font-bold text-sm text-white group-hover:text-violet-400 transition-colors truncate">ไทย</h4>
+                <span class="rec-badge hidden px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-violet-500/20 text-violet-400 border border-violet-500/30">Auto</span>
+              </div>
+              <p class="text-[11px] text-slate-400 truncate">Thai · ประเทศไทย</p>
             </div>
-            <p class="text-[11px] text-gray-400 truncate">Chinese · 中国 / Global</p>
           </div>
-        </div>
-        <i data-lucide="chevron-right" class="w-4 h-4 text-gray-500 group-hover:text-indigo-400 group-hover:translate-x-0.5 transition-all flex-shrink-0"></i>
-      </a>
+          <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500 group-hover:text-violet-400 group-hover:translate-x-0.5 transition-all flex-shrink-0"></i>
+        </a>
 
-      <!-- Spanish (es) -->
-      <a href="./es/" data-lang="es" class="lang-card group relative p-3 rounded-xl border transition-all duration-200 hover:scale-[1.02] hover:shadow-lg flex items-center justify-between gap-3" style="background-color: var(--bg-card); border-color: var(--border-color);">
-        <div class="flex items-center gap-3 min-w-0">
-          <svg viewBox="0 0 32 24" class="flag-icon flag-icon-md" xmlns="http://www.w3.org/2000/svg" aria-label="Spain">
-            <rect width="32" height="24" fill="#aa151b"/>
-            <rect y="6" width="32" height="12" fill="#f1bf00"/>
-            <rect x="6" y="9.5" width="3.5" height="4.5" rx="1" fill="#aa151b"/>
-            <circle cx="7.75" cy="8.5" r="1.1" fill="#aa151b"/>
-            <rect x="4.5" y="8.5" width="0.8" height="6.5" fill="#c09300"/>
-            <rect x="10.2" y="8.5" width="0.8" height="6.5" fill="#c09300"/>
-          </svg>
-          <div class="min-w-0">
-            <div class="flex items-center gap-1.5">
-              <h3 class="font-bold text-sm text-white group-hover:text-indigo-400 transition-colors truncate">Español</h3>
-              <span class="rec-badge hidden px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">Auto</span>
+        <!-- Chinese (zh) -->
+        <a href="./zh/" data-lang="zh" class="lang-card group relative p-3 rounded-xl border transition-all duration-200 hover:scale-[1.02] hover:shadow-lg flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3 min-w-0">
+            <svg viewBox="0 0 32 24" class="flag-icon flag-icon-md" xmlns="http://www.w3.org/2000/svg" aria-label="China">
+              <rect width="32" height="24" fill="#de2910"/>
+              <polygon points="5.5,2.2 6.6,5.2 9.7,5.2 7.2,7 8.2,10 5.5,8.2 2.8,10 3.8,7 1.3,5.2 4.4,5.2" fill="#ffde00"/>
+              <circle cx="11.5" cy="3.5" r="0.9" fill="#ffde00"/>
+              <circle cx="13.5" cy="5.5" r="0.9" fill="#ffde00"/>
+              <circle cx="13.5" cy="8.5" r="0.9" fill="#ffde00"/>
+              <circle cx="11.5" cy="10.5" r="0.9" fill="#ffde00"/>
+            </svg>
+            <div class="min-w-0">
+              <div class="flex items-center gap-1.5">
+                <h4 class="font-bold text-sm text-white group-hover:text-violet-400 transition-colors truncate">简体中文</h4>
+                <span class="rec-badge hidden px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-violet-500/20 text-violet-400 border border-violet-500/30">Auto</span>
+              </div>
+              <p class="text-[11px] text-slate-400 truncate">Chinese · 中国 / Global</p>
             </div>
-            <p class="text-[11px] text-gray-400 truncate">Spanish · España / LATAM</p>
           </div>
-        </div>
-        <i data-lucide="chevron-right" class="w-4 h-4 text-gray-500 group-hover:text-indigo-400 group-hover:translate-x-0.5 transition-all flex-shrink-0"></i>
-      </a>
+          <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500 group-hover:text-violet-400 group-hover:translate-x-0.5 transition-all flex-shrink-0"></i>
+        </a>
 
-      <!-- German (de) -->
-      <a href="./de/" data-lang="de" class="lang-card group relative p-3 rounded-xl border transition-all duration-200 hover:scale-[1.02] hover:shadow-lg flex items-center justify-between gap-3" style="background-color: var(--bg-card); border-color: var(--border-color);">
-        <div class="flex items-center gap-3 min-w-0">
-          <svg viewBox="0 0 32 24" class="flag-icon flag-icon-md" xmlns="http://www.w3.org/2000/svg" aria-label="Germany">
-            <rect width="32" height="8" fill="#111827"/>
-            <rect y="8" width="32" height="8" fill="#dd0000"/>
-            <rect y="16" width="32" height="8" fill="#ffce00"/>
-          </svg>
-          <div class="min-w-0">
-            <div class="flex items-center gap-1.5">
-              <h3 class="font-bold text-sm text-white group-hover:text-indigo-400 transition-colors truncate">Deutsch</h3>
-              <span class="rec-badge hidden px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">Auto</span>
+        <!-- Spanish (es) -->
+        <a href="./es/" data-lang="es" class="lang-card group relative p-3 rounded-xl border transition-all duration-200 hover:scale-[1.02] hover:shadow-lg flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3 min-w-0">
+            <svg viewBox="0 0 32 24" class="flag-icon flag-icon-md" xmlns="http://www.w3.org/2000/svg" aria-label="Spain">
+              <rect width="32" height="24" fill="#aa151b"/>
+              <rect y="6" width="32" height="12" fill="#f1bf00"/>
+              <rect x="6" y="9.5" width="3.5" height="4.5" rx="1" fill="#aa151b"/>
+              <circle cx="7.75" cy="8.5" r="1.1" fill="#aa151b"/>
+              <rect x="4.5" y="8.5" width="0.8" height="6.5" fill="#c09300"/>
+              <rect x="10.2" y="8.5" width="0.8" height="6.5" fill="#c09300"/>
+            </svg>
+            <div class="min-w-0">
+              <div class="flex items-center gap-1.5">
+                <h4 class="font-bold text-sm text-white group-hover:text-violet-400 transition-colors truncate">Español</h4>
+                <span class="rec-badge hidden px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-violet-500/20 text-violet-400 border border-violet-500/30">Auto</span>
+              </div>
+              <p class="text-[11px] text-slate-400 truncate">Spanish · España / LATAM</p>
             </div>
-            <p class="text-[11px] text-gray-400 truncate">German · Deutschland / DACH</p>
           </div>
-        </div>
-        <i data-lucide="chevron-right" class="w-4 h-4 text-gray-500 group-hover:text-indigo-400 group-hover:translate-x-0.5 transition-all flex-shrink-0"></i>
-      </a>
+          <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500 group-hover:text-violet-400 group-hover:translate-x-0.5 transition-all flex-shrink-0"></i>
+        </a>
 
-      <!-- French (fr) -->
-      <a href="./fr/" data-lang="fr" class="lang-card group relative p-3 rounded-xl border transition-all duration-200 hover:scale-[1.02] hover:shadow-lg flex items-center justify-between gap-3" style="background-color: var(--bg-card); border-color: var(--border-color);">
-        <div class="flex items-center gap-3 min-w-0">
-          <svg viewBox="0 0 32 24" class="flag-icon flag-icon-md" xmlns="http://www.w3.org/2000/svg" aria-label="France">
-            <rect width="11" height="24" fill="#002395"/>
-            <rect x="11" width="10" height="24" fill="#ffffff"/>
-            <rect x="21" width="11" height="24" fill="#ed2939"/>
-          </svg>
-          <div class="min-w-0">
-            <div class="flex items-center gap-1.5">
-              <h3 class="font-bold text-sm text-white group-hover:text-indigo-400 transition-colors truncate">Français</h3>
-              <span class="rec-badge hidden px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">Auto</span>
+        <!-- German (de) -->
+        <a href="./de/" data-lang="de" class="lang-card group relative p-3 rounded-xl border transition-all duration-200 hover:scale-[1.02] hover:shadow-lg flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3 min-w-0">
+            <svg viewBox="0 0 32 24" class="flag-icon flag-icon-md" xmlns="http://www.w3.org/2000/svg" aria-label="Germany">
+              <rect width="32" height="8" fill="#111827"/>
+              <rect y="8" width="32" height="8" fill="#dd0000"/>
+              <rect y="16" width="32" height="8" fill="#ffce00"/>
+            </svg>
+            <div class="min-w-0">
+              <div class="flex items-center gap-1.5">
+                <h4 class="font-bold text-sm text-white group-hover:text-violet-400 transition-colors truncate">Deutsch</h4>
+                <span class="rec-badge hidden px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-violet-500/20 text-violet-400 border border-violet-500/30">Auto</span>
+              </div>
+              <p class="text-[11px] text-slate-400 truncate">German · Deutschland / DACH</p>
             </div>
-            <p class="text-[11px] text-gray-400 truncate">French · France / Global</p>
           </div>
-        </div>
-        <i data-lucide="chevron-right" class="w-4 h-4 text-gray-500 group-hover:text-indigo-400 group-hover:translate-x-0.5 transition-all flex-shrink-0"></i>
-      </a>
+          <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500 group-hover:text-violet-400 group-hover:translate-x-0.5 transition-all flex-shrink-0"></i>
+        </a>
 
+        <!-- French (fr) -->
+        <a href="./fr/" data-lang="fr" class="lang-card group relative p-3 rounded-xl border transition-all duration-200 hover:scale-[1.02] hover:shadow-lg flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3 min-w-0">
+            <svg viewBox="0 0 32 24" class="flag-icon flag-icon-md" xmlns="http://www.w3.org/2000/svg" aria-label="France">
+              <rect width="11" height="24" fill="#002395"/>
+              <rect x="11" width="10" height="24" fill="#ffffff"/>
+              <rect x="21" width="11" height="24" fill="#ed2939"/>
+            </svg>
+            <div class="min-w-0">
+              <div class="flex items-center gap-1.5">
+                <h4 class="font-bold text-sm text-white group-hover:text-violet-400 transition-colors truncate">Français</h4>
+                <span class="rec-badge hidden px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-violet-500/20 text-violet-400 border border-violet-500/30">Auto</span>
+              </div>
+              <p class="text-[11px] text-slate-400 truncate">French · France / Global</p>
+            </div>
+          </div>
+          <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500 group-hover:text-violet-400 group-hover:translate-x-0.5 transition-all flex-shrink-0"></i>
+        </a>
+
+      </div>
+    </div>
+
+    <!-- Supported Ecosystem & Models Strip -->
+    <div class="w-full max-w-5xl mb-14 text-center">
+      <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3.5">
+        Optimized For All Major AI Architectures & Developer Tools
+      </h3>
+      <div class="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5 text-xs text-slate-300">
+        <span class="px-3.5 py-1.5 rounded-xl border bg-slate-900/60 backdrop-blur-sm border-white/10 flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span> ChatGPT (OpenAI)
+        </span>
+        <span class="px-3.5 py-1.5 rounded-xl border bg-slate-900/60 backdrop-blur-sm border-white/10 flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-amber-400"></span> Claude (Anthropic)
+        </span>
+        <span class="px-3.5 py-1.5 rounded-xl border bg-slate-900/60 backdrop-blur-sm border-white/10 flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-blue-400"></span> Gemini (Google)
+        </span>
+        <span class="px-3.5 py-1.5 rounded-xl border bg-slate-900/60 backdrop-blur-sm border-white/10 flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-cyan-400"></span> DeepSeek (V3 / R1)
+        </span>
+        <span class="px-3.5 py-1.5 rounded-xl border bg-slate-900/60 backdrop-blur-sm border-white/10 flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-purple-400"></span> Cursor & Copilot
+        </span>
+        <span class="px-3.5 py-1.5 rounded-xl border bg-slate-900/60 backdrop-blur-sm border-white/10 flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-rose-400"></span> Ollama & Local LLMs
+        </span>
+      </div>
     </div>
 
     <!-- ================================================================= -->
     <!-- SEO & AI-Optimized Informational Overview Section (English) -->
     <!-- ================================================================= -->
-    <section class="w-full max-w-5xl border-t pt-16 pb-12" style="border-color: var(--border-color);">
+    <section class="w-full max-w-5xl border-t pt-14 pb-12" style="border-color: var(--border-color);">
       
       <!-- Section Header -->
       <div class="text-center max-w-2xl mx-auto mb-12">
-        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-400 text-xs font-semibold mb-3">
+        <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-violet-500/10 border border-violet-500/30 text-violet-300 text-xs font-semibold mb-3">
           <i data-lucide="cpu" class="w-3.5 h-3.5"></i> Tailored for the Generative AI Era
         </div>
-        <h2 class="text-2xl sm:text-3xl font-bold text-white tracking-tight mb-3">
+        <h3 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mb-3">
           The Zero-Setup Markdown Reader for Lengthy AI Outputs
-        </h2>
-        <p class="text-sm text-gray-400 leading-relaxed">
+        </h3>
+        <p class="text-xs sm:text-sm text-slate-400 leading-relaxed">
           Modern Large Language Models produce massive, deeply nested Markdown documentation. 
           AI Markdown Reader gives you an instant, elegant desktop reading experience with zero installs and zero remote data transfers.
         </p>
@@ -364,66 +590,66 @@
         
         <!-- Feature 1: Multi-File Drag & Drop -->
         <div class="p-5 rounded-2xl border" style="background-color: var(--bg-card); border-color: var(--border-color);">
-          <div class="w-10 h-10 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center mb-3">
+          <div class="w-10 h-10 rounded-xl bg-violet-500/10 text-violet-400 flex items-center justify-center mb-3">
             <i data-lucide="files" class="w-5 h-5"></i>
           </div>
-          <h3 class="font-bold text-white text-base mb-2">Multi-File Tab Workspace</h3>
-          <p class="text-xs text-gray-400 leading-relaxed">
-            Drag and drop dozens of <code class="text-indigo-300">.md</code>, <code class="text-indigo-300">.markdown</code>, or <code class="text-indigo-300">.txt</code> files at once. Seamlessly navigate with keyboard shortcuts (<kbd class="px-1 py-0.5 rounded bg-gray-800 text-[10px]">Alt+←/→</kbd>) and persistent read tracking per tab.
+          <h4 class="font-bold text-white text-base mb-1.5">Multi-File Tab Workspace</h4>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Drag and drop dozens of <code class="text-violet-300 font-mono">.md</code>, <code class="text-violet-300 font-mono">.markdown</code>, or <code class="text-violet-300 font-mono">.txt</code> files at once. Seamlessly navigate with keyboard shortcuts (<kbd class="px-1 py-0.5 rounded bg-slate-800 text-[10px]">Alt+←/→</kbd>) and persistent read tracking per tab.
           </p>
         </div>
 
         <!-- Feature 2: Mermaid Diagrams -->
         <div class="p-5 rounded-2xl border" style="background-color: var(--bg-card); border-color: var(--border-color);">
-          <div class="w-10 h-10 rounded-lg bg-pink-500/10 text-pink-400 flex items-center justify-center mb-3">
+          <div class="w-10 h-10 rounded-xl bg-pink-500/10 text-pink-400 flex items-center justify-center mb-3">
             <i data-lucide="git-branch" class="w-5 h-5"></i>
           </div>
-          <h3 class="font-bold text-white text-base mb-2">Mermaid Diagram Engine</h3>
-          <p class="text-xs text-gray-400 leading-relaxed">
+          <h4 class="font-bold text-white text-base mb-1.5">Mermaid Diagram Engine</h4>
+          <p class="text-xs text-slate-400 leading-relaxed">
             Automatically parses raw Mermaid code into interactive SVG flowcharts, sequence diagrams, class hierarchies, and ER models generated by ChatGPT, Claude, and Gemini.
           </p>
         </div>
 
         <!-- Feature 3: Syntax Highlighting & Code Save -->
         <div class="p-5 rounded-2xl border" style="background-color: var(--bg-card); border-color: var(--border-color);">
-          <div class="w-10 h-10 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center mb-3">
+          <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center mb-3">
             <i data-lucide="code" class="w-5 h-5"></i>
           </div>
-          <h3 class="font-bold text-white text-base mb-2">Code Highlights & 1-Click Save</h3>
-          <p class="text-xs text-gray-400 leading-relaxed">
-            Crisp syntax highlighting for over 50 programming languages. Copy snippets in one click or directly export code blocks with proper file extensions (<code class="text-emerald-300">.py</code>, <code class="text-emerald-300">.ts</code>, <code class="text-emerald-300">.json</code>).
+          <h4 class="font-bold text-white text-base mb-1.5">Code Highlights & 1-Click Save</h4>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Crisp syntax highlighting for over 50 programming languages. Copy snippets in one click or directly export code blocks with proper file extensions (<code class="text-emerald-300 font-mono">.py</code>, <code class="text-emerald-300 font-mono">.ts</code>, <code class="text-emerald-300 font-mono">.json</code>).
           </p>
         </div>
 
         <!-- Feature 4: KaTeX Math Typesetting -->
         <div class="p-5 rounded-2xl border" style="background-color: var(--bg-card); border-color: var(--border-color);">
-          <div class="w-10 h-10 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center mb-3">
+          <div class="w-10 h-10 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center mb-3">
             <i data-lucide="binary" class="w-5 h-5"></i>
           </div>
-          <h3 class="font-bold text-white text-base mb-2">LaTeX & KaTeX Formulas</h3>
-          <p class="text-xs text-gray-400 leading-relaxed">
-            Beautiful mathematical typesetting for scientific equations, deep learning loss formulations, and algorithms, rendering both inline <code class="text-amber-300">$E=mc^2$</code> and complex block equations.
+          <h4 class="font-bold text-white text-base mb-1.5">LaTeX & KaTeX Formulas</h4>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Beautiful mathematical typesetting for scientific equations, deep learning loss formulations, and algorithms, rendering both inline <code class="text-cyan-300 font-mono">$E=mc^2$</code> and complex block equations.
           </p>
         </div>
 
         <!-- Feature 5: Deep Reading Companion -->
         <div class="p-5 rounded-2xl border" style="background-color: var(--bg-card); border-color: var(--border-color);">
-          <div class="w-10 h-10 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center mb-3">
+          <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center mb-3">
             <i data-lucide="book-open" class="w-5 h-5"></i>
           </div>
-          <h3 class="font-bold text-white text-base mb-2">Deep Reading Ergonomics</h3>
-          <p class="text-xs text-gray-400 leading-relaxed">
-            Accordion collapsible headings (H2/H3), automatic Table of Contents with read progress meters, Zen Focus Mode (<kbd class="px-1 py-0.5 rounded bg-gray-800 text-[10px]">Esc</kbd>), and TL;DR Keynote highlighting for instant scanning.
+          <h4 class="font-bold text-white text-base mb-1.5">Deep Reading Ergonomics</h4>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Accordion collapsible headings (H2/H3), automatic Table of Contents with read progress meters, Zen Focus Mode (<kbd class="px-1 py-0.5 rounded bg-slate-800 text-[10px]">Esc</kbd>), and TL;DR Keynote highlighting for instant scanning.
           </p>
         </div>
 
         <!-- Feature 6: Privacy-First & Silent -->
         <div class="p-5 rounded-2xl border" style="background-color: var(--bg-card); border-color: var(--border-color);">
-          <div class="w-10 h-10 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center mb-3">
+          <div class="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center mb-3">
             <i data-lucide="shield-check" class="w-5 h-5"></i>
           </div>
-          <h3 class="font-bold text-white text-base mb-2">100% Private & Office Silent</h3>
-          <p class="text-xs text-gray-400 leading-relaxed">
+          <h4 class="font-bold text-white text-base mb-1.5">100% Private & Office Silent</h4>
+          <p class="text-xs text-slate-400 leading-relaxed">
             Completely silent with zero audio playback. All document parsing happens locally inside your browser sandbox—no data ever leaves your computer, making it enterprise-ready.
           </p>
         </div>
@@ -431,87 +657,72 @@
       </div>
 
       <!-- How It Works (3 Steps) -->
-      <div class="p-6 sm:p-8 rounded-2xl border mb-14" style="background-color: var(--bg-card-alt); border-color: var(--border-color);">
-        <h3 class="text-lg font-bold text-white mb-6 text-center">
+      <div class="p-6 sm:p-8 rounded-2xl border mb-14" style="background-color: var(--bg-card); border-color: var(--border-color);">
+        <h4 class="text-lg font-bold text-white mb-6 text-center">
           How It Works — Simple 3-Step Workflow
-        </h3>
+        </h4>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
           <div class="flex flex-col items-center">
-            <div class="w-10 h-10 rounded-full bg-indigo-500/20 text-indigo-400 font-bold flex items-center justify-center mb-3 border border-indigo-500/30">
+            <div class="w-10 h-10 rounded-full bg-violet-500/20 text-violet-300 font-bold flex items-center justify-center mb-3 border border-violet-500/30">
               1
             </div>
-            <h4 class="font-semibold text-white text-sm mb-1">Drop or Paste</h4>
-            <p class="text-xs text-gray-400">
-              Drag files from your file manager or simply hit <kbd class="px-1 py-0.5 rounded bg-gray-800 text-[10px]">Ctrl+V</kbd> anywhere on screen.
+            <h5 class="font-semibold text-white text-sm mb-1">Drop or Paste</h5>
+            <p class="text-xs text-slate-400">
+              Drag files from your file manager or simply hit <kbd class="px-1 py-0.5 rounded bg-slate-800 text-[10px]">Ctrl+V</kbd> anywhere on screen.
             </p>
           </div>
           <div class="flex flex-col items-center">
-            <div class="w-10 h-10 rounded-full bg-indigo-500/20 text-indigo-400 font-bold flex items-center justify-center mb-3 border border-indigo-500/30">
+            <div class="w-10 h-10 rounded-full bg-violet-500/20 text-violet-300 font-bold flex items-center justify-center mb-3 border border-violet-500/30">
               2
             </div>
-            <h4 class="font-semibold text-white text-sm mb-1">Instant Rich Layout</h4>
-            <p class="text-xs text-gray-400">
+            <h5 class="font-semibold text-white text-sm mb-1">Instant Rich Layout</h5>
+            <p class="text-xs text-slate-400">
               Mermaid graphs, equations, callouts, and colored heading hierarchies render in milliseconds.
             </p>
           </div>
           <div class="flex flex-col items-center">
-            <div class="w-10 h-10 rounded-full bg-indigo-500/20 text-indigo-400 font-bold flex items-center justify-center mb-3 border border-indigo-500/30">
+            <div class="w-10 h-10 rounded-full bg-violet-500/20 text-violet-300 font-bold flex items-center justify-center mb-3 border border-violet-500/30">
               3
             </div>
-            <h4 class="font-semibold text-white text-sm mb-1">Navigate & Print</h4>
-            <p class="text-xs text-gray-400">
-              Track your reading progress, search text (<kbd class="px-1 py-0.5 rounded bg-gray-800 text-[10px]">Ctrl+F</kbd>), or print clean PDF documentation.
+            <h5 class="font-semibold text-white text-sm mb-1">Navigate & Print</h5>
+            <p class="text-xs text-slate-400">
+              Track your reading progress, search text (<kbd class="px-1 py-0.5 rounded bg-slate-800 text-[10px]">Ctrl+F</kbd>), or print clean PDF documentation.
             </p>
           </div>
-        </div>
-      </div>
-
-      <!-- Supported Ecosystem & Models -->
-      <div class="text-center mb-14">
-        <h3 class="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-4">
-          Engineered for All Major AI Models & Developer Tools
-        </h3>
-        <div class="flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-xs text-gray-300">
-          <span class="px-3 py-1.5 rounded-lg border bg-gray-900/60" style="border-color: var(--border-color);">ChatGPT (OpenAI)</span>
-          <span class="px-3 py-1.5 rounded-lg border bg-gray-900/60" style="border-color: var(--border-color);">Claude (Anthropic)</span>
-          <span class="px-3 py-1.5 rounded-lg border bg-gray-900/60" style="border-color: var(--border-color);">Gemini (Google)</span>
-          <span class="px-3 py-1.5 rounded-lg border bg-gray-900/60" style="border-color: var(--border-color);">DeepSeek (V3/R1)</span>
-          <span class="px-3 py-1.5 rounded-lg border bg-gray-900/60" style="border-color: var(--border-color);">Cursor & Copilot</span>
-          <span class="px-3 py-1.5 rounded-lg border bg-gray-900/60" style="border-color: var(--border-color);">Ollama & Local LLMs</span>
         </div>
       </div>
 
       <!-- FAQ Accordion / Information Section -->
       <div class="max-w-3xl mx-auto">
-        <h3 class="text-lg font-bold text-white mb-6 text-center">Frequently Asked Questions</h3>
+        <h4 class="text-lg font-bold text-white mb-6 text-center">Frequently Asked Questions</h4>
         <div class="space-y-4 text-xs sm:text-sm">
           
           <div class="p-4 rounded-xl border" style="background-color: var(--bg-card); border-color: var(--border-color);">
-            <h4 class="font-semibold text-white mb-1.5 flex items-center gap-2">
-              <i data-lucide="help-circle" class="w-4 h-4 text-indigo-400 flex-shrink-0"></i>
+            <h5 class="font-semibold text-white mb-1.5 flex items-center gap-2">
+              <i data-lucide="help-circle" class="w-4 h-4 text-violet-400 flex-shrink-0"></i>
               Is my document uploaded to an external server or cloud?
-            </h4>
-            <p class="text-gray-400 pl-6 leading-relaxed">
+            </h5>
+            <p class="text-slate-400 pl-6 leading-relaxed">
               No. AI Markdown Reader executes entirely within your browser client. Your documents, code snippets, and confidential design specs never leave your computer.
             </p>
           </div>
 
           <div class="p-4 rounded-xl border" style="background-color: var(--bg-card); border-color: var(--border-color);">
-            <h4 class="font-semibold text-white mb-1.5 flex items-center gap-2">
-              <i data-lucide="help-circle" class="w-4 h-4 text-indigo-400 flex-shrink-0"></i>
+            <h5 class="font-semibold text-white mb-1.5 flex items-center gap-2">
+              <i data-lucide="help-circle" class="w-4 h-4 text-violet-400 flex-shrink-0"></i>
               Can I use this offline without an active internet connection?
-            </h4>
-            <p class="text-gray-400 pl-6 leading-relaxed">
-              Yes. Yes. Once loaded in your browser tab, all parsing, diagram rendering, and formatting execute 100% locally in your browser memory without needing ongoing network connectivity.
+            </h5>
+            <p class="text-slate-400 pl-6 leading-relaxed">
+              Yes. Once loaded in your browser tab, all parsing, diagram rendering, and formatting execute 100% locally in your browser memory without needing ongoing network connectivity.
             </p>
           </div>
 
           <div class="p-4 rounded-xl border" style="background-color: var(--bg-card); border-color: var(--border-color);">
-            <h4 class="font-semibold text-white mb-1.5 flex items-center gap-2">
-              <i data-lucide="help-circle" class="w-4 h-4 text-indigo-400 flex-shrink-0"></i>
+            <h5 class="font-semibold text-white mb-1.5 flex items-center gap-2">
+              <i data-lucide="help-circle" class="w-4 h-4 text-violet-400 flex-shrink-0"></i>
               Why is this viewer completely silent?
-            </h4>
-            <p class="text-gray-400 pl-6 leading-relaxed">
+            </h5>
+            <p class="text-slate-400 pl-6 leading-relaxed">
               In quiet corporate offices, libraries, and open workspaces, unexpected sound effects can be disruptive. This application is purposefully built with zero audio triggers, featuring smooth visual confetti and sleek micro-animations instead.
             </p>
           </div>
@@ -522,9 +733,9 @@
     </section>
 
     <!-- Footer -->
-    <footer class="w-full max-w-5xl border-t py-8 text-center text-xs text-gray-500" style="border-color: var(--border-color);">
-      <p>AI Markdown Reader — Zero-Setup, Privacy-First Reading Companion.</p>
-      <p class="mt-1">Works seamlessly on Chrome, Edge, Safari, Firefox, and mobile browsers.</p>
+    <footer class="w-full max-w-5xl border-t py-8 text-center text-xs text-slate-500" style="border-color: var(--border-color);">
+      <p class="mb-2">AI Markdown Reader — Zero-Setup, Privacy-First Reading Companion.</p>
+      <p class="text-[11px] text-slate-600">Works seamlessly on Chrome, Edge, Safari, Firefox, and mobile browsers.</p>
     </footer>
 
   </main>
